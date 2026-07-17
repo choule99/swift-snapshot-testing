@@ -1,34 +1,35 @@
-@_spi(Internals) @testable import SnapshotTesting
 import XCTest
 
+@_spi(Internals) @testable import SnapshotTesting
+
 class WithSnapshotTestingTests: XCTestCase {
-  func testNesting() {
-    withSnapshotTesting(record: .all) {
-      XCTAssertEqual(
-        SnapshotTestingConfiguration.current?
-          .diffTool?(currentFilePath: "old.png", failedFilePath: "new.png"),
-        """
-        @−
-        "file://old.png"
-        @+
-        "file://new.png"
+    func testNesting() {
+        withSnapshotTesting(record: .all) {
+            XCTAssertEqual(
+                SnapshotTestingConfiguration.current?
+                    .diffTool?(currentFilePath: "old.png", failedFilePath: "new.png"),
+                """
+                @−
+                "file://old.png"
+                @+
+                "file://new.png"
 
-        To configure output for a custom diff tool, use 'withSnapshotTesting'. For example:
+                To configure output for a custom diff tool, use 'withSnapshotTesting'. For example:
 
-            withSnapshotTesting(diffTool: .ksdiff) {
-              // ...
+                    withSnapshotTesting(diffTool: .ksdiff) {
+                      // ...
+                    }
+                """
+            )
+            XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
+            withSnapshotTesting(diffTool: "ksdiff") {
+                XCTAssertEqual(
+                    SnapshotTestingConfiguration.current?
+                        .diffTool?(currentFilePath: "old.png", failedFilePath: "new.png"),
+                    "ksdiff old.png new.png"
+                )
+                XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
             }
-        """
-      )
-      XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
-      withSnapshotTesting(diffTool: "ksdiff") {
-        XCTAssertEqual(
-          SnapshotTestingConfiguration.current?
-            .diffTool?(currentFilePath: "old.png", failedFilePath: "new.png"),
-          "ksdiff old.png new.png"
-        )
-        XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
-      }
+        }
     }
-  }
 }

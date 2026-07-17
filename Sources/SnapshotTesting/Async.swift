@@ -14,29 +14,29 @@
 /// }
 /// ```
 public struct Async<Value> {
-  public let run: (@escaping (Value) -> Void) -> Void
+    public let run: (@escaping (Value) -> Void) -> Void
 
-  /// Creates an asynchronous operation.
-  ///
-  /// - Parameters:
-  ///   - run: A function that, when called, can hand a value to a callback.
-  public init(run: @escaping (_ callback: @escaping (Value) -> Void) -> Void) {
-    self.run = run
-  }
-
-  /// Wraps a pure value in an asynchronous operation.
-  ///
-  /// - Parameter value: A value to be wrapped in an asynchronous operation.
-  public init(value: Value) {
-    self.init { callback in callback(value) }
-  }
-
-  /// Transforms an `Async<Value>` into an `Async<NewValue>` with a function `(Value) -> NewValue`.
-  ///
-  /// - Parameter transform: A transformation to apply to the value wrapped by the async value.
-  public func map<NewValue>(_ transform: @escaping (Value) -> NewValue) -> Async<NewValue> {
-    .init { callback in
-      self.run { value in callback(transform(value)) }
+    /// Creates an asynchronous operation.
+    ///
+    /// - Parameters:
+    ///   - run: A function that, when called, can hand a value to a callback.
+    public init(run: @escaping (_ callback: @escaping (Value) -> Void) -> Void) {
+        self.run = run
     }
-  }
+
+    /// Wraps a pure value in an asynchronous operation.
+    ///
+    /// - Parameter value: A value to be wrapped in an asynchronous operation.
+    public init(value: Value) {
+        self.init { callback in callback(value) }
+    }
+
+    /// Transforms an `Async<Value>` into an `Async<NewValue>` with a function `(Value) -> NewValue`.
+    ///
+    /// - Parameter transform: A transformation to apply to the value wrapped by the async value.
+    public func map<NewValue>(_ transform: @escaping (Value) -> NewValue) -> Async<NewValue> {
+        .init { callback in
+            self.run { value in callback(transform(value)) }
+        }
+    }
 }

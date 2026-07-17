@@ -1,10 +1,10 @@
 #if os(iOS) || os(tvOS)
-  import UIKit
+import UIKit
 
-  extension Snapshotting where Value == UIViewController, Format == UIImage {
+public extension Snapshotting where Value == UIViewController, Format == UIImage {
     /// A snapshot strategy for comparing view controller views based on pixel equality.
-    public static var image: Snapshotting {
-      return .image()
+    static var image: Snapshotting {
+        .image()
     }
 
     /// A snapshot strategy for comparing view controller views based on pixel equality.
@@ -21,29 +21,28 @@
     ///     human eye.
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
-    public static func image(
-      on config: ViewImageConfig,
-      drawHierarchyInKeyWindow: Bool = false,
-      precision: Float = 1,
-      perceptualPrecision: Float = 1,
-      size: CGSize? = nil,
-      traits: UITraitCollection = .init()
+    static func image(
+        on config: ViewImageConfig,
+        drawHierarchyInKeyWindow: Bool = false,
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        size: CGSize? = nil,
+        traits: UITraitCollection = .init()
     )
-      -> Snapshotting
-    {
+        -> Snapshotting {
 
-      return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
-      ).asyncPullback { viewController in
-        snapshotView(
-          config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) }
-            ?? config,
-          drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-          traits: traits,
-          view: viewController.view,
-          viewController: viewController
-        )
-      }
+        SimplySnapshotting.image(
+            precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+        ).asyncPullback { viewController in
+            snapshotView(
+                config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) }
+                    ?? config,
+                drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+                traits: traits,
+                view: viewController.view,
+                viewController: viewController
+            )
+        }
     }
 
     /// A snapshot strategy for comparing view controller views based on pixel equality.
@@ -59,31 +58,30 @@
     ///     human eye.
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
-    public static func image(
-      drawHierarchyInKeyWindow: Bool = false,
-      precision: Float = 1,
-      perceptualPrecision: Float = 1,
-      size: CGSize? = nil,
-      traits: UITraitCollection = .init()
+    static func image(
+        drawHierarchyInKeyWindow: Bool = false,
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        size: CGSize? = nil,
+        traits: UITraitCollection = .init()
     )
-      -> Snapshotting
-    {
+        -> Snapshotting {
 
-      return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
-      ).asyncPullback { viewController in
-        snapshotView(
-          config: .init(safeArea: .zero, size: size, traits: traits),
-          drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-          traits: traits,
-          view: viewController.view,
-          viewController: viewController
-        )
-      }
+        SimplySnapshotting.image(
+            precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+        ).asyncPullback { viewController in
+            snapshotView(
+                config: .init(safeArea: .zero, size: size, traits: traits),
+                drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+                traits: traits,
+                view: viewController.view,
+                viewController: viewController
+            )
+        }
     }
-  }
+}
 
-  extension Snapshotting where Value == UIViewController, Format == String {
+public extension Snapshotting where Value == UIViewController, Format == String {
     /// A snapshot strategy for comparing view controllers based on their embedded controller
     /// hierarchy.
     ///
@@ -107,27 +105,27 @@
     ///    | <UINavigationController>, state: disappeared, view: <UILayoutContainerView> not in the window
     ///    |    | <UIViewController>, state: disappeared, view: (view not loaded)
     /// ```
-    public static var hierarchy: Snapshotting {
-      return Snapshotting<String, String>.lines.pullback { viewController in
-        let dispose = prepareView(
-          config: .init(),
-          drawHierarchyInKeyWindow: false,
-          traits: .init(),
-          view: viewController.view,
-          viewController: viewController
-        )
-        defer { dispose() }
-        return purgePointers(
-          viewController.perform(Selector(("_printHierarchy"))).retain().takeUnretainedValue()
-            as! String
-        )
-      }
+    static var hierarchy: Snapshotting {
+        Snapshotting<String, String>.lines.pullback { viewController in
+            let dispose = prepareView(
+                config: .init(),
+                drawHierarchyInKeyWindow: false,
+                traits: .init(),
+                view: viewController.view,
+                viewController: viewController
+            )
+            defer { dispose() }
+            return purgePointers(
+                viewController.perform(Selector(("_printHierarchy"))).retain().takeUnretainedValue()
+                    as! String
+            )
+        }
     }
 
     /// A snapshot strategy for comparing view controller views based on a recursive description of
     /// their properties and hierarchies.
-    public static var recursiveDescription: Snapshotting {
-      return Snapshotting.recursiveDescription()
+    static var recursiveDescription: Snapshotting {
+        Snapshotting.recursiveDescription()
     }
 
     /// A snapshot strategy for comparing view controller views based on a recursive description of
@@ -137,29 +135,29 @@
     ///   - config: A set of device configuration settings.
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
-    public static func recursiveDescription(
-      on config: ViewImageConfig = .init(),
-      size: CGSize? = nil,
-      traits: UITraitCollection = .init()
+    static func recursiveDescription(
+        on config: ViewImageConfig = .init(),
+        size: CGSize? = nil,
+        traits: UITraitCollection = .init()
     )
-      -> Snapshotting<UIViewController, String>
-    {
-      return SimplySnapshotting.lines.pullback { viewController in
-        let dispose = prepareView(
-          config: .init(
-            safeArea: config.safeArea, size: size ?? config.size, traits: config.traits),
-          drawHierarchyInKeyWindow: false,
-          traits: traits,
-          view: viewController.view,
-          viewController: viewController
-        )
-        defer { dispose() }
-        return purgePointers(
-          viewController.view.perform(Selector(("recursiveDescription"))).retain()
-            .takeUnretainedValue()
-            as! String
-        )
-      }
+        -> Snapshotting<UIViewController, String> {
+        SimplySnapshotting.lines.pullback { viewController in
+            let dispose = prepareView(
+                config: .init(
+                    safeArea: config.safeArea, size: size ?? config.size, traits: config.traits
+                ),
+                drawHierarchyInKeyWindow: false,
+                traits: traits,
+                view: viewController.view,
+                viewController: viewController
+            )
+            defer { dispose() }
+            return purgePointers(
+                viewController.view.perform(Selector(("recursiveDescription"))).retain()
+                    .takeUnretainedValue()
+                    as! String
+            )
+        }
     }
-  }
+}
 #endif

@@ -1,9 +1,9 @@
 #if os(macOS)
-  import AppKit
-  import Cocoa
-  import QuartzCore
+import AppKit
+import Cocoa
+import QuartzCore
 
-  extension Snapshotting where Value == CALayer, Format == NSImage {
+public extension Snapshotting where Value == CALayer, Format == NSImage {
     /// A snapshot strategy for comparing layers based on pixel equality.
     ///
     /// ``` swift
@@ -13,8 +13,8 @@
     /// // Allow for a 1% pixel difference.
     /// assertSnapshot(of: layer, as: .image(precision: 0.99))
     /// ```
-    public static var image: Snapshotting {
-      return .image(precision: 1)
+    static var image: Snapshotting {
+        .image(precision: 1)
     }
 
     /// A snapshot strategy for comparing layers based on pixel equality.
@@ -25,28 +25,28 @@
     ///     match. 98-99% mimics
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
-    public static func image(precision: Float, perceptualPrecision: Float = 1) -> Snapshotting {
-      return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision
-      ).pullback { layer in
-        let image = NSImage(size: layer.bounds.size)
-        image.lockFocus()
-        let context = NSGraphicsContext.current!.cgContext
-        layer.setNeedsLayout()
-        layer.layoutIfNeeded()
-        layer.render(in: context)
-        image.unlockFocus()
-        return image
-      }
+    static func image(precision: Float, perceptualPrecision: Float = 1) -> Snapshotting {
+        SimplySnapshotting.image(
+            precision: precision, perceptualPrecision: perceptualPrecision
+        ).pullback { layer in
+            let image = NSImage(size: layer.bounds.size)
+            image.lockFocus()
+            let context = NSGraphicsContext.current!.cgContext
+            layer.setNeedsLayout()
+            layer.layoutIfNeeded()
+            layer.render(in: context)
+            image.unlockFocus()
+            return image
+        }
     }
-  }
+}
 #elseif os(iOS) || os(tvOS)
-  import UIKit
+import UIKit
 
-  extension Snapshotting where Value == CALayer, Format == UIImage {
+public extension Snapshotting where Value == CALayer, Format == UIImage {
     /// A snapshot strategy for comparing layers based on pixel equality.
-    public static var image: Snapshotting {
-      return .image()
+    static var image: Snapshotting {
+        .image()
     }
 
     /// A snapshot strategy for comparing layers based on pixel equality.
@@ -58,20 +58,19 @@
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     ///   - traits: A trait collection override.
-    public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, traits: UITraitCollection = .init()
+    static func image(
+        precision: Float = 1, perceptualPrecision: Float = 1, traits: UITraitCollection = .init()
     )
-      -> Snapshotting
-    {
-      return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
-      ).pullback { layer in
-        renderer(bounds: layer.bounds, for: traits).image { ctx in
-          layer.setNeedsLayout()
-          layer.layoutIfNeeded()
-          layer.render(in: ctx.cgContext)
+        -> Snapshotting {
+        SimplySnapshotting.image(
+            precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+        ).pullback { layer in
+            renderer(bounds: layer.bounds, for: traits).image { ctx in
+                layer.setNeedsLayout()
+                layer.layoutIfNeeded()
+                layer.render(in: ctx.cgContext)
+            }
         }
-      }
     }
-  }
+}
 #endif

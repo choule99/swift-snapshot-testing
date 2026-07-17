@@ -1,10 +1,10 @@
 #if os(iOS) || os(tvOS)
-  import UIKit
+import UIKit
 
-  extension Snapshotting where Value == UIBezierPath, Format == UIImage {
+public extension Snapshotting where Value == UIBezierPath, Format == UIImage {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
-    public static var image: Snapshotting {
-      return .image()
+    static var image: Snapshotting {
+        .image()
     }
 
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
@@ -16,41 +16,39 @@
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     ///   - scale: The scale to use when loading the reference image from disk.
-    public static func image(
-      precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1
+    static func image(
+        precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1
     ) -> Snapshotting {
-      return SimplySnapshotting.image(
-        precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
-      ).pullback { path in
-        let bounds = path.bounds
-        let format: UIGraphicsImageRendererFormat
-        if #available(iOS 11.0, tvOS 11.0, *) {
-          format = UIGraphicsImageRendererFormat.preferred()
-        } else {
-          format = UIGraphicsImageRendererFormat.default()
+        SimplySnapshotting.image(
+            precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+        ).pullback { path in
+            let bounds = path.bounds
+            let format = if #available(iOS 11.0, tvOS 11.0, *) {
+                UIGraphicsImageRendererFormat.preferred()
+            } else {
+                UIGraphicsImageRendererFormat.default()
+            }
+            format.scale = scale
+            return UIGraphicsImageRenderer(bounds: bounds, format: format).image { _ in
+                path.fill()
+            }
         }
-        format.scale = scale
-        return UIGraphicsImageRenderer(bounds: bounds, format: format).image { ctx in
-          path.fill()
-        }
-      }
     }
-  }
+}
 
-  @available(iOS 11.0, tvOS 11.0, *)
-  extension Snapshotting where Value == UIBezierPath, Format == String {
+@available(iOS 11.0, tvOS 11.0, *) public extension Snapshotting where Value == UIBezierPath, Format == String {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
-    public static var elementsDescription: Snapshotting {
-      Snapshotting<CGPath, String>.elementsDescription.pullback { path in path.cgPath }
+    static var elementsDescription: Snapshotting {
+        Snapshotting<CGPath, String>.elementsDescription.pullback { path in path.cgPath }
     }
 
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     ///
     /// - Parameter numberFormatter: The number formatter used for formatting points.
-    public static func elementsDescription(numberFormatter: NumberFormatter) -> Snapshotting {
-      Snapshotting<CGPath, String>.elementsDescription(
-        numberFormatter: numberFormatter
-      ).pullback { path in path.cgPath }
+    static func elementsDescription(numberFormatter: NumberFormatter) -> Snapshotting {
+        Snapshotting<CGPath, String>.elementsDescription(
+            numberFormatter: numberFormatter
+        ).pullback { path in path.cgPath }
     }
-  }
+}
 #endif
