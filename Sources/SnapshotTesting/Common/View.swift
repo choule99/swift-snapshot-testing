@@ -828,16 +828,12 @@ func addImagesForRenderedViews(_ view: View) -> [Async<View>] {
 
 extension View {
     var snapshot: Async<Image>? {
-        func inWindow<T>(_ perform: () -> T) -> T {
+        func inWindow<T>(_ perform: @escaping () -> T) -> T {
             #if os(macOS)
-            let superview = self.superview
-            defer { superview?.addSubview(self) }
-            let window = ScaledWindow()
-            window.contentView = NSView()
-            window.contentView?.addSubview(self)
-            window.makeKey()
-            #endif
+            return withScaledWindow(self, perform: perform)
+            #else
             return perform()
+            #endif
         }
         if let scnView = self as? SCNView {
             return Async(value: inWindow { scnView.snapshot() })
@@ -1130,6 +1126,19 @@ private final class ScaledWindow: NSWindow {
     override var backingScaleFactor: CGFloat {
         2
     }
+}
+
+func withScaledWindow<T>(_ view: NSView, perform: @escaping () -> T) -> T {
+    let work = {
+        let superview = view.superview
+        defer { superview?.addSubview(view) }
+        let window = ScaledWindow()
+        window.contentView = NSView()
+        window.contentView?.addSubview(view)
+        window.makeKey()
+        return perform()
+    }
+    return Thread.isMainThread ? work() : DispatchQueue.main.sync(execute: work)
 }
 #endif
 #endif

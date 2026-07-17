@@ -26,13 +26,9 @@ public extension Diffing where Value == NSImage {
                 return nil
             }
             let difference = SnapshotTesting.diff(old, new)
-            let oldAttachment = DiffAttachment.data(
-                NSImagePNGRepresentation(old)!, name: "reference.png"
-            )
+            let oldAttachment = DiffAttachment.data(NSImagePNGRepresentation(old)!, name: "reference.png")
             let newAttachment = DiffAttachment.data(NSImagePNGRepresentation(new)!, name: "failure.png")
-            let differenceAttachment = DiffAttachment.data(
-                NSImagePNGRepresentation(difference)!, name: "difference.png"
-            )
+            let differenceAttachment = DiffAttachment.data(NSImagePNGRepresentation(difference)!, name: "difference.png")
             return (
                 message,
                 [oldAttachment, newAttachment, differenceAttachment]
@@ -58,7 +54,18 @@ public extension Snapshotting where Value == NSImage, Format == NSImage {
     static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
         .init(
             pathExtension: "png",
-            diffing: .image(precision: precision, perceptualPrecision: perceptualPrecision)
+            diffing: .image(precision: precision, perceptualPrecision: perceptualPrecision),
+            snapshot: { image in
+                let pixelSize = CGSize(width: image.size.width * 2, height: image.size.height * 2)
+                if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+                   CGFloat(cgImage.width) >= pixelSize.width,
+                   CGFloat(cgImage.height) >= pixelSize.height {
+                    return image
+                }
+                return snapshotImage(size: image.size) {
+                    image.draw(in: NSRect(origin: .zero, size: image.size))
+                }
+            }
         )
     }
 }
