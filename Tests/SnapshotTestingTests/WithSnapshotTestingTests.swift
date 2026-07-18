@@ -35,4 +35,36 @@ import XCTest
             }
         }
     }
+
+    func testVerifySnapshotDiffToolOverride() async {
+        let snapshotDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: snapshotDirectory) }
+
+        let strategy = Snapshotting<String, String>(pathExtension: "txt", diffing: .lines) { value in
+            XCTAssertEqual(
+                SnapshotTestingConfiguration.current?
+                    .diffTool?(currentFilePath: "old.txt", failedFilePath: "new.txt"),
+                "inner old.txt new.txt"
+            )
+            return value
+        }
+
+        withSnapshotTesting(diffTool: "outer") {
+            _ = verifySnapshot(
+                of: "Blob",
+                as: strategy,
+                named: "per-call-diff-tool",
+                record: .never,
+                diffTool: "inner",
+                snapshotDirectory: snapshotDirectory.path
+            )
+
+            XCTAssertEqual(
+                SnapshotTestingConfiguration.current?
+                    .diffTool?(currentFilePath: "old.txt", failedFilePath: "new.txt"),
+                "outer old.txt new.txt"
+            )
+        }
+    }
 }

@@ -9,7 +9,7 @@
 
 ### Custom assertions
 
-- ``verifySnapshot(of:as:named:record:snapshotDirectory:timeout:file:testName:line:)``
+- ``verifySnapshot(of:as:named:record:diffTool:snapshotDirectory:timeout:file:testName:line:)``
 
 ### Deprecations
 
