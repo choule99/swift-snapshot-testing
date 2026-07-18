@@ -879,11 +879,13 @@ public struct ViewImageConfig: Sendable {
     #endif
 }
 
-public extension UITraitCollection {
-    fileprivate static func merging(_ traitCollections: [UITraitCollection]) -> UITraitCollection {
+extension UITraitCollection {
+    static func merging(_ traitCollections: [UITraitCollection]) -> UITraitCollection {
         UITraitCollection(traitsFrom: traitCollections)
     }
+}
 
+public extension UITraitCollection {
     #if os(iOS)
     static func iPhoneSe(_ orientation: ViewImageConfig.Orientation)
         -> UITraitCollection {

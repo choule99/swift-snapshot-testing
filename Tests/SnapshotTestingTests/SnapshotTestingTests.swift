@@ -2482,6 +2482,39 @@ final class SnapshotTestingTests: BaseTestCase {
     }
     #endif
 
+    #if os(iOS) || os(tvOS)
+    @available(iOS 13.0, tvOS 13.0, *) func testSwiftUIViewSizeThatFitsUsesSnapshotTraits() async {
+        struct TraitSizedView: SwiftUI.View {
+            let expectedStyle: UIUserInterfaceStyle
+
+            var body: some SwiftUI.View {
+                Color.red.frame(
+                    width: UITraitCollection.current.userInterfaceStyle == expectedStyle ? 20 : 10,
+                    height: 10
+                )
+            }
+        }
+
+        let currentStyle = UITraitCollection.current.userInterfaceStyle
+        let expectedStyle: UIUserInterfaceStyle = currentStyle == .dark ? .light : .dark
+        let traits = UITraitCollection.merging([
+            .init(displayScale: 1),
+            .init(userInterfaceStyle: expectedStyle)
+        ])
+        let strategy = Snapshotting<TraitSizedView, UIImage>.image(
+            layout: .sizeThatFits,
+            traits: traits
+        )
+        let image = await withCheckedContinuation { continuation in
+            strategy.snapshot(TraitSizedView(expectedStyle: expectedStyle)).run {
+                continuation.resume(returning: $0)
+            }
+        }
+
+        XCTAssertEqual(image.size, CGSize(width: 20, height: 10))
+    }
+    #endif
+
     #if os(tvOS)
     @available(tvOS 13.0, *) func testSwiftUIView_tvOS() async {
         struct MyView: SwiftUI.View {

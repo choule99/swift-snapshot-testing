@@ -83,38 +83,45 @@ public enum SwiftUISnapshotLayout {
             isOpaque: isOpaque
         ).asyncPullback { view in
             var config = config
+            var snapshot: Async<UIImage>?
+            let layoutTraits = UITraitCollection.merging([config.traits, traits])
 
-            let controller: UIViewController
+            layoutTraits.performAsCurrent {
+                let controller: UIViewController
+                if config.size != nil {
+                    controller = UIHostingController(
+                        rootView: view
+                    )
+                } else {
+                    let hostingController = UIHostingController(rootView: view.fixedSize())
 
-            if config.size != nil {
-                controller = UIHostingController(
-                    rootView: view
-                )
-            } else {
-                let hostingController = UIHostingController(rootView: view.fixedSize())
-
-                if config.safeArea == .zero {
-                    if #available(iOS 16.4, tvOS 16.4, *) {
-                        hostingController.safeAreaRegions = []
-                    } else {
-                        hostingController._disableSafeArea = true
+                    if config.safeArea == .zero {
+                        if #available(iOS 16.4, tvOS 16.4, *) {
+                            hostingController.safeAreaRegions = []
+                        } else {
+                            hostingController._disableSafeArea = true
+                        }
                     }
+
+                    let maxSize = CGSize(width: 0.0, height: 0.0)
+                    config.size = hostingController.sizeThatFits(in: maxSize)
+
+                    controller = hostingController
                 }
 
-                let maxSize = CGSize(width: 0.0, height: 0.0)
-                config.size = hostingController.sizeThatFits(in: maxSize)
-
-                controller = hostingController
+                snapshot = snapshotView(
+                    config: config,
+                    drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+                    traits: traits,
+                    view: controller.view,
+                    viewController: controller,
+                    settlingDelay: settlingDelay
+                )
             }
-
-            return snapshotView(
-                config: config,
-                drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-                traits: traits,
-                view: controller.view,
-                viewController: controller,
-                settlingDelay: settlingDelay
-            )
+            guard let snapshot else {
+                preconditionFailure("Could not prepare a SwiftUI view for snapshotting.")
+            }
+            return snapshot
         }
     }
 }
