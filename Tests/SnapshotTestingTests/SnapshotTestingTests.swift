@@ -32,6 +32,18 @@ final class SnapshotTestingTests: BaseTestCase {
         requireSendable(Snapshotting<String, String>.self)
     }
 
+    func testLineEndings() async {
+        let lf = "one\ntwo\n"
+        let crlf = "one\r\ntwo\r\n"
+
+        XCTAssertEqual(Diffing<String>.lines.toData(crlf), Data(crlf.utf8))
+        XCTAssertEqual(Diffing<String>.lines.fromData(Data(crlf.utf8)), crlf)
+        XCTAssertNil(Diffing<String>.lines.diffV2(lf, crlf))
+        XCTAssertNil(Diffing<String>.lines.diffV2(crlf, lf))
+        XCTAssertNil(Diffing<String>.lines.diffV2("one\rtwo\r", lf))
+        XCTAssertNotNil(Diffing<String>.lines.diffV2(lf, "one\r\nthree\r\n"))
+    }
+
     func testModernIPhoneConfigs() async {
         #if os(iOS)
         func assertDevice(

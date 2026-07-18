@@ -2,7 +2,8 @@ import Foundation
 import XCTest
 
 public extension Snapshotting where Value == String, Format == String {
-    /// A snapshot strategy for comparing strings based on equality.
+    /// A snapshot strategy for comparing UTF-8 strings by line, treating LF, CRLF, and CR line
+    /// endings as equivalent.
     static let lines = Snapshotting(pathExtension: "txt", diffing: .lines)
 }
 
@@ -13,11 +14,14 @@ extension String {
 }
 
 public extension Diffing where Value == String {
-    /// A line-diffing strategy for UTF-8 text.
+    /// A line-diffing strategy for UTF-8 text that treats LF, CRLF, and CR line endings as
+    /// equivalent.
     static let lines = Diffing.diff(
         toData: { Data($0.utf8) },
         fromData: { String(lossyUTF8: $0) },
         diffV2: { old, new in
+            let old = old.normalizedLineEndings
+            let new = new.normalizedLineEndings
             guard old != new else {
                 return nil
             }
@@ -35,4 +39,11 @@ public extension Diffing where Value == String {
             return (failure, [attachment])
         }
     )
+}
+
+private extension String {
+    var normalizedLineEndings: String {
+        replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+    }
 }
