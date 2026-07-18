@@ -598,8 +598,13 @@ private let _counter = File.Counter()
                     case let .xcTest(attachment):
                         activity.add(attachment)
                     case let .data(data, name):
-                        let attachment = XCTAttachment(data: data)
-                        attachment.name = name
+                        let attachment = XCTAttachment(
+                            uniformTypeIdentifier: uniformTypeIdentifier(
+                                fromExtension: (name as NSString).pathExtension
+                            ),
+                            name: name,
+                            payload: data
+                        )
                         activity.add(attachment)
                 }
             }
