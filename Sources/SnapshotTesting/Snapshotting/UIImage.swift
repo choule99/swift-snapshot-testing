@@ -206,9 +206,7 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
           let pngData = new.pngData(),
           let newCgImage = UIImage(data: pngData)?.cgImage,
           oldCgImage.width == newCgImage.width,
-          oldCgImage.height == newCgImage.height,
-          let oldData = oldCgImage.dataProvider?.data,
-          let newData = newCgImage.dataProvider?.data else {
+          oldCgImage.height == newCgImage.height else {
         return nil
     }
 
@@ -225,11 +223,14 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
     let width = oldCgImage.width
     let height = oldCgImage.height
     let pixelCount = width * height
+    let byteCount = pixelCount * imageContextBytesPerPixel
     let scale = old.scale
 
-    guard let oldBytes = CFDataGetBytePtr(oldData),
-          let newBytes = CFDataGetBytePtr(newData) else {
-        fatalError("Could not access image data.")
+    var oldBytes = [UInt8](repeating: 0, count: byteCount)
+    var newBytes = [UInt8](repeating: 0, count: byteCount)
+    guard context(for: oldCgImage, data: &oldBytes) != nil,
+          context(for: newCgImage, data: &newBytes) != nil else {
+        return nil
     }
     var diffBytes = [UInt8](repeating: 0, count: pixelCount)
 
