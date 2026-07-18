@@ -4,7 +4,7 @@ import SnapshotTesting
 import Testing
 
 extension BaseSuite {
-    struct AssertSnapshotTests {
+    @MainActor struct AssertSnapshotTests {
         @Test(.snapshots(record: .missing)) func dump() {
             struct User { let id: Int, name: String, bio: String }
             let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")

@@ -2,7 +2,7 @@
 import AppKit
 import Cocoa
 
-public extension Snapshotting where Value: NSView, Format == NSImage {
+@MainActor public extension Snapshotting where Value: NSView, Format == NSImage {
     /// A snapshot strategy for comparing views based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -45,7 +45,7 @@ public extension Snapshotting where Value: NSView, Format == NSImage {
     }
 }
 
-public extension Snapshotting where Value: NSView, Format == String {
+@MainActor public extension Snapshotting where Value: NSView, Format == String {
     /// A snapshot strategy for comparing views based on a recursive description of their properties
     /// and hierarchies.
     ///
@@ -71,32 +71,31 @@ public extension Snapshotting where Value: NSView, Format == String {
     }
 }
 
-func snapshotImage(_ view: NSView) -> NSImage {
-    onMain {
-        let proxy = NSView(frame: view.bounds)
-        let bitmapRep = withScaledWindow(proxy) {
-            guard let representation = proxy.bitmapImageRepForCachingDisplay(in: proxy.bounds) else {
-                preconditionFailure("Could not create bitmap representation")
-            }
-            return representation
+@MainActor func snapshotImage(_ view: NSView) -> NSImage {
+    let proxy = NSView(frame: view.bounds)
+    let bitmapRep = withScaledWindow(proxy) {
+        guard let representation = proxy.bitmapImageRepForCachingDisplay(in: proxy.bounds) else {
+            preconditionFailure("Could not create bitmap representation")
         }
-        view.cacheDisplay(in: view.bounds, to: bitmapRep)
-        let image = NSImage(size: view.bounds.size)
-        image.addRepresentation(bitmapRep)
-        return image
+        return representation
     }
+    view.cacheDisplay(in: view.bounds, to: bitmapRep)
+    let image = NSImage(size: view.bounds.size)
+    image.addRepresentation(bitmapRep)
+    return image
 }
 
-func snapshotImage(size: CGSize, drawing: @escaping () -> Void) -> NSImage {
-    onMain {
-        snapshotImage(SnapshotDrawingView(size: size, drawing: drawing))
-    }
+@MainActor func snapshotImage(
+    size: CGSize,
+    drawing: @escaping @MainActor () -> Void
+) -> NSImage {
+    snapshotImage(SnapshotDrawingView(size: size, drawing: drawing))
 }
 
-private final class SnapshotDrawingView: NSView {
-    let drawing: () -> Void
+@MainActor private final class SnapshotDrawingView: NSView {
+    let drawing: @MainActor () -> Void
 
-    init(size: CGSize, drawing: @escaping () -> Void) {
+    init(size: CGSize, drawing: @escaping @MainActor () -> Void) {
         self.drawing = drawing
         super.init(frame: CGRect(origin: .zero, size: size))
     }

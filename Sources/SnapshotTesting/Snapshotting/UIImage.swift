@@ -1,7 +1,7 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-public extension Diffing where Value == UIImage {
+@MainActor public extension Diffing where Value == UIImage {
     /// A pixel-diffing strategy for UIImage's which requires a 100% match.
     static let image = Diffing.image()
 
@@ -24,7 +24,7 @@ public extension Diffing where Value == UIImage {
         } else {
             UIScreen.main.scale
         }
-        let toData: (UIImage) -> Data = {
+        let toData: @MainActor @Sendable (UIImage) -> Data = {
             guard let data = $0.pngData() ?? emptyImage().pngData() else {
                 fatalError("Could not encode image as PNG.")
             }
@@ -64,7 +64,7 @@ public extension Diffing where Value == UIImage {
     }
 }
 
-public extension Snapshotting where Value == UIImage, Format == UIImage {
+@MainActor public extension Snapshotting where Value == UIImage, Format == UIImage {
     /// A snapshot strategy for comparing images based on pixel equality.
     static var image: Snapshotting {
         .image()

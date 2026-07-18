@@ -2,6 +2,9 @@ import Foundation
 @testable import SnapshotTesting
 import XCTest
 
+// SwiftPM's Linux XCTest discovery requires async wrappers for @MainActor test methods.
+// swiftformat:disable redundantAsync
+
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -20,7 +23,16 @@ import UIKit.UIView
 #endif
 
 final class SnapshotTestingTests: BaseTestCase {
-    func testModernIPhoneConfigs() {
+    func testCoreTypesAreSendable() async {
+        // swiftformat:disable:next opaqueGenericParameters
+        func requireSendable<T: Sendable>(_: T.Type) {}
+
+        requireSendable(Async<String>.self)
+        requireSendable(Diffing<String>.self)
+        requireSendable(Snapshotting<String, String>.self)
+    }
+
+    func testModernIPhoneConfigs() async {
         #if os(iOS)
         func assertDevice(
             _ name: String,
@@ -207,7 +219,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testModernIPadConfigs() {
+    func testModernIPadConfigs() async {
         #if os(iOS)
         func assertDevice(
             _ name: String,
@@ -352,7 +364,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testLegacyIPadConfigsRemainUnchanged() {
+    func testLegacyIPadConfigsRemainUnchanged() async {
         #if os(iOS)
         XCTAssertEqual(ViewImageConfig.iPadMini.size, .init(width: 1024, height: 768))
         XCTAssertEqual(
@@ -364,7 +376,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testSubclassSnapshottingStrategies() {
+    func testSubclassSnapshottingStrategies() async {
         #if os(macOS)
         final class View: NSView {}
         final class ViewController<Root>: NSViewController {}
@@ -384,13 +396,13 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testAny() {
+    func testAny() async {
         struct User { let id: Int, name: String, bio: String }
         let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
         assertSnapshot(of: user, as: .dump)
     }
 
-    func testRecursion() {
+    func testRecursion() async {
         withSnapshotTesting {
             class Father {
                 var child: Child?
@@ -412,7 +424,7 @@ final class SnapshotTestingTests: BaseTestCase {
         }
     }
 
-    @available(macOS 10.13, tvOS 11.0, *) func testAnyAsJson() throws {
+    @available(macOS 10.13, tvOS 11.0, *) func testAnyAsJson() async throws {
         struct User: Encodable { let id: Int, name: String, bio: String }
         let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
 
@@ -422,7 +434,7 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: any, as: .json)
     }
 
-    func testAnySnapshotStringConvertible() throws {
+    func testAnySnapshotStringConvertible() async throws {
         assertSnapshot(of: "a" as Character, as: .dump, named: "character")
         assertSnapshot(of: Data("Hello, world!".utf8), as: .dump, named: "data")
         assertSnapshot(of: Date(timeIntervalSinceReferenceDate: 0), as: .dump, named: "date")
@@ -432,7 +444,7 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: try XCTUnwrap(URL(string: "https://www.pointfree.co")), as: .dump, named: "url")
     }
 
-    func testAutolayout() {
+    func testAutolayout() async {
         #if os(iOS)
         let vc = UIViewController()
         vc.view.translatesAutoresizingMaskIntoConstraints = false
@@ -449,7 +461,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testDeterministicDictionaryAndSetSnapshots() {
+    func testDeterministicDictionaryAndSetSnapshots() async {
         struct Person: Hashable { let name: String }
         struct DictionarySetContainer { let dict: [String: Int], set: Set<Person> }
         let set = DictionarySetContainer(
@@ -459,7 +471,7 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: set, as: .dump)
     }
 
-    func testCaseIterable() {
+    func testCaseIterable() async {
         enum Direction: String, CaseIterable {
             case up, down, left, right
             var rotatedLeft: Direction {
@@ -478,7 +490,7 @@ final class SnapshotTestingTests: BaseTestCase {
         )
     }
 
-    func testCGPath() {
+    func testCGPath() async {
         #if os(iOS) || os(tvOS) || os(macOS)
         let path = CGPath.heart
 
@@ -501,13 +513,13 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testData() {
+    func testData() async {
         let data = Data([0xDE, 0xAD, 0xBE, 0xEF])
 
         assertSnapshot(of: data, as: .data)
     }
 
-    func testEncodable() {
+    func testEncodable() async {
         struct User: Encodable { let id: Int, name: String, bio: String }
         let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
 
@@ -517,8 +529,10 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: user, as: .plist)
     }
 
+    #if os(Linux) || os(tvOS)
+    func testMixedViews() async {}
+    #else
     func testMixedViews() {
-        #if os(iOS) || os(macOS)
         // NB: CircleCI crashes while trying to instantiate SKView.
         if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
             let webView = WKWebView(frame: .init(x: 0, y: 0, width: 50, height: 50))
@@ -538,21 +552,21 @@ final class SnapshotTestingTests: BaseTestCase {
 
             assertSnapshot(of: view, as: .image, named: platform)
         }
-        #endif
     }
+    #endif
 
-    func testMultipleSnapshots() {
+    func testMultipleSnapshots() async {
         assertSnapshot(of: [1], as: .dump)
         assertSnapshot(of: [1, 2], as: .dump)
     }
 
-    func testNamedAssertion() {
+    func testNamedAssertion() async {
         struct User { let id: Int, name: String, bio: String }
         let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
         assertSnapshot(of: user, as: .dump, named: "named")
     }
 
-    func testNSBezierPath() {
+    func testNSBezierPath() async {
         #if os(macOS)
         let path = NSBezierPath.heart
 
@@ -564,7 +578,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testNSView() {
+    func testNSView() async {
         #if os(macOS)
         let button = NSButton()
         button.bezelStyle = .rounded
@@ -577,7 +591,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testNSViewWithLayer() {
+    func testNSViewWithLayer() async {
         #if os(macOS)
         let view = NSView()
         view.frame = CGRect(x: 0.0, y: 0.0, width: 10.0, height: 10.0)
@@ -591,20 +605,15 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testSnapshotImageRunsOnMainThread() {
+    func testSnapshotImageRunsOnMainThread() async {
         #if os(macOS)
-        let snapshotting = expectation(description: "Snapshotting")
-        DispatchQueue.global(qos: .userInteractive).async {
-            _ = snapshotImage(size: CGSize(width: 1, height: 1)) {
-                XCTAssertTrue(Thread.isMainThread)
-            }
-            snapshotting.fulfill()
+        _ = snapshotImage(size: CGSize(width: 1, height: 1)) {
+            XCTAssertTrue(Thread.isMainThread)
         }
-        wait(for: [snapshotting], timeout: 1)
         #endif
     }
 
-    func testPrecision() {
+    func testPrecision() async {
         #if os(iOS) || os(macOS) || os(tvOS)
         #if os(iOS) || os(tvOS)
         let label = UILabel()
@@ -630,9 +639,9 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testImagePrecision() throws {
+    func testImagePrecision() async throws {
         #if os(iOS) || os(tvOS) || os(macOS)
-        let imageURL = URL(fileURLWithPath: String(#file), isDirectory: false)
+        let imageURL = URL(fileURLWithPath: String(#filePath), isDirectory: false)
             .deletingLastPathComponent()
             .appendingPathComponent("__Fixtures__/testImagePrecision.reference.png")
         #if os(iOS) || os(tvOS)
@@ -650,7 +659,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testSCNView() {
+    func testSCNView() async {
         #if os(iOS) || os(macOS) || os(tvOS)
         // NB: CircleCI crashes while trying to instantiate SCNView.
         if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
@@ -662,7 +671,7 @@ final class SnapshotTestingTests: BaseTestCase {
             sphereNode.position = SCNVector3Zero
             scene.rootNode.addChildNode(sphereNode)
 
-            sphereGeometry.firstMaterial?.diffuse.contents = URL(fileURLWithPath: String(#file), isDirectory: false)
+            sphereGeometry.firstMaterial?.diffuse.contents = URL(fileURLWithPath: String(#filePath), isDirectory: false)
                 .deletingLastPathComponent()
                 .appendingPathComponent("__Fixtures__/earth.png")
 
@@ -687,7 +696,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testSKView() {
+    func testSKView() async {
         #if os(iOS) || os(macOS) || os(tvOS)
         // NB: CircleCI crashes while trying to instantiate SKView.
         if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
@@ -706,7 +715,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testTableViewController() {
+    func testTableViewController() async {
         #if os(iOS)
         class TableViewController: UITableViewController {
             override func viewDidLoad() {
@@ -730,7 +739,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testAssertMultipleSnapshot() {
+    func testAssertMultipleSnapshot() async {
         #if os(iOS)
         class TableViewController: UITableViewController {
             override func viewDidLoad() {
@@ -760,7 +769,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testTraits() {
+    func testTraits() async {
         #if os(iOS) || os(tvOS)
         if #available(iOS 11.0, tvOS 11.0, *) {
             class MyViewController: UIViewController {
@@ -1124,7 +1133,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testTraitsEmbeddedInTabNavigation() {
+    func testTraitsEmbeddedInTabNavigation() async {
         #if os(iOS)
         if #available(iOS 11.0, *) {
             class MyViewController: UIViewController {
@@ -1303,7 +1312,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testCollectionViewsWithMultipleScreenSizes() {
+    func testCollectionViewsWithMultipleScreenSizes() async {
         #if os(iOS)
 
         final class CollectionViewController: UIViewController, UICollectionViewDataSource,
@@ -1386,7 +1395,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testTraitsWithView() {
+    func testTraitsWithView() async {
         #if os(iOS)
         if #available(iOS 11.0, *) {
             let label = UILabel()
@@ -1405,7 +1414,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testTraitsWithViewController() {
+    func testTraitsWithViewController() async {
         #if os(iOS)
         let label = UILabel()
         label.font = .preferredFont(forTextStyle: .title1)
@@ -1438,7 +1447,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testUIBezierPath() {
+    func testUIBezierPath() async {
         #if os(iOS) || os(tvOS)
         let path = UIBezierPath.heart
 
@@ -1459,7 +1468,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testUIView() {
+    func testUIView() async {
         #if os(iOS)
         let view = UIButton(type: .contactAdd)
         assertSnapshot(of: view, as: .image)
@@ -1467,7 +1476,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testUIViewControllerLifeCycle() {
+    func testUIViewControllerLifeCycle() async {
         #if os(iOS)
         class ViewController: UIViewController {
             let viewDidLoadExpectation: XCTestExpectation
@@ -1541,8 +1550,8 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: viewController, as: .image)
         assertSnapshot(of: viewController, as: .image)
 
-        wait(
-            for: [
+        await fulfillment(
+            of: [
                 viewDidLoadExpectation,
                 viewWillAppearExpectation,
                 viewDidAppearExpectation,
@@ -1553,7 +1562,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testCALayer() {
+    func testCALayer() async {
         #if os(iOS)
         let layer = CALayer()
         layer.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
@@ -1564,7 +1573,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testCALayerWithGradient() {
+    func testCALayerWithGradient() async {
         #if os(iOS)
         let baseLayer = CALayer()
         baseLayer.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
@@ -1576,7 +1585,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testViewControllerHierarchy() {
+    func testViewControllerHierarchy() async {
         #if os(iOS)
         let page = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
         page.setViewControllers([UIViewController()], direction: .forward, animated: false)
@@ -1592,7 +1601,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testURLRequest() throws {
+    func testURLRequest() async throws {
         var get = URLRequest(url: try XCTUnwrap(URL(string: "https://www.pointfree.co/")))
         get.addValue("pf_session={}", forHTTPHeaderField: "Cookie")
         get.addValue("text/html", forHTTPHeaderField: "Accept")
@@ -1646,9 +1655,11 @@ final class SnapshotTestingTests: BaseTestCase {
         )
     }
 
+    #if os(Linux) || os(tvOS)
+    func testWebView() async {}
+    #else
     func testWebView() throws {
-        #if os(iOS) || os(macOS)
-        let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
+        let fixtureUrl = URL(fileURLWithPath: String(#filePath), isDirectory: false)
             .deletingLastPathComponent()
             .appendingPathComponent("__Fixtures__/pointfree.html")
         let html = try String(contentsOf: fixtureUrl)
@@ -1661,10 +1672,10 @@ final class SnapshotTestingTests: BaseTestCase {
                 named: platform
             )
         }
-        #endif
     }
+    #endif
 
-    func testViewWithZeroHeightOrWidth() {
+    func testViewWithZeroHeightOrWidth() async {
         #if os(iOS) || os(tvOS)
         var rect = CGRect(x: 0, y: 0, width: 350, height: 0)
         var view = UIView(frame: rect)
@@ -1683,7 +1694,7 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
-    func testViewAgainstEmptyImage() {
+    func testViewAgainstEmptyImage() async {
         #if os(iOS) || os(tvOS)
         let rect = CGRect(x: 0, y: 0, width: 0, height: 0)
         let view = UIView(frame: rect)
@@ -1696,12 +1707,12 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    #if os(iOS)
     func testEmbeddedWebView() throws {
-        #if os(iOS)
         let label = UILabel()
         label.text = "Hello, Blob!"
 
-        let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
+        let fixtureUrl = URL(fileURLWithPath: String(#filePath), isDirectory: false)
             .deletingLastPathComponent()
             .appendingPathComponent("__Fixtures__/pointfree.html")
         let html = try String(contentsOf: fixtureUrl)
@@ -1719,8 +1730,10 @@ final class SnapshotTestingTests: BaseTestCase {
                 named: platform
             )
         }
-        #endif
     }
+    #else
+    func testEmbeddedWebView() async {}
+    #endif
 
     #if os(iOS) || os(macOS)
     final class ManipulatingWKWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
@@ -1734,7 +1747,7 @@ final class SnapshotTestingTests: BaseTestCase {
         let webView = WKWebView()
         webView.navigationDelegate = manipulatingWKWebViewNavigationDelegate
 
-        let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
+        let fixtureUrl = URL(fileURLWithPath: String(#filePath), isDirectory: false)
             .deletingLastPathComponent()
             .appendingPathComponent("__Fixtures__/pointfree.html")
         let html = try String(contentsOf: fixtureUrl)
@@ -1753,7 +1766,7 @@ final class SnapshotTestingTests: BaseTestCase {
         func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,
-            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+            decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void
         ) {
             decisionHandler(.cancel)
         }
@@ -1764,7 +1777,7 @@ final class SnapshotTestingTests: BaseTestCase {
         let webView = WKWebView()
         webView.navigationDelegate = cancellingWKWebViewNavigationDelegate
 
-        let fixtureUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
+        let fixtureUrl = URL(fileURLWithPath: String(#filePath), isDirectory: false)
             .deletingLastPathComponent()
             .appendingPathComponent("__Fixtures__/pointfree.html")
         let html = try String(contentsOf: fixtureUrl)
@@ -1781,7 +1794,7 @@ final class SnapshotTestingTests: BaseTestCase {
     #endif
 
     #if os(iOS)
-    @available(iOS 13.0, *) func testSwiftUIView_iOS() {
+    @available(iOS 13.0, *) func testSwiftUIView_iOS() async {
         struct MyView: SwiftUI.View {
             var body: some SwiftUI.View {
                 HStack {
@@ -1817,7 +1830,7 @@ final class SnapshotTestingTests: BaseTestCase {
     #endif
 
     #if os(tvOS)
-    @available(tvOS 13.0, *) func testSwiftUIView_tvOS() {
+    @available(tvOS 13.0, *) func testSwiftUIView_tvOS() async {
         struct MyView: SwiftUI.View {
             var body: some SwiftUI.View {
                 HStack {
@@ -1841,8 +1854,8 @@ final class SnapshotTestingTests: BaseTestCase {
     #endif
 
     #if canImport(AppKit) || canImport(UIKit)
-    func testReferenceLoadFailure() {
-        let snapshotUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
+    func testReferenceLoadFailure() async {
+        let snapshotUrl = URL(fileURLWithPath: String(#filePath), isDirectory: false)
             .deletingLastPathComponent()
             .appendingPathComponent(
                 "__Snapshots__/SnapshotTestingTests/testReferenceLoadFailure.1.png"

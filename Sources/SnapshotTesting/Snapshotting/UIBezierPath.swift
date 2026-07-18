@@ -1,7 +1,7 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-public extension Snapshotting where Value == UIBezierPath, Format == UIImage {
+@MainActor public extension Snapshotting where Value == UIBezierPath, Format == UIImage {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -36,7 +36,7 @@ public extension Snapshotting where Value == UIBezierPath, Format == UIImage {
     }
 }
 
-@available(iOS 11.0, tvOS 11.0, *) public extension Snapshotting where Value == UIBezierPath, Format == String {
+@available(iOS 11.0, tvOS 11.0, *) @MainActor public extension Snapshotting where Value == UIBezierPath, Format == String {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     static var elementsDescription: Snapshotting {
         Snapshotting<CGPath, String>.elementsDescription.pullback { path in path.cgPath }

@@ -1,7 +1,7 @@
 import SnapshotTesting
 import XCTest
 
-class BaseTestCase: XCTestCase {
+@MainActor class BaseTestCase: XCTestCase {
     override func invokeTest() {
         withSnapshotTesting(
             record: .failed,

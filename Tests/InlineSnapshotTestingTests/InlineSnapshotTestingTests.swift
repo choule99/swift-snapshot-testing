@@ -345,7 +345,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
     #endif
 }
 
-private func assertCustomInlineSnapshot(
+@MainActor private func assertCustomInlineSnapshot(
     of value: String,
     is expected: (() -> String)? = nil,
     fileID: StaticString = #fileID,
@@ -365,7 +365,7 @@ private func assertCustomInlineSnapshot(
     )
 }
 
-private func assertCustomInlineSnapshot(
+@MainActor private func assertCustomInlineSnapshot(
     of value: () -> String,
     is expected: (() -> String)? = nil,
     fileID: StaticString = #fileID,

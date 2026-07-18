@@ -1,8 +1,11 @@
 import SnapshotTesting
 import XCTest
 
-final class DeprecationTests: XCTestCase {
-    @available(*, deprecated) func testIsRecordingProxy() {
+// SwiftPM's Linux XCTest discovery requires async wrappers for @MainActor test methods.
+// swiftformat:disable redundantAsync
+
+@MainActor final class DeprecationTests: XCTestCase {
+    @available(*, deprecated) func testIsRecordingProxy() async {
         SnapshotTesting.record = true
         XCTAssertEqual(isRecording, true)
 

@@ -5,7 +5,7 @@ import SnapshotTesting
 import Testing
 
 extension BaseSuite {
-    struct AssertInlineSnapshotTests {
+    @MainActor struct AssertInlineSnapshotTests {
         @Test func inlineSnapshot() {
             assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
                 """
@@ -310,7 +310,7 @@ extension BaseSuite {
     }
 }
 
-private func assertCustomInlineSnapshot(
+@MainActor private func assertCustomInlineSnapshot(
     of value: String,
     is expected: (() -> String)? = nil,
     fileID: StaticString = #fileID,
@@ -330,7 +330,7 @@ private func assertCustomInlineSnapshot(
     )
 }
 
-private func assertCustomInlineSnapshot(
+@MainActor private func assertCustomInlineSnapshot(
     of value: () -> String,
     is expected: (() -> String)? = nil,
     fileID: StaticString = #fileID,

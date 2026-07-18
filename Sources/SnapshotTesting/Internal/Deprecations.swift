@@ -7,7 +7,7 @@ import XCTest
     *, deprecated,
     message: "Use overload with 'record: SnapshotTestingConfiguration.Record?'"
 )
-@_disfavoredOverload public func assertSnapshot<Value>(
+@MainActor @_disfavoredOverload public func assertSnapshot<Value>(
     of value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, some Any>,
     named name: String? = nil,
@@ -37,7 +37,7 @@ import XCTest
     *, deprecated,
     message: "Use overload with 'record: SnapshotTestingConfiguration.Record?'"
 )
-@_disfavoredOverload public func assertSnapshots<Value>(
+@MainActor @_disfavoredOverload public func assertSnapshots<Value>(
     of value: @autoclosure () throws -> Value,
     as strategies: [String: Snapshotting<Value, some Any>],
     record recording: Bool? = nil,
@@ -65,7 +65,7 @@ import XCTest
     *, deprecated,
     message: "Use overload with 'record: SnapshotTestingConfiguration.Record?'"
 )
-@_disfavoredOverload public func assertSnapshots<Value>(
+@MainActor @_disfavoredOverload public func assertSnapshots<Value>(
     of value: @autoclosure () throws -> Value,
     as strategies: [Snapshotting<Value, some Any>],
     record recording: Bool? = nil,
@@ -93,7 +93,7 @@ import XCTest
     *, deprecated,
     message: "Use overload with 'record: SnapshotTestingConfiguration.Record?'"
 )
-@_disfavoredOverload public func verifySnapshot<Value>(
+@MainActor @_disfavoredOverload public func verifySnapshot<Value>(
     of value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, some Any>,
     named name: String? = nil,
@@ -101,7 +101,7 @@ import XCTest
     snapshotDirectory: String? = nil,
     timeout: TimeInterval = 5,
     fileID: StaticString = #fileID,
-    file filePath: StaticString = #file,
+    file filePath: StaticString = #filePath,
     testName: String = #function,
     line: UInt = #line,
     column: UInt = #column
@@ -136,7 +136,7 @@ private extension SnapshotTestingConfiguration.Record {
     *,
     deprecated,
     message: "Use 'assertInlineSnapshot(of:)' from the 'InlineSnapshotTesting' module, instead."
-) public func _assertInlineSnapshot<Value>(
+) @MainActor public func _assertInlineSnapshot<Value>(
     matching value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, String>,
     record recording: Bool = false,
@@ -171,7 +171,7 @@ private extension SnapshotTestingConfiguration.Record {
     *,
     deprecated,
     message: "Use 'assertInlineSnapshot(of:)' from the 'InlineSnapshotTesting' module, instead."
-) public func _verifyInlineSnapshot<Value>(
+) @MainActor public func _verifyInlineSnapshot<Value>(
     matching value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, String>,
     record recording: Bool = false,
@@ -452,17 +452,17 @@ private let extendedClosingStringDelimitersPattern = ##"\"\"\"#{0,}"##
 /// When we modify a file, the line numbers reported by the compiler through #line are no longer
 /// accurate. With the FileRecording values we keep track of we modify the files so we can adjust
 /// line numbers.
-private var recordings: Recordings = [:]
+@MainActor private var recordings: Recordings = [:]
 
 // Deprecated after 1.11.1:
 
-@available(*, deprecated, renamed: "assertSnapshot(of:as:named:record:timeout:file:testName:line:)") public func assertSnapshot<Value>(
+@available(*, deprecated, renamed: "assertSnapshot(of:as:named:record:timeout:file:testName:line:)") @MainActor public func assertSnapshot<Value>(
     matching value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, some Any>,
     named name: String? = nil,
     record recording: Bool? = nil,
     timeout: TimeInterval = 5,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     testName: String = #function,
     line: UInt = #line
 ) {
@@ -480,12 +480,12 @@ private var recordings: Recordings = [:]
 
 @available(
     *, deprecated, renamed: "assertSnapshots(of:as:named:record:timeout:file:testName:line:)"
-) public func assertSnapshots<Value>(
+) @MainActor public func assertSnapshots<Value>(
     matching value: @autoclosure () throws -> Value,
     as strategies: [String: Snapshotting<Value, some Any>],
     record recording: Bool? = nil,
     timeout: TimeInterval = 5,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     testName: String = #function,
     line: UInt = #line
 ) {
@@ -502,12 +502,12 @@ private var recordings: Recordings = [:]
 
 @available(
     *, deprecated, renamed: "assertSnapshots(of:as:named:record:timeout:file:testName:line:)"
-) public func assertSnapshots<Value>(
+) @MainActor public func assertSnapshots<Value>(
     matching value: @autoclosure () throws -> Value,
     as strategies: [Snapshotting<Value, some Any>],
     record recording: Bool? = nil,
     timeout: TimeInterval = 5,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     testName: String = #function,
     line: UInt = #line
 ) {
@@ -525,14 +525,14 @@ private var recordings: Recordings = [:]
 @available(
     *, deprecated,
     renamed: "verifySnapshot(of:as:named:record:snapshotDirectory:timeout:file:testName:line:)"
-) public func verifySnapshot<Value>(
+) @MainActor public func verifySnapshot<Value>(
     matching value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, some Any>,
     named name: String? = nil,
     record recording: Bool? = nil,
     snapshotDirectory: String? = nil,
     timeout: TimeInterval = 5,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     testName: String = #function,
     line: UInt = #line
 ) -> String? {

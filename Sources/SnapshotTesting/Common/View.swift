@@ -1179,7 +1179,7 @@ public extension UITraitCollection {
 }
 #endif
 
-func addImagesForRenderedViews(_ view: View) -> [Async<View>] {
+@MainActor func addImagesForRenderedViews(_ view: View) -> [Async<View>] {
     #if os(iOS)
     // Preserve hierarchy while special views render in a temporary window.
     let frame = view.frame
@@ -1213,9 +1213,9 @@ func addImagesForRenderedViews(_ view: View) -> [Async<View>] {
         ?? view.subviews.flatMap(addImagesForRenderedViews)
 }
 
-extension View {
+@MainActor extension View {
     var snapshot: Async<Image>? {
-        func inWindow<T>(_ perform: @escaping () -> T) -> T {
+        @MainActor func inWindow<T>(_ perform: @escaping @MainActor () -> T) -> T {
             #if os(macOS)
             return withScaledWindow(self, perform: perform)
             #else
@@ -1249,7 +1249,7 @@ extension View {
         #if os(iOS) || os(macOS)
         if let wkWebView = self as? WKWebView {
             return Async<Image> { callback in
-                let work = {
+                let work: @MainActor @Sendable () -> Void = {
                     if #available(iOS 11.0, macOS 10.13, *) {
                         inWindow {
                             guard wkWebView.frame.width != 0, wkWebView.frame.height != 0 else {
@@ -1277,14 +1277,7 @@ extension View {
                 }
 
                 if wkWebView.isLoading {
-                    var subscription: NSKeyValueObservation?
-                    subscription = wkWebView.observe(\.isLoading, options: [.initial, .new]) { _, change in
-                        if change.newValue == false {
-                            work()
-                            subscription?.invalidate()
-                            subscription = nil
-                        }
-                    }
+                    _ = WebViewLoadObserver(webView: wkWebView, work: work)
                 } else {
                     work()
                 }
@@ -1304,8 +1297,40 @@ extension View {
     #endif
 }
 
+#if os(iOS) || os(macOS)
+@MainActor private final class WebViewLoadObserver {
+    private var observation: NSKeyValueObservation?
+
+    init(webView: WKWebView, work: @escaping @MainActor @Sendable () -> Void) {
+        observation = webView.observe(\.isLoading, options: [.initial, .new]) { [self] _, change in
+            guard change.newValue == false else {
+                return
+            }
+            if #available(iOS 26.0, macOS 26.0, *) {
+                Task.immediate { @MainActor [self] in
+                    finish(work: work)
+                }
+            } else {
+                Task { @MainActor [self] in
+                    finish(work: work)
+                }
+            }
+        }
+    }
+
+    private func finish(work: @MainActor @Sendable () -> Void) {
+        guard let observation else {
+            return
+        }
+        self.observation = nil
+        observation.invalidate()
+        work()
+    }
+}
+#endif
+
 #if os(iOS) || os(tvOS)
-extension UIApplication {
+@MainActor extension UIApplication {
     static var sharedIfAvailable: UIApplication? {
         let sharedSelector = NSSelectorFromString("sharedApplication")
         guard UIApplication.responds(to: sharedSelector) else {
@@ -1322,13 +1347,13 @@ extension UIApplication {
     }
 }
 
-func prepareView(
+@MainActor func prepareView(
     config: ViewImageConfig,
     drawHierarchyInKeyWindow: Bool,
     traits: UITraitCollection,
     view: UIView,
     viewController: UIViewController
-) -> () -> Void {
+) -> @MainActor () -> Void {
     let size = config.size ?? viewController.view.frame.size
     view.frame.size = size
     if view != viewController.view {
@@ -1361,7 +1386,7 @@ func prepareView(
     return dispose
 }
 
-func snapshotView(
+@MainActor func snapshotView(
     config: ViewImageConfig,
     drawHierarchyInKeyWindow: Bool,
     traits: UITraitCollection,
@@ -1406,7 +1431,7 @@ func snapshotView(
 
 private let offscreen: CGFloat = 10000
 
-func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageRenderer {
+@MainActor func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageRenderer {
     if #available(iOS 11.0, tvOS 11.0, *) {
         UIGraphicsImageRenderer(bounds: bounds, format: .init(for: traits))
     } else {
@@ -1414,9 +1439,9 @@ func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageR
     }
 }
 
-private func add(
+@MainActor private func add(
     traits: UITraitCollection, viewController: UIViewController, to window: UIWindow
-) -> () -> Void {
+) -> @MainActor () -> Void {
     let originalRootViewController = window.rootViewController
     let rootViewController = UIViewController()
     rootViewController.view.backgroundColor = .clear
@@ -1462,7 +1487,7 @@ private func add(
     }
 }
 
-private func getKeyWindow() -> UIWindow? {
+@MainActor private func getKeyWindow() -> UIWindow? {
     UIApplication.sharedIfAvailable?.connectedScenes
         .compactMap { $0 as? UIWindowScene }
         .filter { $0.activationState == .foregroundActive }
@@ -1470,7 +1495,7 @@ private func getKeyWindow() -> UIWindow? {
         .first { $0.isKeyWindow }
 }
 
-private final class Window: UIWindow {
+@MainActor private final class Window: UIWindow {
     var config: ViewImageConfig
 
     init(config: ViewImageConfig, viewController: UIViewController) {
@@ -1515,34 +1540,29 @@ private final class Window: UIWindow {
 #if os(macOS)
 import Cocoa
 
-private final class ScaledWindow: NSWindow {
+@MainActor private final class ScaledWindow: NSWindow {
     override var backingScaleFactor: CGFloat {
         2
     }
 }
 
-func withScaledWindow<T>(_ view: NSView, perform: @escaping () -> T) -> T {
-    onMain {
-        let superview = view.superview
-        defer { superview?.addSubview(view) }
-        let window = ScaledWindow()
-        window.contentView = NSView()
-        window.contentView?.addSubview(view)
-        window.makeKey()
-        return perform()
-    }
-}
-
-func onMain<T>(_ perform: @escaping () -> T) -> T {
-    Thread.isMainThread
-        ? perform()
-        : DispatchQueue.main.sync(flags: .enforceQoS, execute: perform)
+@MainActor func withScaledWindow<T>(
+    _ view: NSView,
+    perform: @escaping @MainActor () -> T
+) -> T {
+    let superview = view.superview
+    defer { superview?.addSubview(view) }
+    let window = ScaledWindow()
+    window.contentView = NSView()
+    window.contentView?.addSubview(view)
+    window.makeKey()
+    return perform()
 }
 #endif
 #endif
 
 extension Array {
-    func sequence<A>() -> Async<[A]> where Element == Async<A> {
+    @MainActor func sequence<A>() -> Async<[A]> where Element == Async<A> {
         guard !self.isEmpty else {
             return Async(value: [])
         }

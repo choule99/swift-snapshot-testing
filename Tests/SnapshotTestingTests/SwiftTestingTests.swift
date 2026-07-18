@@ -11,7 +11,7 @@ import UIKit
 #endif
 
 extension BaseSuite {
-    @Suite(.serialized, .snapshots(record: .missing)) struct SwiftTestingTests {
+    @MainActor @Suite(.serialized, .snapshots(record: .missing)) struct SwiftTestingTests {
         @Test func snapshot() {
             assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
             withKnownIssue {

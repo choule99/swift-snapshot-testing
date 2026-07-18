@@ -1,32 +1,32 @@
 import SnapshotTesting
 import XCTest
 
+// SwiftPM's Linux XCTest discovery requires async wrappers for @MainActor test methods.
+// swiftformat:disable redundantAsync
+
 class RecordTests: BaseTestCase {
-    var snapshotURL: URL!
-
-    override func setUp() {
-        super.setUp()
-
+    nonisolated var snapshotURL: URL {
         guard let name = self.name
             .split(separator: " ")
             .flatMap({ String($0).split(separator: ".") })
             .last else {
-            XCTFail("Could not determine test name")
-            return
+            preconditionFailure("Could not determine test name")
         }
         let testName = name.prefix(while: { $0 != "]" })
-        let fileURL = URL(fileURLWithPath: #file, isDirectory: false)
-        let testClassName = fileURL.deletingPathExtension().lastPathComponent
-        let testDirectory =
-            fileURL
-                .deletingLastPathComponent()
-                .appendingPathComponent("__Snapshots__")
-                .appendingPathComponent(testClassName)
-        snapshotURL =
-            testDirectory
-                .appendingPathComponent("\(testName).1.json")
+        let fileURL = URL(fileURLWithPath: #filePath, isDirectory: false)
+        return fileURL
+            .deletingLastPathComponent()
+            .appendingPathComponent("__Snapshots__")
+            .appendingPathComponent(fileURL.deletingPathExtension().lastPathComponent)
+            .appendingPathComponent("\(testName).1.json")
+    }
+
+    override func setUp() {
+        super.setUp()
+
+        let testDirectory = snapshotURL.deletingLastPathComponent()
         try? FileManager.default
-            .removeItem(at: snapshotURL.deletingLastPathComponent())
+            .removeItem(at: testDirectory)
         try? FileManager.default
             .createDirectory(at: testDirectory, withIntermediateDirectories: true)
     }
@@ -38,7 +38,7 @@ class RecordTests: BaseTestCase {
     }
 
     #if canImport(Darwin)
-    func testRecordNever() {
+    func testRecordNever() async {
         XCTExpectFailure {
             withSnapshotTesting(record: .never) {
                 assertSnapshot(of: 42, as: .json)
@@ -57,7 +57,7 @@ class RecordTests: BaseTestCase {
     #endif
 
     #if canImport(Darwin)
-    func testRecordMissing() {
+    func testRecordMissing() async {
         XCTExpectFailure {
             withSnapshotTesting(record: .missing) {
                 assertSnapshot(of: 42, as: .json)
@@ -78,7 +78,7 @@ class RecordTests: BaseTestCase {
     #endif
 
     #if canImport(Darwin)
-    func testRecordMissing_ExistingFile() throws {
+    func testRecordMissing_ExistingFile() async throws {
         try Data("999".utf8).write(to: snapshotURL)
 
         XCTExpectFailure {
@@ -101,7 +101,7 @@ class RecordTests: BaseTestCase {
     #endif
 
     #if canImport(Darwin)
-    func testRecordAll_Fresh() throws {
+    func testRecordAll_Fresh() async throws {
         XCTExpectFailure {
             withSnapshotTesting(record: .all) {
                 assertSnapshot(of: 42, as: .json)
@@ -122,7 +122,7 @@ class RecordTests: BaseTestCase {
     #endif
 
     #if canImport(Darwin)
-    func testRecordAll_Overwrite() throws {
+    func testRecordAll_Overwrite() async throws {
         try Data("999".utf8).write(to: snapshotURL)
 
         XCTExpectFailure {
@@ -145,7 +145,7 @@ class RecordTests: BaseTestCase {
     #endif
 
     #if canImport(Darwin)
-    func testRecordFailed_WhenFailure() throws {
+    func testRecordFailed_WhenFailure() async throws {
         try Data("999".utf8).write(to: snapshotURL)
 
         XCTExpectFailure {
@@ -167,7 +167,7 @@ class RecordTests: BaseTestCase {
     }
     #endif
 
-    func testRecordFailed_NoFailure() throws {
+    func testRecordFailed_NoFailure() async throws {
         #if os(Android)
         throw XCTSkip("cannot save next to file on Android")
         #endif
@@ -192,7 +192,7 @@ class RecordTests: BaseTestCase {
     }
 
     #if canImport(Darwin)
-    func testRecordFailed_MissingFile() throws {
+    func testRecordFailed_MissingFile() async throws {
         XCTExpectFailure {
             withSnapshotTesting(record: .failed) {
                 assertSnapshot(of: 42, as: .json)

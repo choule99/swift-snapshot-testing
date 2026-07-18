@@ -3,7 +3,7 @@ import AppKit
 import Cocoa
 import CoreGraphics
 
-public extension Snapshotting where Value == CGPath, Format == NSImage {
+@MainActor public extension Snapshotting where Value == CGPath, Format == NSImage {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -53,7 +53,7 @@ public extension Snapshotting where Value == CGPath, Format == NSImage {
 #elseif os(iOS) || os(tvOS)
 import UIKit
 
-public extension Snapshotting where Value == CGPath, Format == UIImage {
+@MainActor public extension Snapshotting where Value == CGPath, Format == UIImage {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -92,7 +92,7 @@ public extension Snapshotting where Value == CGPath, Format == UIImage {
 #endif
 
 #if os(macOS) || os(iOS) || os(tvOS)
-@available(iOS 11.0, OSX 10.13, tvOS 11.0, *) public extension Snapshotting where Value == CGPath, Format == String {
+@available(iOS 11.0, OSX 10.13, tvOS 11.0, *) @MainActor public extension Snapshotting where Value == CGPath, Format == String {
     /// A snapshot strategy for comparing bezier paths based on element descriptions.
     static var elementsDescription: Snapshotting {
         .elementsDescription(numberFormatter: defaultNumberFormatter)

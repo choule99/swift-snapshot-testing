@@ -1,7 +1,7 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-public extension Snapshotting where Value: UIViewController, Format == UIImage {
+@MainActor public extension Snapshotting where Value: UIViewController, Format == UIImage {
     /// A snapshot strategy for comparing view controller views based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -81,7 +81,7 @@ public extension Snapshotting where Value: UIViewController, Format == UIImage {
     }
 }
 
-public extension Snapshotting where Value: UIViewController, Format == String {
+@MainActor public extension Snapshotting where Value: UIViewController, Format == String {
     /// A snapshot strategy for comparing view controllers based on their embedded controller
     /// hierarchy.
     ///

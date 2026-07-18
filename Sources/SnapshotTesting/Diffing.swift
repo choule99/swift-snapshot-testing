@@ -2,22 +2,23 @@ import Foundation
 import XCTest
 
 /// The ability to compare `Value`s and convert them to and from `Data`.
-public struct Diffing<Value> {
+public struct Diffing<Value>: Sendable {
     /// Converts a value _to_ data.
-    public var toData: (Value) -> Data
+    public var toData: @MainActor @Sendable (Value) -> Data
 
     /// Produces a value _from_ data.
-    public var fromData: (Data) -> Value {
+    public var fromData: @MainActor @Sendable (Data) -> Value {
         didSet {
             fromDataOptional = fromData
         }
     }
 
-    var fromDataOptional: (Data) -> Value?
+    var fromDataOptional: @MainActor @Sendable (Data) -> Value?
 
     /// Compares two values. If the values do not match, returns a failure message and artifacts
     /// describing the failure.
-    @available(*, deprecated, message: "Use 'diffV2'") public var diff: (Value, Value) -> (String, [XCTAttachment])? {
+    @available(*, deprecated, message: "Use 'diffV2'") public var diff:
+        @MainActor @Sendable (Value, Value) -> (String, [XCTAttachment])? {
         @storageRestrictions(initializes: diffV2) init(diff) {
             self.diffV2 = {
                 guard let (message, attachments) = diff($0, $1) else {
@@ -54,7 +55,7 @@ public struct Diffing<Value> {
 
     /// Compares two values. If the values do not match, returns a failure message and artifacts
     /// describing the failure.
-    public var diffV2: (Value, Value) -> (String, [DiffAttachment])?
+    public var diffV2: @MainActor @Sendable (Value, Value) -> (String, [DiffAttachment])?
 
     /// Creates a new `Diffing` on `Value`.
     ///
@@ -63,9 +64,11 @@ public struct Diffing<Value> {
     ///   - fromData: A function used to produce a value _from_ data.
     ///   - diff: A function used to compare two values. If the values do not match, returns a failure
     @available(*, deprecated, message: "Use 'Diffing.diff'") public init(
-        toData: @escaping (_ value: Value) -> Data,
-        fromData: @escaping (_ data: Data) -> Value,
-        diff: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [XCTAttachment])?
+        toData: @escaping @MainActor @Sendable (_ value: Value) -> Data,
+        fromData: @escaping @MainActor @Sendable (_ data: Data) -> Value,
+        diff: @escaping @MainActor @Sendable (
+            _ lhs: Value, _ rhs: Value
+        ) -> (String, [XCTAttachment])?
     ) {
         self.toData = toData
         self.fromData = fromData
@@ -74,9 +77,9 @@ public struct Diffing<Value> {
     }
 
     init(
-        toData: @escaping (Value) -> Data,
-        fromDataOptional: @escaping (Data) -> Value?,
-        diffV2: @escaping (Value, Value) -> (String, [DiffAttachment])?
+        toData: @escaping @MainActor @Sendable (Value) -> Data,
+        fromDataOptional: @escaping @MainActor @Sendable (Data) -> Value?,
+        diffV2: @escaping @MainActor @Sendable (Value, Value) -> (String, [DiffAttachment])?
     ) {
         self.toData = toData
         self.fromData = {
@@ -90,9 +93,11 @@ public struct Diffing<Value> {
     }
 
     public static func diff(
-        toData: @escaping (_ value: Value) -> Data,
-        fromData: @escaping (_ data: Data) -> Value,
-        diffV2: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [DiffAttachment])?
+        toData: @escaping @MainActor @Sendable (_ value: Value) -> Data,
+        fromData: @escaping @MainActor @Sendable (_ data: Data) -> Value,
+        diffV2: @escaping @MainActor @Sendable (
+            _ lhs: Value, _ rhs: Value
+        ) -> (String, [DiffAttachment])?
     ) -> Self {
         Diffing(toData: toData, fromDataOptional: fromData, diffV2: diffV2)
     }

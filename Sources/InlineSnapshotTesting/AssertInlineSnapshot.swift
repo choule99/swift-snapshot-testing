@@ -33,7 +33,7 @@ import XCTest
 ///     function was called.
 ///   - column: The column on which failure occurred. Defaults to the column on which this
 ///     function was called.
-public func assertInlineSnapshot<Value>(
+@MainActor public func assertInlineSnapshot<Value>(
     of value: @autoclosure () throws -> Value?,
     as snapshotting: Snapshotting<Value, String>,
     message: @autoclosure () -> String = "",
@@ -191,7 +191,7 @@ public func assertInlineSnapshot<Value>(
     }
 }
 #else
-@available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0") public func assertInlineSnapshot<Value>(
+@available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0") @MainActor public func assertInlineSnapshot<Value>(
     of value: @autoclosure () throws -> Value?,
     as snapshotting: Snapshotting<Value, String>,
     message: @autoclosure () -> String = "",
@@ -214,7 +214,7 @@ public func assertInlineSnapshot<Value>(
 /// Provide this structure when defining custom snapshot functions that call
 /// ``assertInlineSnapshot(of:as:message:record:timeout:syntaxDescriptor:matches:file:function:line:column:)``
 /// under the hood.
-public struct InlineSnapshotSyntaxDescriptor: Hashable {
+public struct InlineSnapshotSyntaxDescriptor: Hashable, Sendable {
     /// The default label describing an inline snapshot.
     public static let defaultTrailingClosureLabel = "matches"
 
@@ -337,7 +337,7 @@ private let installTestObserver: Void = {
     }
 }()
 
-@_spi(Internals) public struct File: Hashable {
+@_spi(Internals) public struct File: Hashable, Sendable {
     public let path: StaticString
     public static func == (lhs: Self, rhs: Self) -> Bool {
         "\(lhs.path)" == "\(rhs.path)"
@@ -348,7 +348,7 @@ private let installTestObserver: Void = {
     }
 }
 
-@_spi(Internals) public struct InlineSnapshot: Hashable {
+@_spi(Internals) public struct InlineSnapshot: Hashable, Sendable {
     public var expected: String?
     public var actual: String?
     public var wasRecording: Bool
@@ -358,7 +358,7 @@ private let installTestObserver: Void = {
     public var column: UInt
 }
 
-@_spi(Internals) public var inlineSnapshotState: LockIsolated<[File: [InlineSnapshot]]> = LockIsolated([:])
+@_spi(Internals) public let inlineSnapshotState: LockIsolated<[File: [InlineSnapshot]]> = LockIsolated([:])
 
 private struct TestSource {
     let source: String
@@ -367,23 +367,15 @@ private struct TestSource {
 }
 
 private func testSource(file: File) throws -> TestSource {
-    guard let testSource = testSourceCache[file] else {
-        let filePath = "\(file.path)"
-        let source = try String(contentsOfFile: filePath)
-        let sourceFile = Parser.parse(source: source)
-        let sourceLocationConverter = SourceLocationConverter(fileName: filePath, tree: sourceFile)
-        let testSource = TestSource(
-            source: source,
-            sourceFile: sourceFile,
-            sourceLocationConverter: sourceLocationConverter
-        )
-        testSourceCache[file] = testSource
-        return testSource
-    }
-    return testSource
+    let filePath = "\(file.path)"
+    let source = try String(contentsOfFile: filePath)
+    let sourceFile = Parser.parse(source: source)
+    return TestSource(
+        source: source,
+        sourceFile: sourceFile,
+        sourceLocationConverter: SourceLocationConverter(fileName: filePath, tree: sourceFile)
+    )
 }
-
-private var testSourceCache: [File: TestSource] = [:]
 
 private func writeInlineSnapshots() {
     inlineSnapshotState.withLock { inlineSnapshotState in

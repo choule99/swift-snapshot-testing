@@ -3,7 +3,7 @@ import AppKit
 import Cocoa
 import QuartzCore
 
-public extension Snapshotting where Value == CALayer, Format == NSImage {
+@MainActor public extension Snapshotting where Value == CALayer, Format == NSImage {
     /// A snapshot strategy for comparing layers based on pixel equality.
     ///
     /// ``` swift
@@ -45,7 +45,7 @@ public extension Snapshotting where Value == CALayer, Format == NSImage {
 #elseif os(iOS) || os(tvOS)
 import UIKit
 
-public extension Snapshotting where Value == CALayer, Format == UIImage {
+@MainActor public extension Snapshotting where Value == CALayer, Format == UIImage {
     /// A snapshot strategy for comparing layers based on pixel equality.
     static var image: Snapshotting {
         .image()

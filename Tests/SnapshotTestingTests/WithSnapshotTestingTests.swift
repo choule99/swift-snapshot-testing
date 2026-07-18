@@ -2,8 +2,11 @@ import XCTest
 
 @_spi(Internals) @testable import SnapshotTesting
 
-class WithSnapshotTestingTests: XCTestCase {
-    func testNesting() {
+// SwiftPM's Linux XCTest discovery requires async wrappers for @MainActor test methods.
+// swiftformat:disable redundantAsync
+
+@MainActor class WithSnapshotTestingTests: XCTestCase {
+    func testNesting() async {
         withSnapshotTesting(record: .all) {
             XCTAssertEqual(
                 SnapshotTestingConfiguration.current?

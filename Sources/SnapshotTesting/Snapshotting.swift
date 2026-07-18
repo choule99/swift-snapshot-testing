@@ -3,7 +3,7 @@ import XCTest
 
 /// A type representing the ability to transform a snapshottable value into a diffable format (like
 /// text or an image) for snapshot testing.
-public struct Snapshotting<Value, Format> {
+public struct Snapshotting<Value, Format>: Sendable {
     /// The path extension applied to references saved to disk.
     public var pathExtension: String?
 
@@ -11,7 +11,7 @@ public struct Snapshotting<Value, Format> {
     public var diffing: Diffing<Format>
 
     /// How a value is transformed into a diffable snapshot format.
-    public var snapshot: (Value) -> Async<Format>
+    public var snapshot: @MainActor @Sendable (Value) -> Async<Format>
 
     /// Creates a snapshot strategy.
     ///
@@ -23,7 +23,7 @@ public struct Snapshotting<Value, Format> {
     public init(
         pathExtension: String?,
         diffing: Diffing<Format>,
-        asyncSnapshot: @escaping (_ value: Value) -> Async<Format>
+        asyncSnapshot: @escaping @MainActor @Sendable (_ value: Value) -> Async<Format>
     ) {
         self.pathExtension = pathExtension
         self.diffing = diffing
@@ -39,7 +39,7 @@ public struct Snapshotting<Value, Format> {
     public init(
         pathExtension: String?,
         diffing: Diffing<Format>,
-        snapshot: @escaping (_ value: Value) -> Format
+        snapshot: @escaping @MainActor @Sendable (_ value: Value) -> Format
     ) {
         self.init(pathExtension: pathExtension, diffing: diffing) {
             Async(value: snapshot($0))
@@ -74,8 +74,9 @@ public struct Snapshotting<Value, Format> {
     ///
     /// - Parameters:
     ///   - transform: A transform function from `NewValue` into `Value`.
-    public func pullback<NewValue>(_ transform: @escaping (_ otherValue: NewValue) -> Value)
-        -> Snapshotting<NewValue, Format> {
+    public func pullback<NewValue>(
+        _ transform: @escaping @MainActor @Sendable (_ otherValue: NewValue) -> Value
+    ) -> Snapshotting<NewValue, Format> {
         self.asyncPullback { newValue in Async(value: transform(newValue)) }
     }
 
@@ -90,7 +91,7 @@ public struct Snapshotting<Value, Format> {
     /// - Parameters:
     ///   - transform: A transform function from `NewValue` into `Async<Value>`.
     public func asyncPullback<NewValue>(
-        _ transform: @escaping (_ otherValue: NewValue) -> Async<Value>
+        _ transform: @escaping @MainActor @Sendable (_ otherValue: NewValue) -> Async<Value>
     ) -> Snapshotting<NewValue, Format> {
         Snapshotting<NewValue, Format>(
             pathExtension: self.pathExtension,

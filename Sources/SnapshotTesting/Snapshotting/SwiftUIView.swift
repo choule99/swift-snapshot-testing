@@ -15,7 +15,7 @@ public enum SwiftUISnapshotLayout {
 }
 
 #if os(iOS) || os(tvOS)
-@available(iOS 13.0, tvOS 13.0, *) public extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
+@available(iOS 13.0, tvOS 13.0, *) @MainActor public extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
 
     /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
     static var image: Snapshotting {

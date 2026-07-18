@@ -1,7 +1,7 @@
 #if os(iOS) || os(tvOS)
 import UIKit
 
-public extension Snapshotting where Value: UIView, Format == UIImage {
+@MainActor public extension Snapshotting where Value: UIView, Format == UIImage {
     /// A snapshot strategy for comparing views based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -43,7 +43,7 @@ public extension Snapshotting where Value: UIView, Format == UIImage {
     }
 }
 
-public extension Snapshotting where Value: UIView, Format == String {
+@MainActor public extension Snapshotting where Value: UIView, Format == String {
     /// A snapshot strategy for comparing views based on a recursive description of their properties
     /// and hierarchies.
     ///

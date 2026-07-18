@@ -22,3 +22,4 @@
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1054/changes
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/653/changes
 - Add current iPad, iPad Air, and iPad Pro snapshot configurations
+- Enable Swift 6 language mode; snapshot operations now require `@MainActor` and `@Sendable`

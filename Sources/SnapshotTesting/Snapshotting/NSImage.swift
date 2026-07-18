@@ -2,7 +2,7 @@
 import Cocoa
 import XCTest
 
-public extension Diffing where Value == NSImage {
+@MainActor public extension Diffing where Value == NSImage {
     /// A pixel-diffing strategy for NSImage's which requires a 100% match.
     static let image = Diffing.image()
 
@@ -47,7 +47,7 @@ public extension Diffing where Value == NSImage {
     }
 }
 
-public extension Snapshotting where Value == NSImage, Format == NSImage {
+@MainActor public extension Snapshotting where Value == NSImage, Format == NSImage {
     /// A snapshot strategy for comparing images based on pixel equality.
     static var image: Snapshotting {
         .image()

@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Snapshotting where Value: Encodable, Format == String {
+@MainActor public extension Snapshotting where Value: Encodable, Format == String {
     /// A snapshot strategy for comparing encodable structures based on their JSON representation.
     ///
     /// ```swift

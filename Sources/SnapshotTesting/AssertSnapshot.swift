@@ -11,6 +11,18 @@ import AppKit
 import Testing
 #endif
 
+private struct GlobalState {
+    var diffTool: SnapshotTestingConfiguration.DiffTool
+    var record: SnapshotTestingConfiguration.Record
+}
+
+private let globalState: LockIsolated<GlobalState> = {
+    let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
+        .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
+        ?? .missing
+    return LockIsolated(GlobalState(diffTool: .default, record: record))
+}()
+
 /// Enhances failure messages with a command line diff tool expression that can be copied and pasted
 /// into a terminal.
 @available(
@@ -43,7 +55,10 @@ import Testing
     }
 }
 
-@_spi(Internals) public var __diffTool: SnapshotTestingConfiguration.DiffTool = .default
+@_spi(Internals) public var __diffTool: SnapshotTestingConfiguration.DiffTool {
+    get { globalState.withLock { $0.diffTool } }
+    set { globalState.withLock { $0.diffTool = newValue } }
+}
 
 /// Whether or not to record all new references.
 @available(
@@ -74,13 +89,10 @@ import Testing
     }
 }
 
-@_spi(Internals) public var __record: SnapshotTestingConfiguration.Record = {
-    if let value = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"],
-       let record = SnapshotTestingConfiguration.Record(rawValue: value) {
-        return record
-    }
-    return .missing
-}()
+@_spi(Internals) public var __record: SnapshotTestingConfiguration.Record {
+    get { globalState.withLock { $0.record } }
+    set { globalState.withLock { $0.record = newValue } }
+}
 
 /// Asserts that a given value matches a reference on disk.
 ///
@@ -103,7 +115,7 @@ import Testing
 ///     function was called.
 ///   - column: The column on which failure occurred. Defaults to the column on which this function
 ///     was called.
-public func assertSnapshot<Value>(
+@MainActor public func assertSnapshot<Value>(
     of value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, some Any>,
     named name: String? = nil,
@@ -162,7 +174,7 @@ public func assertSnapshot<Value>(
 ///     function was called.
 ///   - column: The column on which failure occurred. Defaults to the column on which this function
 ///     was called.
-public func assertSnapshots<Value>(
+@MainActor public func assertSnapshots<Value>(
     of value: @autoclosure () throws -> Value,
     as strategies: [String: Snapshotting<Value, some Any>],
     record: SnapshotTestingConfiguration.Record? = nil,
@@ -211,7 +223,7 @@ public func assertSnapshots<Value>(
 ///     function was called.
 ///   - column: The column on which failure occurred. Defaults to the column on which this function
 ///     was called.
-public func assertSnapshots<Value>(
+@MainActor public func assertSnapshots<Value>(
     of value: @autoclosure () throws -> Value,
     as strategies: [Snapshotting<Value, some Any>],
     record: SnapshotTestingConfiguration.Record? = nil,
@@ -253,7 +265,7 @@ public func assertSnapshots<Value>(
 ///   named name: String? = nil,
 ///   record: SnapshotTestingConfiguration.Record? = nil,
 ///   timeout: TimeInterval = 5,
-///   file: StaticString = #file,
+///   file: StaticString = #filePath,
 ///   testName: String = #function,
 ///   line: UInt = #line
 ///   ) {
@@ -290,7 +302,7 @@ public func assertSnapshots<Value>(
 ///   - line: The line number on which failure occurred. Defaults to the line number on which this
 ///     function was called.
 /// - Returns: A failure message or, if the value matches, nil.
-public func verifySnapshot<Value, Format>(
+@MainActor public func verifySnapshot<Value, Format>(
     of value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, Format>,
     named name: String? = nil,
@@ -298,7 +310,7 @@ public func verifySnapshot<Value, Format>(
     snapshotDirectory: String? = nil,
     timeout: TimeInterval = 5,
     fileID: StaticString = #fileID,
-    file filePath: StaticString = #file,
+    file filePath: StaticString = #filePath,
     testName: String = #function,
     line: UInt = #line,
     column: UInt = #column
@@ -382,7 +394,7 @@ public func verifySnapshot<Value, Format>(
                 return "Couldn't snapshot value"
             }
 
-            func recordSnapshot(writeToDisk: Bool) throws {
+            @MainActor func recordSnapshot(writeToDisk: Bool) throws {
                 let snapshotData = snapshotting.diffing.toData(diffable)
 
                 if writeToDisk {
@@ -545,7 +557,7 @@ private var counter: File.Counter {
 
 private let _counter = File.Counter()
 
-private func recordFailureAttachments(
+@MainActor private func recordFailureAttachments(
     _ attachments: [DiffAttachment],
     fileID: StaticString,
     filePath: StaticString,
@@ -612,20 +624,14 @@ func uniformTypeIdentifier(fromExtension pathExtension: String) -> String? {
 
 /// We need to clean counter between tests executions in order to support test-iterations.
 private class CleanCounterBetweenTestCases: NSObject, XCTestObservation {
-    private static var registered = false
+    @MainActor private static var registered = false
 
-    static func registerIfNeeded() {
+    @MainActor static func registerIfNeeded() {
         guard !registered else {
             return
         }
         defer { registered = true }
-        if Thread.isMainThread {
-            XCTestObservationCenter.shared.addTestObserver(CleanCounterBetweenTestCases())
-        } else {
-            DispatchQueue.main.sync {
-                XCTestObservationCenter.shared.addTestObserver(CleanCounterBetweenTestCases())
-            }
-        }
+        XCTestObservationCenter.shared.addTestObserver(CleanCounterBetweenTestCases())
     }
 
     func testCaseDidFinish(_ testCase: XCTestCase) {

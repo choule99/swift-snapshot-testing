@@ -7,7 +7,7 @@ import UIKit
 #endif
 
 #if os(macOS)
-public extension Snapshotting where Value == SKScene, Format == NSImage {
+@MainActor public extension Snapshotting where Value == SKScene, Format == NSImage {
     /// A snapshot strategy for comparing SpriteKit scenes based on pixel equality.
     ///
     /// - Parameters:
@@ -23,7 +23,7 @@ public extension Snapshotting where Value == SKScene, Format == NSImage {
     }
 }
 #elseif os(iOS) || os(tvOS)
-public extension Snapshotting where Value == SKScene, Format == UIImage {
+@MainActor public extension Snapshotting where Value == SKScene, Format == UIImage {
     /// A snapshot strategy for comparing SpriteKit scenes based on pixel equality.
     ///
     /// - Parameters:
@@ -40,7 +40,7 @@ public extension Snapshotting where Value == SKScene, Format == UIImage {
 }
 #endif
 
-fileprivate extension Snapshotting where Value == SKScene, Format == Image {
+@MainActor fileprivate extension Snapshotting where Value == SKScene, Format == Image {
     static func skScene(precision: Float, perceptualPrecision: Float, size: CGSize)
         -> Snapshotting {
         Snapshotting<View, Image>.image(

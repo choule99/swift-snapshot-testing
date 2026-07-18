@@ -2,7 +2,7 @@
 import AppKit
 import Cocoa
 
-public extension Snapshotting where Value == NSBezierPath, Format == NSImage {
+@MainActor public extension Snapshotting where Value == NSBezierPath, Format == NSImage {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -40,7 +40,7 @@ public extension Snapshotting where Value == NSBezierPath, Format == NSImage {
     }
 }
 
-public extension Snapshotting where Value == NSBezierPath, Format == String {
+@MainActor public extension Snapshotting where Value == NSBezierPath, Format == String {
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     @available(macOS 11.0, *)
     @available(iOS 11.0, *) static var elementsDescription: Snapshotting {
