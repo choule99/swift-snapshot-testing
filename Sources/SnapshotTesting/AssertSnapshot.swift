@@ -120,6 +120,8 @@ public func resetAccessedSnapshotPaths() {
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
 ///     in a directory with the same name as the test file, and that directory will sit inside a
 ///     directory `__Snapshots__` that sits next to your test file.
+///   - artifactsDirectory: Optional directory for failure artifacts. An explicit nonblank value
+///     takes precedence over `SNAPSHOT_ARTIFACTS` and preserves references in failed record mode.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
@@ -137,6 +139,7 @@ public func resetAccessedSnapshotPaths() {
     named name: String? = nil,
     record: SnapshotTestingConfiguration.Record? = nil,
     snapshotDirectory: String? = nil,
+    artifactsDirectory: String? = nil,
     timeout: TimeInterval = 5,
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
@@ -150,6 +153,7 @@ public func resetAccessedSnapshotPaths() {
         named: name,
         record: record,
         snapshotDirectory: snapshotDirectory,
+        artifactsDirectory: artifactsDirectory,
         timeout: timeout,
         fileID: fileID,
         file: filePath,
@@ -311,6 +315,8 @@ public func resetAccessedSnapshotPaths() {
 ///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
 ///     in a directory with the same name as the test file, and that directory will sit inside a
 ///     directory `__Snapshots__` that sits next to your test file.
+///   - artifactsDirectory: Optional directory for failure artifacts. An explicit nonblank value
+///     takes precedence over `SNAPSHOT_ARTIFACTS` and preserves references in failed record mode.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - file: The file in which failure occurred. Defaults to the file name of the test case in
 ///     which this function was called.
@@ -326,6 +332,7 @@ public func resetAccessedSnapshotPaths() {
     record: SnapshotTestingConfiguration.Record? = nil,
     diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
     snapshotDirectory: String? = nil,
+    artifactsDirectory: String? = nil,
     timeout: TimeInterval = 5,
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
@@ -360,6 +367,9 @@ public func resetAccessedSnapshotPaths() {
             let snapshotDirectoryUrl =
                 snapshotDirectory.map { URL(fileURLWithPath: $0, isDirectory: true) }
                     ?? snapshotsBaseUrl.appendingPathComponent("__Snapshots__").appendingPathComponent(fileName)
+            let explicitArtifactsDirectory = artifactsDirectory.flatMap {
+                $0.allSatisfy(\.isWhitespace) ? nil : $0
+            }
 
             let testName = sanitizePathComponent(testName)
             let snapshotNaming = SnapshotTestingConfiguration.current?.snapshotNaming ?? .numbered
@@ -469,6 +479,50 @@ public func resetAccessedSnapshotPaths() {
                 }
             }
 
+            @MainActor func recordArtifact() throws -> URL {
+                let artifactsUrl = snapshotArtifactsDirectory(explicitArtifactsDirectory)
+                let artifactsSubUrl = artifactsUrl.appendingPathComponent(fileName)
+                try fileManager.createDirectory(
+                    at: artifactsSubUrl,
+                    withIntermediateDirectories: true
+                )
+                let failedSnapshotFileUrl = artifactsSubUrl.appendingPathComponent(
+                    snapshotFileUrl.lastPathComponent
+                )
+                try snapshotting.diffing.toData(diffable).write(to: failedSnapshotFileUrl)
+                return failedSnapshotFileUrl
+            }
+
+            @MainActor func recordMissingSnapshot() throws -> String {
+                if record == .never {
+                    try recordSnapshot(writeToDisk: false)
+                    if explicitArtifactsDirectory != nil {
+                        _ = try recordArtifact()
+                    }
+
+                    return """
+                    No reference was found on disk. New snapshot was not recorded because recording is disabled
+                    """
+                } else if explicitArtifactsDirectory != nil {
+                    try recordSnapshot(writeToDisk: false)
+                    _ = try recordArtifact()
+
+                    return """
+                    No reference was found on disk. Snapshot was not recorded because an artifacts directory is configured.
+                    """
+                } else {
+                    try recordSnapshot(writeToDisk: true)
+
+                    return """
+                    No reference was found on disk. Automatically recorded snapshot: …
+
+                    open "\(snapshotFileUrl.absoluteString)"
+
+                    Re-run "\(testName)" to assert against the newly-recorded snapshot.
+                    """
+                }
+            }
+
             if record == .all {
                 try recordSnapshot(writeToDisk: true)
 
@@ -482,23 +536,7 @@ public func resetAccessedSnapshotPaths() {
             }
 
             guard fileManager.fileExists(atPath: snapshotFileUrl.path) else {
-                if record == .never {
-                    try recordSnapshot(writeToDisk: false)
-
-                    return """
-                    No reference was found on disk. New snapshot was not recorded because recording is disabled
-                    """
-                } else {
-                    try recordSnapshot(writeToDisk: true)
-
-                    return """
-                    No reference was found on disk. Automatically recorded snapshot: …
-
-                    open "\(snapshotFileUrl.absoluteString)"
-
-                    Re-run "\(testName)" to assert against the newly-recorded snapshot.
-                    """
-                }
+                return try recordMissingSnapshot()
             }
 
             let referenceFileUrl = snapshotFileUrl
@@ -521,13 +559,7 @@ public func resetAccessedSnapshotPaths() {
                 return nil
             }
 
-            let artifactsUrl = snapshotArtifactsDirectory()
-            let artifactsSubUrl = artifactsUrl.appendingPathComponent(fileName)
-            try fileManager.createDirectory(at: artifactsSubUrl, withIntermediateDirectories: true)
-            let failedSnapshotFileUrl = artifactsSubUrl.appendingPathComponent(
-                snapshotFileUrl.lastPathComponent
-            )
-            try snapshotting.diffing.toData(diffable).write(to: failedSnapshotFileUrl)
+            let failedSnapshotFileUrl = try recordArtifact()
 
             recordFailureAttachments(
                 attachments,
@@ -549,8 +581,11 @@ public func resetAccessedSnapshotPaths() {
             }
 
             if record == .failed {
-                try recordSnapshot(writeToDisk: true)
-                failureMessage += " A new snapshot was automatically recorded."
+                let shouldWriteReference = explicitArtifactsDirectory == nil
+                try recordSnapshot(writeToDisk: shouldWriteReference)
+                if shouldWriteReference {
+                    failureMessage += " A new snapshot was automatically recorded."
+                }
             }
 
             return """
@@ -645,10 +680,12 @@ func sanitizePathComponent(_ string: String) -> String {
 }
 
 func snapshotArtifactsDirectory(
-    _ path: String? = ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
+    _ explicitPath: String? = nil,
+    environmentPath: String? = ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
 ) -> URL {
-    let path = path.flatMap { $0.allSatisfy(\.isWhitespace) ? nil : $0 }
-        ?? NSTemporaryDirectory()
+    let explicitPath = explicitPath.flatMap { $0.allSatisfy(\.isWhitespace) ? nil : $0 }
+    let environmentPath = environmentPath.flatMap { $0.allSatisfy(\.isWhitespace) ? nil : $0 }
+    let path = explicitPath ?? environmentPath ?? NSTemporaryDirectory()
     return URL(fileURLWithPath: path, isDirectory: true)
 }
 

@@ -56,14 +56,28 @@ import XCTest
 
     func testSnapshotArtifactsDirectory() async {
         let temporaryDirectory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let environmentDirectory = URL(fileURLWithPath: "/environment", isDirectory: true)
+        let explicitDirectory = URL(fileURLWithPath: "/explicit", isDirectory: true)
 
-        XCTAssertEqual(snapshotArtifactsDirectory(nil), temporaryDirectory)
-        XCTAssertEqual(snapshotArtifactsDirectory(""), temporaryDirectory)
-        XCTAssertEqual(snapshotArtifactsDirectory(" \t\n"), temporaryDirectory)
+        XCTAssertEqual(
+            snapshotArtifactsDirectory("/explicit", environmentPath: "/environment"),
+            explicitDirectory
+        )
+        XCTAssertEqual(
+            snapshotArtifactsDirectory(nil, environmentPath: "/environment"),
+            environmentDirectory
+        )
+        XCTAssertEqual(
+            snapshotArtifactsDirectory("", environmentPath: "/environment"),
+            environmentDirectory
+        )
+        XCTAssertEqual(snapshotArtifactsDirectory(nil, environmentPath: nil), temporaryDirectory)
+        XCTAssertEqual(snapshotArtifactsDirectory("", environmentPath: ""), temporaryDirectory)
+        XCTAssertEqual(snapshotArtifactsDirectory(" \t\n", environmentPath: " \n"), temporaryDirectory)
 
         let configuredDirectory = URL(fileURLWithPath: "/tmp/snapshot artifacts ", isDirectory: true)
         XCTAssertEqual(
-            snapshotArtifactsDirectory("/tmp/snapshot artifacts "),
+            snapshotArtifactsDirectory("/tmp/snapshot artifacts ", environmentPath: nil),
             configuredDirectory
         )
     }

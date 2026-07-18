@@ -167,6 +167,33 @@ class RecordTests: BaseTestCase {
     }
     #endif
 
+    #if canImport(Darwin)
+    func testRecordFailed_WithArtifactsDirectory() async throws {
+        let artifactsDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
+        let artifactURL = artifactsDirectory
+            .appendingPathComponent("RecordTests", isDirectory: true)
+            .appendingPathComponent(snapshotURL.lastPathComponent)
+        try Data("999".utf8).write(to: snapshotURL)
+
+        XCTExpectFailure {
+            assertSnapshot(
+                of: 42,
+                as: .json,
+                record: .failed,
+                artifactsDirectory: artifactsDirectory.path
+            )
+        } issueMatcher: {
+            $0.compactDescription.hasPrefix("failed - Snapshot does not match reference.\n")
+                && !$0.compactDescription.contains("automatically recorded")
+        }
+
+        try XCTAssertEqual(String(contentsOf: snapshotURL, encoding: .utf8), "999")
+        try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
+    }
+    #endif
+
     func testRecordFailed_NoFailure() async throws {
         #if os(Android)
         throw XCTSkip("cannot save next to file on Android")
@@ -235,4 +262,58 @@ class RecordTests: BaseTestCase {
         )
     }
     #endif
+
+    func testRecordFailed_MissingFileWithArtifactsDirectory() async throws {
+        #if os(Android)
+        throw XCTSkip("cannot save next to file on Android")
+        #else
+        let artifactsDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
+        let artifactURL = artifactsDirectory
+            .appendingPathComponent("RecordTests", isDirectory: true)
+            .appendingPathComponent(snapshotURL.lastPathComponent)
+
+        let failure = verifySnapshot(
+            of: 42,
+            as: .json,
+            record: .failed,
+            artifactsDirectory: artifactsDirectory.path
+        )
+
+        XCTAssertEqual(
+            failure,
+            "No reference was found on disk. Snapshot was not recorded because an artifacts directory is configured."
+        )
+        XCTAssertFalse(FileManager.default.fileExists(atPath: snapshotURL.path))
+        try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
+        #endif
+    }
+
+    func testRecordNever_MissingFileWithArtifactsDirectory() async throws {
+        #if os(Android)
+        throw XCTSkip("cannot save next to file on Android")
+        #else
+        let artifactsDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
+        let artifactURL = artifactsDirectory
+            .appendingPathComponent("RecordTests", isDirectory: true)
+            .appendingPathComponent(snapshotURL.lastPathComponent)
+
+        let failure = verifySnapshot(
+            of: 42,
+            as: .json,
+            record: .never,
+            artifactsDirectory: artifactsDirectory.path
+        )
+
+        XCTAssertEqual(
+            failure,
+            "No reference was found on disk. New snapshot was not recorded because recording is disabled"
+        )
+        XCTAssertFalse(FileManager.default.fileExists(atPath: snapshotURL.path))
+        try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
+        #endif
+    }
 }
