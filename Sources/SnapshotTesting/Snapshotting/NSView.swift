@@ -71,18 +71,22 @@ public extension Snapshotting where Value == NSView, Format == String {
 }
 
 func snapshotImage(_ view: NSView) -> NSImage {
-    let proxy = NSView(frame: view.bounds)
-    let bitmapRep = withScaledWindow(proxy) {
-        proxy.bitmapImageRepForCachingDisplay(in: proxy.bounds)!
+    onMain {
+        let proxy = NSView(frame: view.bounds)
+        let bitmapRep = withScaledWindow(proxy) {
+            proxy.bitmapImageRepForCachingDisplay(in: proxy.bounds)!
+        }
+        view.cacheDisplay(in: view.bounds, to: bitmapRep)
+        let image = NSImage(size: view.bounds.size)
+        image.addRepresentation(bitmapRep)
+        return image
     }
-    view.cacheDisplay(in: view.bounds, to: bitmapRep)
-    let image = NSImage(size: view.bounds.size)
-    image.addRepresentation(bitmapRep)
-    return image
 }
 
 func snapshotImage(size: CGSize, drawing: @escaping () -> Void) -> NSImage {
-    snapshotImage(SnapshotDrawingView(size: size, drawing: drawing))
+    onMain {
+        snapshotImage(SnapshotDrawingView(size: size, drawing: drawing))
+    }
 }
 
 private final class SnapshotDrawingView: NSView {

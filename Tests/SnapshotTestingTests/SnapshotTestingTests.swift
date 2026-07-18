@@ -227,6 +227,19 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testSnapshotImageRunsOnMainThread() {
+        #if os(macOS)
+        let snapshotting = expectation(description: "Snapshotting")
+        DispatchQueue.global(qos: .userInteractive).async {
+            _ = snapshotImage(size: CGSize(width: 1, height: 1)) {
+                XCTAssertTrue(Thread.isMainThread)
+            }
+            snapshotting.fulfill()
+        }
+        wait(for: [snapshotting], timeout: 1)
+        #endif
+    }
+
     func testPrecision() {
         #if os(iOS) || os(macOS) || os(tvOS)
         #if os(iOS) || os(tvOS)

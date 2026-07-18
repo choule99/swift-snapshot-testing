@@ -1129,7 +1129,7 @@ private final class ScaledWindow: NSWindow {
 }
 
 func withScaledWindow<T>(_ view: NSView, perform: @escaping () -> T) -> T {
-    let work = {
+    onMain {
         let superview = view.superview
         defer { superview?.addSubview(view) }
         let window = ScaledWindow()
@@ -1138,7 +1138,12 @@ func withScaledWindow<T>(_ view: NSView, perform: @escaping () -> T) -> T {
         window.makeKey()
         return perform()
     }
-    return Thread.isMainThread ? work() : DispatchQueue.main.sync(execute: work)
+}
+
+func onMain<T>(_ perform: @escaping () -> T) -> T {
+    Thread.isMainThread
+        ? perform()
+        : DispatchQueue.main.sync(flags: .enforceQoS, execute: perform)
 }
 #endif
 #endif
