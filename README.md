@@ -99,6 +99,49 @@ assertSnapshot(of: vc, as: .recursiveDescription(on: .iPadMini(.portrait)))
 > Snapshots must be compared using the exact same simulator that originally took the reference to
 > avoid discrepancies between images.
 
+SnapshotTesting does not enforce a global capture environment because a test suite may intentionally
+run references on multiple simulators. The simulator running the test is independent of the
+`ViewImageConfig` passed to `.image(on:)`. If a suite requires a fixed simulator, add a client-side
+preflight:
+
+``` swift
+import Foundation
+import SnapshotTesting
+import Testing
+
+func assertSnapshotEnvironment(
+  simulatorModelIdentifier: String,
+  iOSMajorVersion: Int
+) -> Bool {
+  let processInfo = ProcessInfo.processInfo
+  let actualModel = processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"]
+  let actualVersion = processInfo.operatingSystemVersion.majorVersion
+
+  guard actualModel == simulatorModelIdentifier, actualVersion == iOSMajorVersion else {
+    Issue.record(
+      Comment(
+        rawValue: "Expected \(simulatorModelIdentifier) on iOS \(iOSMajorVersion); "
+          + "used \(actualModel ?? "a non-simulator device") on iOS \(actualVersion)."
+      )
+    )
+    return false
+  }
+  return true
+}
+
+@MainActor @Test func testFeature() {
+  guard assertSnapshotEnvironment(
+    simulatorModelIdentifier: "iPhone15,4",
+    iOSMajorVersion: 17
+  ) else { return }
+  let vc = MyViewController()
+  assertSnapshot(of: vc, as: .image)
+}
+```
+
+Keep the expected values with the tests that need them. This check is intentionally opt-in and can
+be extended by clients that also need to validate display scale or color gamut.
+
 Better yet, SnapshotTesting isn't limited to views and view controllers! There are a number of
 available snapshot strategies to choose from.
 
