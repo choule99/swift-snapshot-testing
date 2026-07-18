@@ -23,6 +23,7 @@ import UIKit
     ///   - traits: A trait collection override.
     ///   - settlingDelay: The time to wait after the view appears and before rendering. Keep this
     ///     value shorter than the snapshot assertion's timeout.
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
         on config: ViewImageConfig,
         drawHierarchyInKeyWindow: Bool = false,
@@ -30,12 +31,16 @@ import UIKit
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
-        settlingDelay: TimeInterval = 0
+        settlingDelay: TimeInterval = 0,
+        isOpaque: Bool = false
     )
         -> Snapshotting {
 
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+            precision: precision,
+            perceptualPrecision: perceptualPrecision,
+            scale: traits.displayScale,
+            isOpaque: isOpaque
         ).asyncPullback { viewController in
             snapshotView(
                 config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) }
@@ -64,18 +69,23 @@ import UIKit
     ///   - traits: A trait collection override.
     ///   - settlingDelay: The time to wait after the view appears and before rendering. Keep this
     ///     value shorter than the snapshot assertion's timeout.
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
-        settlingDelay: TimeInterval = 0
+        settlingDelay: TimeInterval = 0,
+        isOpaque: Bool = false
     )
         -> Snapshotting {
 
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+            precision: precision,
+            perceptualPrecision: perceptualPrecision,
+            scale: traits.displayScale,
+            isOpaque: isOpaque
         ).asyncPullback { viewController in
             snapshotView(
                 config: .init(safeArea: .zero, size: size, traits: traits),

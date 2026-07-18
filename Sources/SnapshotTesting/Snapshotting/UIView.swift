@@ -20,17 +20,22 @@ import UIKit
     ///     human eye.
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
-        traits: UITraitCollection = .init()
+        traits: UITraitCollection = .init(),
+        isOpaque: Bool = false
     )
         -> Snapshotting {
 
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+            precision: precision,
+            perceptualPrecision: perceptualPrecision,
+            scale: traits.displayScale,
+            isOpaque: isOpaque
         ).asyncPullback { view in
             snapshotView(
                 config: .init(safeArea: .zero, size: size ?? view.frame.size, traits: .init()),

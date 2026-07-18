@@ -20,11 +20,17 @@ import Cocoa
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     ///   - size: A view size override.
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
-        precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize? = nil
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        size: CGSize? = nil,
+        isOpaque: Bool = false
     ) -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision
+            precision: precision,
+            perceptualPrecision: perceptualPrecision,
+            isOpaque: isOpaque
         ).asyncPullback { view in
             let initialSize = view.frame.size
             if let size {

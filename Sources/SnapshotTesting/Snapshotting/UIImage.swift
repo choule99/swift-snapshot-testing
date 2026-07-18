@@ -1,4 +1,7 @@
 #if os(iOS) || os(tvOS) || os(watchOS)
+#if canImport(CoreImage)
+import CoreImage
+#endif
 import UIKit
 
 @MainActor public extension Diffing where Value == UIImage {
@@ -119,10 +122,16 @@ import UIKit
     /// - Parameters:
     ///   - precision: The percentage of pixels that must match.
     ///   - scale: The scale of the reference image stored on disk. Defaults to `1`.
-    static func image(precision: Float = 1, scale: CGFloat? = nil) -> Snapshotting {
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    static func image(
+        precision: Float = 1,
+        scale: CGFloat? = nil,
+        isOpaque: Bool = false
+    ) -> Snapshotting {
         .init(
             pathExtension: "png",
-            diffing: .image(precision: precision, scale: scale)
+            diffing: .image(precision: precision, scale: scale),
+            snapshot: { isOpaque ? opaqueImage($0) : $0 }
         )
     }
     #else
@@ -135,17 +144,60 @@ import UIKit
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     ///   - scale: The scale of the reference image stored on disk.
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
-        precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat? = nil
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        scale: CGFloat? = nil,
+        isOpaque: Bool = false
     ) -> Snapshotting {
         .init(
             pathExtension: "png",
             diffing: .image(
                 precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
-            )
+            ),
+            snapshot: { isOpaque ? opaqueImage($0) : $0 }
         )
     }
     #endif
+}
+
+@MainActor private func opaqueImage(_ image: UIImage) -> UIImage {
+    let cgImage: CGImage?
+    #if canImport(CoreImage)
+    cgImage = image.cgImage ?? image.ciImage.flatMap {
+        CIContext().createCGImage($0, from: $0.extent)
+    }
+    #else
+    cgImage = image.cgImage
+    #endif
+    guard let cgImage else {
+        preconditionFailure("Could not create an opaque image.")
+    }
+    let colorSpace = cgImage.colorSpace.flatMap { $0.model == .rgb ? $0 : nil }
+        ?? CGColorSpaceCreateDeviceRGB()
+    let bitmapInfo = CGBitmapInfo(
+        rawValue: (cgImage.bitmapInfo.rawValue & ~CGBitmapInfo.alphaInfoMask.rawValue)
+            | CGImageAlphaInfo.noneSkipLast.rawValue
+    )
+    guard let context = CGContext(
+        data: nil,
+        width: cgImage.width,
+        height: cgImage.height,
+        bitsPerComponent: cgImage.bitsPerComponent,
+        bytesPerRow: 0,
+        space: colorSpace,
+        bitmapInfo: bitmapInfo.rawValue
+    ) else {
+        preconditionFailure("Could not create an opaque image context.")
+    }
+    context.setFillColor(red: 1, green: 1, blue: 1, alpha: 1)
+    context.fill(CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
+    context.draw(cgImage, in: CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
+    guard let opaqueCGImage = context.makeImage() else {
+        preconditionFailure("Could not create an opaque image.")
+    }
+    return UIImage(cgImage: opaqueCGImage, scale: image.scale, orientation: image.imageOrientation)
 }
 
 // remap snapshot & reference to same colorspace

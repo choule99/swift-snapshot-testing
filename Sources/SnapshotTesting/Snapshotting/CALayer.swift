@@ -25,9 +25,16 @@ import QuartzCore
     ///     match. 98-99% mimics
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
-    static func image(precision: Float, perceptualPrecision: Float = 1) -> Snapshotting {
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    static func image(
+        precision: Float,
+        perceptualPrecision: Float = 1,
+        isOpaque: Bool = false
+    ) -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision
+            precision: precision,
+            perceptualPrecision: perceptualPrecision,
+            isOpaque: isOpaque
         ).pullback { layer in
             let image = NSImage(size: layer.bounds.size)
             image.lockFocus()
@@ -60,12 +67,19 @@ import UIKit
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
     ///   - traits: A trait collection override.
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
-        precision: Float = 1, perceptualPrecision: Float = 1, traits: UITraitCollection = .init()
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        traits: UITraitCollection = .init(),
+        isOpaque: Bool = false
     )
         -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision, scale: traits.displayScale
+            precision: precision,
+            perceptualPrecision: perceptualPrecision,
+            scale: traits.displayScale,
+            isOpaque: isOpaque
         ).pullback { layer in
             renderer(bounds: layer.bounds, for: traits).image { ctx in
                 layer.setNeedsLayout()

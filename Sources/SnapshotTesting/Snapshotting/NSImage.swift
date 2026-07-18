@@ -61,23 +61,61 @@ import XCTest
     ///     match. 98-99% mimics
     ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
     ///     human eye.
-    static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
+    ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        isOpaque: Bool = false
+    ) -> Snapshotting {
         .init(
             pathExtension: "png",
             diffing: .image(precision: precision, perceptualPrecision: perceptualPrecision),
             snapshot: { image in
                 let pixelSize = CGSize(width: image.size.width * 2, height: image.size.height * 2)
-                if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
-                   CGFloat(cgImage.width) >= pixelSize.width,
-                   CGFloat(cgImage.height) >= pixelSize.height {
-                    return image
-                }
-                return snapshotImage(size: image.size) {
-                    image.draw(in: NSRect(origin: .zero, size: image.size))
-                }
+                let snapshot: NSImage =
+                    if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
+                    CGFloat(cgImage.width) >= pixelSize.width,
+                    CGFloat(cgImage.height) >= pixelSize.height {
+                        image
+                    } else {
+                        snapshotImage(size: image.size) {
+                            image.draw(in: NSRect(origin: .zero, size: image.size))
+                        }
+                    }
+                return isOpaque ? opaqueImage(snapshot) : snapshot
             }
         )
     }
+}
+
+@MainActor private func opaqueImage(_ image: NSImage) -> NSImage {
+    guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+        preconditionFailure("Could not create an opaque image.")
+    }
+    let colorSpace = cgImage.colorSpace.flatMap { $0.model == .rgb ? $0 : nil }
+        ?? CGColorSpaceCreateDeviceRGB()
+    let bitmapInfo = CGBitmapInfo(
+        rawValue: (cgImage.bitmapInfo.rawValue & ~CGBitmapInfo.alphaInfoMask.rawValue)
+            | CGImageAlphaInfo.noneSkipLast.rawValue
+    )
+    guard let context = CGContext(
+        data: nil,
+        width: cgImage.width,
+        height: cgImage.height,
+        bitsPerComponent: cgImage.bitsPerComponent,
+        bytesPerRow: 0,
+        space: colorSpace,
+        bitmapInfo: bitmapInfo.rawValue
+    ) else {
+        preconditionFailure("Could not create an opaque image context.")
+    }
+    context.setFillColor(red: 1, green: 1, blue: 1, alpha: 1)
+    context.fill(CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
+    context.draw(cgImage, in: CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height))
+    guard let opaqueCGImage = context.makeImage() else {
+        preconditionFailure("Could not create an opaque image.")
+    }
+    return NSImage(cgImage: opaqueCGImage, size: image.size)
 }
 
 private func NSImagePNGRepresentation(_ image: NSImage) -> Data? {

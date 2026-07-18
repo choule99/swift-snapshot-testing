@@ -19,6 +19,9 @@ import SwiftUI
 @preconcurrency import WebKit
 #endif
 #if canImport(UIKit)
+#if canImport(CoreImage)
+import CoreImage
+#endif
 import UIKit
 #endif
 
@@ -718,6 +721,134 @@ final class SnapshotTestingTests: BaseTestCase {
 
         XCTAssertEqual(difference?.0, "Newly-taken snapshot does not match reference.")
         XCTAssertEqual(difference?.1.count, 3)
+        #endif
+    }
+
+    func testOpaqueImageSnapshots() async throws {
+        #if os(iOS) || os(macOS) || os(tvOS)
+        func hasAlpha(_ image: CGImage) -> Bool {
+            switch image.alphaInfo {
+                case .none,
+                     .noneSkipFirst,
+                     .noneSkipLast:
+                    false
+                default:
+                    true
+            }
+        }
+
+        func pixel(_ image: CGImage) throws -> [UInt8] {
+            var bytes = [UInt8](repeating: 0, count: 4)
+            let context = try XCTUnwrap(
+                CGContext(
+                    data: &bytes,
+                    width: 1,
+                    height: 1,
+                    bitsPerComponent: 8,
+                    bytesPerRow: 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                )
+            )
+            context.draw(image, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+            return bytes
+        }
+
+        func assertWhiteComposite(_ image: CGImage) throws {
+            let components = try pixel(image)
+            XCTAssertEqual(components[0], 255)
+            XCTAssertTrue((127...139).contains(components[1]), "\(components)")
+            XCTAssertTrue((127...139).contains(components[2]), "\(components)")
+            XCTAssertEqual(components[3], 255)
+        }
+        #endif
+
+        #if os(iOS) || os(tvOS)
+        func capture<Value>(_ value: Value, as strategy: Snapshotting<Value, UIImage>) async
+            -> UIImage {
+            await withCheckedContinuation { continuation in
+                strategy.snapshot(value).run { continuation.resume(returning: $0) }
+            }
+        }
+
+        let size = CGSize(width: 2, height: 2)
+        let transparentView = UIView(frame: CGRect(origin: .zero, size: size))
+        let defaultStrategy = Snapshotting<UIView, UIImage>.image(size: size)
+        let opaqueStrategy = Snapshotting<UIView, UIImage>.image(size: size, isOpaque: true)
+        let defaultImage = await capture(transparentView, as: defaultStrategy)
+        let opaqueImage = await capture(transparentView, as: opaqueStrategy)
+        let decodedOpaqueImage = try XCTUnwrap(
+            UIImage(data: opaqueStrategy.diffing.toData(opaqueImage))
+        )
+
+        XCTAssertTrue(hasAlpha(try XCTUnwrap(defaultImage.cgImage)))
+        XCTAssertFalse(hasAlpha(try XCTUnwrap(decodedOpaqueImage.cgImage)))
+
+        XCTAssertEqual(try pixel(XCTUnwrap(decodedOpaqueImage.cgImage)), [255, 255, 255, 255])
+
+        let directStrategy = Snapshotting<UIImage, UIImage>.image(isOpaque: true)
+        let translucentImage = UIGraphicsImageRenderer(size: size).image { _ in
+            UIColor(red: 1, green: 0, blue: 0, alpha: 0.5).setFill()
+            UIRectFill(CGRect(origin: .zero, size: size))
+        }
+        let directImage = await capture(translucentImage, as: directStrategy)
+        XCTAssertFalse(hasAlpha(try XCTUnwrap(directImage.cgImage)))
+        try assertWhiteComposite(XCTUnwrap(directImage.cgImage))
+
+        let ciImage = CIImage(
+            color: CIColor(red: 0, green: 0, blue: 1, alpha: 0.5)
+        ).cropped(to: CGRect(origin: .zero, size: size))
+        let ciBackedImage = UIImage(ciImage: ciImage)
+        XCTAssertNil(ciBackedImage.cgImage)
+        let opaqueCIImage = await capture(ciBackedImage, as: directStrategy)
+        XCTAssertFalse(hasAlpha(try XCTUnwrap(opaqueCIImage.cgImage)))
+        #elseif os(macOS)
+        func capture<Value>(_ value: Value, as strategy: Snapshotting<Value, NSImage>) async
+            -> NSImage {
+            await withCheckedContinuation { continuation in
+                strategy.snapshot(value).run { continuation.resume(returning: $0) }
+            }
+        }
+
+        let size = CGSize(width: 2, height: 2)
+        let transparentView = NSView(frame: CGRect(origin: .zero, size: size))
+        let defaultStrategy = Snapshotting<NSView, NSImage>.image(size: size)
+        let opaqueStrategy = Snapshotting<NSView, NSImage>.image(size: size, isOpaque: true)
+        let defaultImage = await capture(transparentView, as: defaultStrategy)
+        let opaqueImage = await capture(transparentView, as: opaqueStrategy)
+        let opaqueData = opaqueStrategy.diffing.toData(opaqueImage)
+        let decodedOpaqueImage = try XCTUnwrap(NSImage(data: opaqueData))
+
+        XCTAssertTrue(
+            hasAlpha(
+                try XCTUnwrap(defaultImage.cgImage(forProposedRect: nil, context: nil, hints: nil))
+            )
+        )
+        XCTAssertFalse(
+            hasAlpha(
+                try XCTUnwrap(decodedOpaqueImage.cgImage(forProposedRect: nil, context: nil, hints: nil))
+            )
+        )
+
+        XCTAssertEqual(
+            try pixel(
+                XCTUnwrap(decodedOpaqueImage.cgImage(forProposedRect: nil, context: nil, hints: nil))
+            ),
+            [255, 255, 255, 255]
+        )
+
+        let directStrategy = Snapshotting<NSImage, NSImage>.image(isOpaque: true)
+        let translucentImage = NSImage(size: size)
+        translucentImage.lockFocus()
+        NSColor(red: 1, green: 0, blue: 0, alpha: 0.5).setFill()
+        NSBezierPath(rect: CGRect(origin: .zero, size: size)).fill()
+        translucentImage.unlockFocus()
+        let directImage = await capture(translucentImage, as: directStrategy)
+        let directCGImage = try XCTUnwrap(
+            directImage.cgImage(forProposedRect: nil, context: nil, hints: nil)
+        )
+        XCTAssertFalse(hasAlpha(directCGImage))
+        try assertWhiteComposite(directCGImage)
         #endif
     }
 
