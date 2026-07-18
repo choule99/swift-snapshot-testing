@@ -1476,6 +1476,30 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testPreparedViewUsesKeyWindowScene() async throws {
+        #if os(iOS)
+        guard let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .filter({ $0.activationState == .foregroundActive })
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow) else {
+            throw XCTSkip("No active key window scene")
+        }
+
+        let viewController = UIViewController()
+        let dispose = prepareView(
+            config: .init(),
+            drawHierarchyInKeyWindow: false,
+            traits: .init(),
+            view: viewController.view,
+            viewController: viewController
+        )
+        defer { dispose() }
+
+        XCTAssertTrue(viewController.view.window?.windowScene === keyWindow.windowScene)
+        #endif
+    }
+
     func testUIViewControllerLifeCycle() async {
         #if os(iOS)
         class ViewController: UIViewController {

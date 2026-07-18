@@ -1501,7 +1501,12 @@ private let offscreen: CGFloat = 10000
     init(config: ViewImageConfig, viewController: UIViewController) {
         let size = config.size ?? viewController.view.bounds.size
         self.config = config
-        super.init(frame: .init(origin: .zero, size: size))
+        if let windowScene = getKeyWindow()?.windowScene {
+            super.init(windowScene: windowScene)
+            self.frame = .init(origin: .zero, size: size)
+        } else {
+            super.init(frame: .init(origin: .zero, size: size))
+        }
 
         // NB: Safe area renders inaccurately for UI{Navigation,TabBar}Controller.
         // Fixes welcome!
