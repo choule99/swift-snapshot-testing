@@ -1,4 +1,4 @@
-#if canImport(Testing)
+#if canImport(Testing) && canImport(SnapshotTestingCustomDump)
 import InlineSnapshotTesting
 import SnapshotTestingCustomDump
 import Testing

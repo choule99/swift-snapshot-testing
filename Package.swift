@@ -18,14 +18,9 @@ let package = Package(
         .library(
             name: "InlineSnapshotTesting",
             targets: ["InlineSnapshotTesting"]
-        ),
-        .library(
-            name: "SnapshotTestingCustomDump",
-            targets: ["SnapshotTestingCustomDump"]
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.3.3"),
         .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0" ..< "605.0.0")
     ],
     targets: [
@@ -46,7 +41,6 @@ let package = Package(
             name: "InlineSnapshotTesting",
             dependencies: [
                 "SnapshotTesting",
-                "SnapshotTestingCustomDump",
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
@@ -56,13 +50,6 @@ let package = Package(
             name: "InlineSnapshotTestingTests",
             dependencies: [
                 "InlineSnapshotTesting"
-            ]
-        ),
-        .target(
-            name: "SnapshotTestingCustomDump",
-            dependencies: [
-                "SnapshotTesting",
-                .product(name: "CustomDump", package: "swift-custom-dump")
             ]
         )
     ],

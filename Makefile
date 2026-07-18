@@ -20,28 +20,29 @@ test-linux:
 		--rm \
 		-v "$(PWD):$(PWD)" \
 		-w "$(PWD)" \
-		swift:5.7-focal \
+		swift:6.3 \
 		bash -c 'swift test'
 
 test-macos:
 	set -o pipefail && \
 	xcodebuild test \
 		-scheme swift-snapshot-testing-Package \
-		-destination platform="macOS"
+		-destination platform="macOS" | mint run --no-install cpisciotta/xcbeautify -q
 
 test-ios:
 	set -o pipefail && \
 	xcodebuild test \
 		-scheme swift-snapshot-testing-Package \
-		-destination platform="iOS Simulator,name=iPhone 17 Pro,OS=26.5"
+		-destination platform="iOS Simulator,name=iPhone 17 Pro,OS=26.5" | mint run --no-install cpisciotta/xcbeautify -q
 
 test-swift:
-	swift test
+	set -o pipefail && \
+	swift test | mint run --no-install cpisciotta/xcbeautify -q
 
 test-tvos:
 	set -o pipefail && \
 	xcodebuild test \
-		-scheme SnapshotTesting \
-		-destination platform="tvOS Simulator,name=Apple TV 4K,OS=26.5"
+		-scheme swift-snapshot-testing-Package \
+		-destination platform="tvOS Simulator,name=Apple TV 4K (3rd generation),OS=26.5" | mint run --no-install cpisciotta/xcbeautify -q
 
-test-all: test-linux test-macos test-ios
+test-all: test-swift test-macos test-ios test-tvos test-linux

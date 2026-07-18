@@ -154,27 +154,27 @@ final class SnapshotTestingTests: BaseTestCase {
     }
 
     func testMixedViews() {
-        //    #if os(iOS) || os(macOS)
-        //    // NB: CircleCI crashes while trying to instantiate SKView.
-        //    if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        //      let webView = WKWebView(frame: .init(x: 0, y: 0, width: 50, height: 50))
-        //      webView.loadHTMLString("🌎", baseURL: nil)
-        //
-        //      let skView = SKView(frame: .init(x: 50, y: 0, width: 50, height: 50))
-        //      let scene = SKScene(size: .init(width: 50, height: 50))
-        //      let node = SKShapeNode(circleOfRadius: 15)
-        //      node.fillColor = .red
-        //      node.position = .init(x: 25, y: 25)
-        //      scene.addChild(node)
-        //      skView.presentScene(scene)
-        //
-        //      let view = View(frame: .init(x: 0, y: 0, width: 100, height: 50))
-        //      view.addSubview(webView)
-        //      view.addSubview(skView)
-        //
-        //      assertSnapshot(of: view, as: .image, named: platform)
-        //    }
-        //    #endif
+        #if os(iOS) || os(macOS)
+        // NB: CircleCI crashes while trying to instantiate SKView.
+        if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+            let webView = WKWebView(frame: .init(x: 0, y: 0, width: 50, height: 50))
+            webView.loadHTMLString("🌎", baseURL: nil)
+
+            let skView = SKView(frame: .init(x: 50, y: 0, width: 50, height: 50))
+            let scene = SKScene(size: .init(width: 50, height: 50))
+            let node = SKShapeNode(circleOfRadius: 15)
+            node.fillColor = .red
+            node.position = .init(x: 25, y: 25)
+            scene.addChild(node)
+            skView.presentScene(scene)
+
+            let view = View(frame: .init(x: 0, y: 0, width: 100, height: 50))
+            view.addSubview(webView)
+            view.addSubview(skView)
+
+            assertSnapshot(of: view, as: .image, named: platform)
+        }
+        #endif
     }
 
     func testMultipleSnapshots() {
@@ -264,67 +264,69 @@ final class SnapshotTestingTests: BaseTestCase {
         let image = try XCTUnwrap(NSImage(byReferencing: imageURL))
         #endif
 
-        assertSnapshot(of: image, as: .image(precision: 0.995), named: "exact")
+        assertSnapshot(of: image, as: .image(precision: 0.995), named: "\(platform)-exact")
         if #available(iOS 11.0, tvOS 11.0, macOS 10.13, *) {
-            assertSnapshot(of: image, as: .image(perceptualPrecision: 0.98), named: "perceptual")
+            assertSnapshot(
+                of: image, as: .image(perceptualPrecision: 0.98), named: "\(platform)-perceptual"
+            )
         }
         #endif
     }
 
     func testSCNView() {
-        // #if os(iOS) || os(macOS) || os(tvOS)
-        // // NB: CircleCI crashes while trying to instantiate SCNView.
-        // if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        //   let scene = SCNScene()
-        //
-        //   let sphereGeometry = SCNSphere(radius: 3)
-        //   sphereGeometry.segmentCount = 200
-        //   let sphereNode = SCNNode(geometry: sphereGeometry)
-        //   sphereNode.position = SCNVector3Zero
-        //   scene.rootNode.addChildNode(sphereNode)
-        //
-        //   sphereGeometry.firstMaterial?.diffuse.contents = URL(fileURLWithPath: String(#file), isDirectory: false)
-        //     .deletingLastPathComponent()
-        //     .appendingPathComponent("__Fixtures__/earth.png")
-        //
-        //   let cameraNode = SCNNode()
-        //   cameraNode.camera = SCNCamera()
-        //   cameraNode.position = SCNVector3Make(0, 0, 8)
-        //   scene.rootNode.addChildNode(cameraNode)
-        //
-        //   let omniLight = SCNLight()
-        //   omniLight.type = .omni
-        //   let omniLightNode = SCNNode()
-        //   omniLightNode.light = omniLight
-        //   omniLightNode.position = SCNVector3Make(10, 10, 10)
-        //   scene.rootNode.addChildNode(omniLightNode)
-        //
-        //   assertSnapshot(
-        //     of: scene,
-        //     as: .image(size: .init(width: 500, height: 500)),
-        //     named: platform
-        //   )
-        // }
-        // #endif
+        #if os(iOS) || os(macOS) || os(tvOS)
+        // NB: CircleCI crashes while trying to instantiate SCNView.
+        if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+            let scene = SCNScene()
+
+            let sphereGeometry = SCNSphere(radius: 3)
+            sphereGeometry.segmentCount = 200
+            let sphereNode = SCNNode(geometry: sphereGeometry)
+            sphereNode.position = SCNVector3Zero
+            scene.rootNode.addChildNode(sphereNode)
+
+            sphereGeometry.firstMaterial?.diffuse.contents = URL(fileURLWithPath: String(#file), isDirectory: false)
+                .deletingLastPathComponent()
+                .appendingPathComponent("__Fixtures__/earth.png")
+
+            let cameraNode = SCNNode()
+            cameraNode.camera = SCNCamera()
+            cameraNode.position = SCNVector3Make(0, 0, 8)
+            scene.rootNode.addChildNode(cameraNode)
+
+            let omniLight = SCNLight()
+            omniLight.type = .omni
+            let omniLightNode = SCNNode()
+            omniLightNode.light = omniLight
+            omniLightNode.position = SCNVector3Make(10, 10, 10)
+            scene.rootNode.addChildNode(omniLightNode)
+
+            assertSnapshot(
+                of: scene,
+                as: .image(size: .init(width: 500, height: 500)),
+                named: platform
+            )
+        }
+        #endif
     }
 
     func testSKView() {
-        // #if os(iOS) || os(macOS) || os(tvOS)
-        // // NB: CircleCI crashes while trying to instantiate SKView.
-        // if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
-        //   let scene = SKScene(size: .init(width: 50, height: 50))
-        //   let node = SKShapeNode(circleOfRadius: 15)
-        //   node.fillColor = .red
-        //   node.position = .init(x: 25, y: 25)
-        //   scene.addChild(node)
-        //
-        //   assertSnapshot(
-        //     of: scene,
-        //     as: .image(size: .init(width: 50, height: 50)),
-        //     named: platform
-        //   )
-        // }
-        // #endif
+        #if os(iOS) || os(macOS) || os(tvOS)
+        // NB: CircleCI crashes while trying to instantiate SKView.
+        if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
+            let scene = SKScene(size: .init(width: 50, height: 50))
+            let node = SKShapeNode(circleOfRadius: 15)
+            node.fillColor = .red
+            node.position = .init(x: 25, y: 25)
+            scene.addChild(node)
+
+            assertSnapshot(
+                of: scene,
+                as: .image(size: .init(width: 50, height: 50)),
+                named: platform
+            )
+        }
+        #endif
     }
 
     func testTableViewController() {
@@ -1287,17 +1289,17 @@ final class SnapshotTestingTests: BaseTestCase {
         var rect = CGRect(x: 0, y: 0, width: 350, height: 0)
         var view = UIView(frame: rect)
         view.backgroundColor = .red
-        assertSnapshot(of: view, as: .image, named: "noHeight")
+        assertSnapshot(of: view, as: .image, named: "\(platform)-noHeight")
 
         rect = CGRect(x: 0, y: 0, width: 0, height: 350)
         view = UIView(frame: rect)
         view.backgroundColor = .green
-        assertSnapshot(of: view, as: .image, named: "noWidth")
+        assertSnapshot(of: view, as: .image, named: "\(platform)-noWidth")
 
         rect = CGRect(x: 0, y: 0, width: 0, height: 0)
         view = UIView(frame: rect)
         view.backgroundColor = .blue
-        assertSnapshot(of: view, as: .image, named: "noWidth.noHeight")
+        assertSnapshot(of: view, as: .image, named: "\(platform)-noWidth.noHeight")
         #endif
     }
 
@@ -1307,7 +1309,9 @@ final class SnapshotTestingTests: BaseTestCase {
         let view = UIView(frame: rect)
         view.backgroundColor = .blue
 
-        let failure = verifySnapshot(of: view, as: .image, named: "notEmptyImage")
+        let failure = verifySnapshot(
+            of: view, as: .image, named: "notEmptyImage", record: .never
+        )
         XCTAssertNotNil(failure)
         #endif
     }

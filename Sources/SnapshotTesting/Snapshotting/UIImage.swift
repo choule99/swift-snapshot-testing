@@ -29,18 +29,15 @@ public extension Diffing where Value == UIImage {
             toData: toData,
             fromData: { UIImage(data: $0, scale: imageScale)! }
         ) { old, new in
+            let new = new.size == .zero ? emptyImage() : new
             guard let message = compare(
                 old, new, precision: precision, perceptualPrecision: perceptualPrecision
             ) else {
                 return nil
             }
             let difference = SnapshotTesting.diff(old, new)
-            let isEmptyImage = new.size == .zero
             let referenceAttachment = DiffAttachment.data(toData(old), name: "reference.png")
-            let failureAttachment = DiffAttachment.data(
-                toData(isEmptyImage ? emptyImage() : new),
-                name: "failure.png"
-            )
+            let failureAttachment = DiffAttachment.data(toData(new), name: "failure.png")
             let differenceAttachment = DiffAttachment.data(toData(difference), name: "difference.png")
             return (
                 message,

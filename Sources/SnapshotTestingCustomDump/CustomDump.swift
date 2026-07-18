@@ -1,3 +1,4 @@
+#if canImport(CustomDump)
 import CustomDump
 import SnapshotTesting
 
@@ -22,3 +23,4 @@ public extension Snapshotting where Format == String {
         SimplySnapshotting.lines.pullback(String.init(customDumping:))
     }
 }
+#endif

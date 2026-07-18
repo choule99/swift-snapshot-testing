@@ -1060,11 +1060,11 @@ private func add(
 
     return {
         rootViewController.beginAppearanceTransition(false, animated: false)
+        rootViewController.endAppearanceTransition()
         viewController.willMove(toParent: nil)
         viewController.view.removeFromSuperview()
         viewController.removeFromParent()
         viewController.didMove(toParent: nil)
-        rootViewController.endAppearanceTransition()
         window.rootViewController = nil
     }
 }

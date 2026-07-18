@@ -45,9 +45,9 @@ extension BaseSuite {
                 UIColor.blue.setFill()
                 context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
             }
-            assertSnapshot(of: redPixel, as: .image, named: "pixel")
+            assertSnapshot(of: redPixel, as: .image, named: "\(platform)-pixel")
             withKnownIssue {
-                assertSnapshot(of: bluePixel, as: .image, named: "pixel")
+                assertSnapshot(of: bluePixel, as: .image, named: "\(platform)-pixel")
             } matching: { issue in
                 issue.description.hasSuffix(
                     "Newly-taken snapshot does not match reference."
@@ -72,9 +72,9 @@ extension BaseSuite {
                 rect.fill()
                 return true
             }
-            assertSnapshot(of: redPixel, as: .image, named: "pixel")
+            assertSnapshot(of: redPixel, as: .image, named: "\(platform)-pixel")
             withKnownIssue {
-                assertSnapshot(of: bluePixel, as: .image, named: "pixel")
+                assertSnapshot(of: bluePixel, as: .image, named: "\(platform)-pixel")
             } matching: { issue in
                 issue.description.hasSuffix(
                     "Newly-taken snapshot does not match reference."
