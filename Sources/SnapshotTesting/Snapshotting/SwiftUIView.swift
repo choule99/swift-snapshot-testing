@@ -30,10 +30,18 @@ public enum SwiftUISnapshotLayout {
 
     /// A snapshot strategy for comparing SwiftUI Views based on pixel equality.
     ///
+    /// If your tests run in a host application, use `.image(drawHierarchyInKeyWindow: true)` to
+    /// capture the most accurate image. Rendering without the host window can produce incorrect
+    /// unselected tab-bar colors, rounded corners on every list row instead of only the first and
+    /// last, and artifacts around SwiftUI rounded rectangles.
+    ///
+    /// Framework and package test targets do not have a host application and must leave
+    /// `drawHierarchyInKeyWindow` set to `false`.
+    ///
     /// - Parameters:
     ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
     ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
-    ///     tests and will _not_ work for framework test targets.
+    ///     tests and will not work for framework or package test targets.
     ///   - precision: The percentage of pixels that must match.
     ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
     ///     match. 98-99% mimics
