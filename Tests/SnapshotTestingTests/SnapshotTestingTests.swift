@@ -963,8 +963,8 @@ final class SnapshotTestingTests: BaseTestCase {
         func assertWhiteComposite(_ image: CGImage) throws {
             let components = try pixel(image)
             XCTAssertEqual(components[0], 255)
-            XCTAssertTrue((127...139).contains(components[1]), "\(components)")
-            XCTAssertTrue((127...139).contains(components[2]), "\(components)")
+            XCTAssertTrue((127 ... 139).contains(components[1]), "\(components)")
+            XCTAssertTrue((127 ... 139).contains(components[2]), "\(components)")
             XCTAssertEqual(components[3], 255)
         }
         #endif

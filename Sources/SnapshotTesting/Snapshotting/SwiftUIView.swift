@@ -67,15 +67,15 @@ public enum SwiftUISnapshotLayout {
         let config: ViewImageConfig
 
         switch layout {
+            case .sizeThatFits:
+                config = .init(safeArea: .zero, size: nil, traits: traits)
+            case let .fixed(width: width, height: height):
+                let size = CGSize(width: width, height: height)
+                config = .init(safeArea: .zero, size: size, traits: traits)
             #if os(iOS) || os(tvOS)
             case let .device(config: deviceConfig):
                 config = deviceConfig
             #endif
-        case .sizeThatFits:
-                config = .init(safeArea: .zero, size: nil, traits: traits)
-        case let .fixed(width: width, height: height):
-                let size = CGSize(width: width, height: height)
-                config = .init(safeArea: .zero, size: size, traits: traits)
         }
 
         return SimplySnapshotting.image(
