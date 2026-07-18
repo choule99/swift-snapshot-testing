@@ -41,12 +41,15 @@ public enum SwiftUISnapshotLayout {
     ///     human eye.
     ///   - layout: A view layout override.
     ///   - traits: A trait collection override.
+    ///   - settlingDelay: The time to wait after the hosting view appears and before rendering. Keep
+    ///     this value shorter than the snapshot assertion's timeout.
     static func image(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         layout: SwiftUISnapshotLayout = .sizeThatFits,
-        traits: UITraitCollection = .init()
+        traits: UITraitCollection = .init(),
+        settlingDelay: TimeInterval = 0
     )
         -> Snapshotting {
         let config: ViewImageConfig
@@ -96,7 +99,8 @@ public enum SwiftUISnapshotLayout {
                 drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
                 traits: traits,
                 view: controller.view,
-                viewController: controller
+                viewController: controller,
+                settlingDelay: settlingDelay
             )
         }
     }

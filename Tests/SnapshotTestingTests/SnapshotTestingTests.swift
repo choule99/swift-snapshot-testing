@@ -1690,6 +1690,58 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testUIViewControllerSettlingDelay() async {
+        #if os(iOS) || os(tvOS)
+        final class ViewController: UIViewController {
+            let settlesAfterAppearing: Bool
+
+            init(color: UIColor, settlesAfterAppearing: Bool = false) {
+                self.settlesAfterAppearing = settlesAfterAppearing
+                super.init(nibName: nil, bundle: nil)
+                view.backgroundColor = color
+            }
+
+            required init?(coder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+
+            override func viewDidAppear(_ animated: Bool) {
+                super.viewDidAppear(animated)
+                guard settlesAfterAppearing else {
+                    return
+                }
+                DispatchQueue.main.async { [weak self] in
+                    self?.view.backgroundColor = .blue
+                }
+            }
+        }
+
+        let size = CGSize(width: 10, height: 10)
+        let traits = UITraitCollection(displayScale: 1)
+
+        func capture(_ viewController: ViewController, settlingDelay: TimeInterval = 0) async -> UIImage {
+            let strategy = Snapshotting<ViewController, UIImage>.image(
+                size: size,
+                traits: traits,
+                settlingDelay: settlingDelay
+            )
+            return await withCheckedContinuation { continuation in
+                strategy.snapshot(viewController).run { continuation.resume(returning: $0) }
+            }
+        }
+
+        let red = await capture(ViewController(color: .red))
+        let blue = await capture(ViewController(color: .blue))
+        let immediate = await capture(ViewController(color: .red, settlesAfterAppearing: true))
+        let settled = await capture(
+            ViewController(color: .red, settlesAfterAppearing: true), settlingDelay: 0.01
+        )
+
+        XCTAssertNil(Diffing<UIImage>.image.diffV2(red, immediate))
+        XCTAssertNil(Diffing<UIImage>.image.diffV2(blue, settled))
+        #endif
+    }
+
     func testKeyboardLayoutGuideSafeArea() async {
         #if os(iOS)
         final class ViewController: UIViewController {
@@ -2072,6 +2124,31 @@ final class SnapshotTestingTests: BaseTestCase {
     }
     #endif
 
+    @available(iOS 13.0, tvOS 13.0, *) func testSwiftUIViewSettlingDelay() async {
+        #if os(iOS) || os(tvOS)
+        let traits = UITraitCollection(displayScale: 1)
+
+        func capture<View: SwiftUI.View>(_ view: View, settlingDelay: TimeInterval = 0) async -> UIImage {
+            let strategy = Snapshotting<View, UIImage>.image(
+                layout: .fixed(width: 10, height: 10),
+                traits: traits,
+                settlingDelay: settlingDelay
+            )
+            return await withCheckedContinuation { continuation in
+                strategy.snapshot(view).run { continuation.resume(returning: $0) }
+            }
+        }
+
+        let red = await capture(Color.red)
+        let blue = await capture(Color.blue)
+        let immediate = await capture(DelayedColorView())
+        let settled = await capture(DelayedColorView(), settlingDelay: 0.01)
+
+        XCTAssertNil(Diffing<UIImage>.image.diffV2(red, immediate))
+        XCTAssertNil(Diffing<UIImage>.image.diffV2(blue, settled))
+        #endif
+    }
+
     #if os(macOS) || os(iOS) || os(tvOS)
     func testReferenceLoadFailure() async {
         let snapshotUrl = URL(fileURLWithPath: String(#filePath), isDirectory: false)
@@ -2101,6 +2178,20 @@ final class SnapshotTestingTests: BaseTestCase {
     }
     #endif
 }
+
+#if os(iOS) || os(tvOS)
+@available(iOS 13.0, tvOS 13.0, *) private struct DelayedColorView: SwiftUI.View {
+    @State private var color = Color.red
+
+    var body: some SwiftUI.View {
+        color.onAppear {
+            DispatchQueue.main.async {
+                color = .blue
+            }
+        }
+    }
+}
+#endif
 
 #if os(iOS)
 private let allContentSizes =

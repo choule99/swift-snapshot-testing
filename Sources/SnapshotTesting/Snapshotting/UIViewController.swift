@@ -21,13 +21,16 @@ import UIKit
     ///     human eye.
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
+    ///   - settlingDelay: The time to wait after the view appears and before rendering. Keep this
+    ///     value shorter than the snapshot assertion's timeout.
     static func image(
         on config: ViewImageConfig,
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
-        traits: UITraitCollection = .init()
+        traits: UITraitCollection = .init(),
+        settlingDelay: TimeInterval = 0
     )
         -> Snapshotting {
 
@@ -40,7 +43,8 @@ import UIKit
                 drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
                 traits: traits,
                 view: viewController.view,
-                viewController: viewController
+                viewController: viewController,
+                settlingDelay: settlingDelay
             )
         }
     }
@@ -58,12 +62,15 @@ import UIKit
     ///     human eye.
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
+    ///   - settlingDelay: The time to wait after the view appears and before rendering. Keep this
+    ///     value shorter than the snapshot assertion's timeout.
     static func image(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
-        traits: UITraitCollection = .init()
+        traits: UITraitCollection = .init(),
+        settlingDelay: TimeInterval = 0
     )
         -> Snapshotting {
 
@@ -75,7 +82,8 @@ import UIKit
                 drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
                 traits: traits,
                 view: viewController.view,
-                viewController: viewController
+                viewController: viewController,
+                settlingDelay: settlingDelay
             )
         }
     }

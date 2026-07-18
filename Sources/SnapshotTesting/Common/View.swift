@@ -1391,7 +1391,8 @@ public extension UITraitCollection {
     drawHierarchyInKeyWindow: Bool,
     traits: UITraitCollection,
     view: UIView,
-    viewController: UIViewController
+    viewController: UIViewController,
+    settlingDelay: TimeInterval = 0
 )
     -> Async<UIImage> {
     let initialFrame = view.frame
@@ -1407,9 +1408,11 @@ public extension UITraitCollection {
         view.frame.origin = .init(x: offscreen, y: offscreen)
     }
 
-    return
-        (view.snapshot
-            ?? Async { callback in
+    return Async { callback in
+        let takeSnapshot: @MainActor @Sendable () -> Void = {
+            if let snapshot = view.snapshot {
+                snapshot.run(callback)
+            } else {
                 addImagesForRenderedViews(view).sequence().run { views in
                     callback(
                         renderer(bounds: view.bounds, for: traits).image { ctx in
@@ -1423,10 +1426,18 @@ public extension UITraitCollection {
                     views.forEach { $0.removeFromSuperview() }
                     view.frame = initialFrame
                 }
-            }).map {
-            dispose()
-            return $0
+            }
         }
+
+        if settlingDelay > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + settlingDelay, execute: takeSnapshot)
+        } else {
+            takeSnapshot()
+        }
+    }.map {
+        dispose()
+        return $0
+    }
 }
 
 private let offscreen: CGFloat = 10000
