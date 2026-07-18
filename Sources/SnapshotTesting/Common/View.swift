@@ -510,24 +510,7 @@ public struct ViewImageConfig: Sendable {
 
 public extension UITraitCollection {
     fileprivate static func merging(_ traitCollections: [UITraitCollection]) -> UITraitCollection {
-        traitCollections.reduce(UITraitCollection()) { result, traitCollection in
-            result.modifyingTraits { mutableTraits in
-                traitCollection.apply(to: &mutableTraits)
-            }
-        }
-    }
-
-    fileprivate func apply(to mutableTraits: inout some UIMutableTraits) {
-        for trait in changedTraits(from: nil) {
-            apply(trait, to: &mutableTraits)
-        }
-    }
-
-    private func apply(
-        _ trait: (some UITraitDefinition).Type,
-        to mutableTraits: inout some UIMutableTraits
-    ) {
-        mutableTraits[trait] = self[trait]
+        UITraitCollection(traitsFrom: traitCollections)
     }
 
     #if os(iOS)
@@ -1063,38 +1046,27 @@ func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageR
 private func add(
     traits: UITraitCollection, viewController: UIViewController, to window: UIWindow
 ) -> () -> Void {
-    let rootViewController: UIViewController
-    if viewController != window.rootViewController {
-        rootViewController = UIViewController()
-        rootViewController.view.backgroundColor = .clear
-        rootViewController.view.frame = window.frame
-        rootViewController.view.translatesAutoresizingMaskIntoConstraints =
-            viewController.view.translatesAutoresizingMaskIntoConstraints
-        rootViewController.preferredContentSize = rootViewController.view.frame.size
-        viewController.view.frame = rootViewController.view.frame
-        rootViewController.view.addSubview(viewController.view)
-        if viewController.view.translatesAutoresizingMaskIntoConstraints {
-            viewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        } else {
-            NSLayoutConstraint.activate([
-                viewController.view.topAnchor.constraint(equalTo: rootViewController.view.topAnchor),
-                viewController.view.bottomAnchor.constraint(
-                    equalTo: rootViewController.view.bottomAnchor
-                ),
-                viewController.view.leadingAnchor.constraint(
-                    equalTo: rootViewController.view.leadingAnchor
-                ),
-                viewController.view.trailingAnchor.constraint(
-                    equalTo: rootViewController.view.trailingAnchor
-                )
-            ])
-        }
-        rootViewController.addChild(viewController)
+    let originalRootViewController = window.rootViewController
+    let rootViewController = UIViewController()
+    rootViewController.view.backgroundColor = .clear
+    rootViewController.view.frame = window.frame
+    rootViewController.view.translatesAutoresizingMaskIntoConstraints =
+        viewController.view.translatesAutoresizingMaskIntoConstraints
+    rootViewController.preferredContentSize = rootViewController.view.frame.size
+    viewController.view.frame = rootViewController.view.frame
+    rootViewController.view.addSubview(viewController.view)
+    if viewController.view.translatesAutoresizingMaskIntoConstraints {
+        viewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     } else {
-        rootViewController = viewController
+        NSLayoutConstraint.activate([
+            viewController.view.topAnchor.constraint(equalTo: rootViewController.view.topAnchor),
+            viewController.view.bottomAnchor.constraint(equalTo: rootViewController.view.bottomAnchor),
+            viewController.view.leadingAnchor.constraint(equalTo: rootViewController.view.leadingAnchor),
+            viewController.view.trailingAnchor.constraint(equalTo: rootViewController.view.trailingAnchor)
+        ])
     }
-    let originalTraitOverrides = viewController.traitOverrides
-    traits.apply(to: &viewController.traitOverrides)
+    rootViewController.addChild(viewController)
+    rootViewController.setOverrideTraitCollection(traits, forChild: viewController)
     viewController.didMove(toParent: rootViewController)
 
     window.rootViewController = rootViewController
@@ -1115,8 +1087,7 @@ private func add(
         viewController.view.removeFromSuperview()
         viewController.removeFromParent()
         viewController.didMove(toParent: nil)
-        viewController.traitOverrides = originalTraitOverrides
-        window.rootViewController = nil
+        window.rootViewController = originalRootViewController
     }
 }
 
