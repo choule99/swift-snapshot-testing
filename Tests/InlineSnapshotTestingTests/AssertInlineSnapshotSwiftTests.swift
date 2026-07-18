@@ -89,7 +89,7 @@ extension BaseSuite {
         }
 
         @Test func customInlineSnapshot_SingleTrailingClosure() {
-            assertCustomInlineSnapshot(of: { "Hello" }) {
+            assertCustomInlineSnapshot(of: "Hello") {
                 """
                 - "Hello"
 
@@ -99,7 +99,7 @@ extension BaseSuite {
 
         @Test func customInlineSnapshot_MultilineSingleTrailingClosure() {
             assertCustomInlineSnapshot(
-                of: { "Hello" }
+                of: "Hello"
             ) {
                 """
                 - "Hello"
@@ -308,6 +308,26 @@ extension BaseSuite {
             }
         }
     }
+}
+
+private func assertCustomInlineSnapshot(
+    of value: String,
+    is expected: (() -> String)? = nil,
+    fileID: StaticString = #fileID,
+    filePath: StaticString = #filePath,
+    function: StaticString = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) {
+    assertCustomInlineSnapshot(
+        of: { value },
+        is: expected,
+        fileID: fileID,
+        filePath: filePath,
+        function: function,
+        line: line,
+        column: column
+    )
 }
 
 private func assertCustomInlineSnapshot(

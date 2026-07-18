@@ -85,8 +85,10 @@ public extension Snapshotting where Value == NSBezierPath, Format == String {
                     string +=
                         " "
                         + points.map { point in
-                            let x = numberFormatter.string(from: point.x as NSNumber)!
-                            let y = numberFormatter.string(from: point.y as NSNumber)!
+                            guard let x = numberFormatter.string(from: point.x as NSNumber),
+                                  let y = numberFormatter.string(from: point.y as NSNumber) else {
+                                preconditionFailure("Could not format path point")
+                            }
                             return "(\(x), \(y))"
                         }.joined(separator: " ")
                 }

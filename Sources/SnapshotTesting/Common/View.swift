@@ -517,15 +517,15 @@ public extension UITraitCollection {
         }
     }
 
-    fileprivate func apply<T: UIMutableTraits>(to mutableTraits: inout T) {
+    fileprivate func apply(to mutableTraits: inout some UIMutableTraits) {
         for trait in changedTraits(from: nil) {
             apply(trait, to: &mutableTraits)
         }
     }
 
-    private func apply<Trait: UITraitDefinition, Traits: UIMutableTraits>(
-        _ trait: Trait.Type,
-        to mutableTraits: inout Traits
+    private func apply(
+        _ trait: (some UITraitDefinition).Type,
+        to mutableTraits: inout some UIMutableTraits
     ) {
         mutableTraits[trait] = self[trait]
     }
@@ -820,7 +820,7 @@ public extension UITraitCollection {
         ]
     )
     #elseif os(tvOS)
-    // TODO:
+    // No tvOS trait collection overrides.
     #endif
 }
 #endif
@@ -860,7 +860,12 @@ extension View {
             return Async(value: inWindow { scnView.snapshot() })
         } else if let skView = self as? SKView {
             if #available(macOS 10.11, *) {
-                let cgImage = inWindow { skView.texture(from: skView.scene!)!.cgImage() }
+                let cgImage = inWindow {
+                    guard let scene = skView.scene, let texture = skView.texture(from: scene) else {
+                        fatalError("Unable to create SKView snapshot texture.")
+                    }
+                    return texture.cgImage()
+                }
                 #if os(macOS)
                 let image = Image(cgImage: cgImage, size: skView.bounds.size)
                 #elseif os(iOS) || os(tvOS)
@@ -886,7 +891,10 @@ extension View {
                                 configuration.afterScreenUpdates = false
                             }
                             wkWebView.takeSnapshot(with: configuration) { image, _ in
-                                callback(image!)
+                                guard let image else {
+                                    fatalError("WKWebView snapshot did not return an image.")
+                                }
+                                callback(image)
                             }
                         }
                     } else {
@@ -900,8 +908,7 @@ extension View {
 
                 if wkWebView.isLoading {
                     var subscription: NSKeyValueObservation?
-                    subscription = wkWebView.observe(\.isLoading, options: [.initial, .new]) {
-                        _, change in
+                    subscription = wkWebView.observe(\.isLoading, options: [.initial, .new]) { _, change in
                         subscription?.invalidate()
                         subscription = nil
                         if change.newValue == false {
@@ -935,8 +942,13 @@ extension UIApplication {
             return nil
         }
 
-        let shared = UIApplication.perform(sharedSelector)
-        return shared?.takeUnretainedValue() as! UIApplication?
+        guard let shared = UIApplication.perform(sharedSelector) else {
+            return nil
+        }
+        guard let application = shared.takeUnretainedValue() as? UIApplication else {
+            fatalError("sharedApplication did not return UIApplication.")
+        }
+        return application
     }
 }
 
@@ -1185,7 +1197,10 @@ extension Array {
                     result[idx] = $0
                     count += 1
                     if count == self.count {
-                        callback(result as! [A])
+                        guard let values = result as? [A] else {
+                            fatalError("Async sequence completed without all values.")
+                        }
+                        callback(values)
                     }
                 }
             }

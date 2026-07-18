@@ -364,7 +364,7 @@ private func writeInlineSnapshot(
         // Add #'s to the multiline string literal if needed
         let numberSigns = if context.diffable.hasEscapedSpecialCharactersLiteral() {
             String(repeating: "#", count: context.diffable.numberOfNumberSignsNeeded())
-        } else if diffableLines.first(where: { $0.endsInBackslash() }) != nil {
+        } else if diffableLines.contains(where: { $0.endsInBackslash() }) {
             // We want to avoid \ being interpreted as an escaped newline in the recorded inline snapshot
             "#"
         } else {

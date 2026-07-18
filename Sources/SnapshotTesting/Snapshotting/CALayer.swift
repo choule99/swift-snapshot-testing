@@ -31,11 +31,13 @@ public extension Snapshotting where Value == CALayer, Format == NSImage {
         ).pullback { layer in
             let image = NSImage(size: layer.bounds.size)
             image.lockFocus()
-            let context = NSGraphicsContext.current!.cgContext
+            defer { image.unlockFocus() }
+            guard let context = NSGraphicsContext.current?.cgContext else {
+                preconditionFailure("Expected a graphics context after locking focus")
+            }
             layer.setNeedsLayout()
             layer.layoutIfNeeded()
             layer.render(in: context)
-            image.unlockFocus()
             return image
         }
     }

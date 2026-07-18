@@ -63,7 +63,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
     }
 
     func testCustomInlineSnapshot_SingleTrailingClosure() {
-        assertCustomInlineSnapshot(of: { "Hello" }) {
+        assertCustomInlineSnapshot(of: "Hello") {
             """
             - "Hello"
 
@@ -73,7 +73,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
 
     func testCustomInlineSnapshot_MultilineSingleTrailingClosure() {
         assertCustomInlineSnapshot(
-            of: { "Hello" }
+            of: "Hello"
         ) {
             """
             - "Hello"
@@ -307,14 +307,11 @@ final class InlineSnapshotTestingTests: BaseTestCase {
             """
         }
 
-        inlineSnapshotState.withLock { inlineSnapshotState in
+        let path = inlineSnapshotState.withLock { inlineSnapshotState -> String? in
             XCTAssertEqual(inlineSnapshotState.count, 1)
-            XCTAssertEqual(
-                String(describing: inlineSnapshotState.keys.first!.path)
-                    .hasSuffix("InlineSnapshotTestingTests.swift"),
-                true
-            )
+            return inlineSnapshotState.keys.first.map { String(describing: $0.path) }
         }
+        XCTAssertEqual(path?.hasSuffix("InlineSnapshotTestingTests.swift"), true)
     }
     #endif
 
@@ -339,16 +336,33 @@ final class InlineSnapshotTestingTests: BaseTestCase {
             """
         }
 
-        inlineSnapshotState.withLock { inlineSnapshotState in
+        let path = inlineSnapshotState.withLock { inlineSnapshotState -> String? in
             XCTAssertEqual(inlineSnapshotState.count, 1)
-            XCTAssertEqual(
-                String(describing: inlineSnapshotState.keys.first!.path)
-                    .hasSuffix("InlineSnapshotTestingTests.swift"),
-                true
-            )
+            return inlineSnapshotState.keys.first.map { String(describing: $0.path) }
         }
+        XCTAssertEqual(path?.hasSuffix("InlineSnapshotTestingTests.swift"), true)
     }
     #endif
+}
+
+private func assertCustomInlineSnapshot(
+    of value: String,
+    is expected: (() -> String)? = nil,
+    fileID: StaticString = #fileID,
+    file filePath: StaticString = #filePath,
+    function: StaticString = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) {
+    assertCustomInlineSnapshot(
+        of: { value },
+        is: expected,
+        fileID: fileID,
+        file: filePath,
+        function: function,
+        line: line,
+        column: column
+    )
 }
 
 private func assertCustomInlineSnapshot(

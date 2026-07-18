@@ -11,8 +11,8 @@ extension DecodingError {
     }
 }
 
-let kCFBooleanTrue = NSNumber(booleanLiteral: true)
-let kCFBooleanFalse = NSNumber(booleanLiteral: false)
+let kCFBooleanTrue = NSNumber(value: true)
+let kCFBooleanFalse = NSNumber(value: false)
 
 // ===----------------------------------------------------------------------===//
 //
@@ -258,8 +258,10 @@ private struct _PlistEncodingStorage {
     }
 
     fileprivate mutating func popContainer() -> NSObject {
-        precondition(!self.containers.isEmpty, "Empty container stack.")
-        return self.containers.popLast()!
+        guard let container = self.containers.popLast() else {
+            preconditionFailure("Empty container stack.")
+        }
+        return container
     }
 }
 
@@ -682,10 +684,16 @@ private extension _PlistEncoder {
     func box_<T: Encodable>(_ value: T) throws -> NSObject? {
         if T.self == Date.self || T.self == NSDate.self {
             // PropertyListSerialization handles NSDate directly.
-            return (value as! NSDate)
+            guard let date = value as? NSDate else {
+                preconditionFailure("Date value must bridge to NSDate.")
+            }
+            return date
         } else if T.self == Data.self || T.self == NSData.self {
             // PropertyListSerialization handles NSData directly.
-            return (value as! NSData)
+            guard let data = value as? NSData else {
+                preconditionFailure("Data value must bridge to NSData.")
+            }
+            return data
         }
 
         // The value should request a container from the _PlistEncoder.
@@ -979,8 +987,10 @@ private struct _PlistDecodingStorage {
     }
 
     fileprivate var topContainer: Any {
-        precondition(!self.containers.isEmpty, "Empty container stack.")
-        return self.containers.last!
+        guard let container = self.containers.last else {
+            preconditionFailure("Empty container stack.")
+        }
+        return container
     }
 
     fileprivate mutating func push(container: __owned Any) {
@@ -1553,7 +1563,7 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     }
 
     var isAtEnd: Bool {
-        self.currentIndex >= self.count!
+        self.currentIndex >= self.container.count
     }
 
     mutating func decodeNil() throws -> Bool {
@@ -2094,6 +2104,13 @@ private struct _PlistUnkeyedDecodingContainer: UnkeyedDecodingContainer {
 extension _PlistDecoder: SingleValueDecodingContainer {
     // MARK: SingleValueDecodingContainer Methods
 
+    private func requireNonNull<T>(_ value: @autoclosure () throws -> T?) rethrows -> T {
+        guard let value = try value() else {
+            preconditionFailure("Expected non-null value.")
+        }
+        return value
+    }
+
     private func expectNonNull(_ type: (some Any).Type) throws {
         guard !self.decodeNil() else {
             throw DecodingError.valueNotFound(
@@ -2116,77 +2133,77 @@ extension _PlistDecoder: SingleValueDecodingContainer {
 
     public func decode(_ type: Bool.Type) throws -> Bool {
         try expectNonNull(Bool.self)
-        return try self.unbox(self.storage.topContainer, as: Bool.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: Bool.self))
     }
 
     public func decode(_ type: Int.Type) throws -> Int {
         try expectNonNull(Int.self)
-        return try self.unbox(self.storage.topContainer, as: Int.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: Int.self))
     }
 
     public func decode(_ type: Int8.Type) throws -> Int8 {
         try expectNonNull(Int8.self)
-        return try self.unbox(self.storage.topContainer, as: Int8.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: Int8.self))
     }
 
     public func decode(_ type: Int16.Type) throws -> Int16 {
         try expectNonNull(Int16.self)
-        return try self.unbox(self.storage.topContainer, as: Int16.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: Int16.self))
     }
 
     public func decode(_ type: Int32.Type) throws -> Int32 {
         try expectNonNull(Int32.self)
-        return try self.unbox(self.storage.topContainer, as: Int32.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: Int32.self))
     }
 
     public func decode(_ type: Int64.Type) throws -> Int64 {
         try expectNonNull(Int64.self)
-        return try self.unbox(self.storage.topContainer, as: Int64.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: Int64.self))
     }
 
     public func decode(_ type: UInt.Type) throws -> UInt {
         try expectNonNull(UInt.self)
-        return try self.unbox(self.storage.topContainer, as: UInt.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: UInt.self))
     }
 
     public func decode(_ type: UInt8.Type) throws -> UInt8 {
         try expectNonNull(UInt8.self)
-        return try self.unbox(self.storage.topContainer, as: UInt8.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: UInt8.self))
     }
 
     public func decode(_ type: UInt16.Type) throws -> UInt16 {
         try expectNonNull(UInt16.self)
-        return try self.unbox(self.storage.topContainer, as: UInt16.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: UInt16.self))
     }
 
     public func decode(_ type: UInt32.Type) throws -> UInt32 {
         try expectNonNull(UInt32.self)
-        return try self.unbox(self.storage.topContainer, as: UInt32.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: UInt32.self))
     }
 
     public func decode(_ type: UInt64.Type) throws -> UInt64 {
         try expectNonNull(UInt64.self)
-        return try self.unbox(self.storage.topContainer, as: UInt64.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: UInt64.self))
     }
 
     public func decode(_ type: Float.Type) throws -> Float {
         try expectNonNull(Float.self)
-        return try self.unbox(self.storage.topContainer, as: Float.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: Float.self))
     }
 
     public func decode(_ type: Double.Type) throws -> Double {
         try expectNonNull(Double.self)
-        return try self.unbox(self.storage.topContainer, as: Double.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: Double.self))
     }
 
     public func decode(_ type: String.Type) throws -> String {
         try expectNonNull(String.self)
-        return try self.unbox(self.storage.topContainer, as: String.self)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: String.self))
     }
 
     public func decode<T: Decodable>(_ type: T.Type) throws -> T {
         try expectNonNull(type)
-        return try self.unbox(self.storage.topContainer, as: type)!
+        return try self.requireNonNull(self.unbox(self.storage.topContainer, as: type))
     }
 }
 
@@ -2200,14 +2217,14 @@ private extension _PlistDecoder {
         }
 
         if let number = value as? NSNumber {
-            // TODO: Add a flag to coerce non-boolean numbers into Bools?
+            // Non-boolean numbers are not coerced into Bools.
             if number === kCFBooleanTrue as NSNumber {
                 return true
             } else if number === kCFBooleanFalse as NSNumber {
                 return false
             }
 
-            /* FIXME: If swift-corelibs-foundation doesn't change to use NSNumber, this code path will need to be included and tested:
+            /* If swift-corelibs-foundation does not use NSNumber, include and test this path:
              } else if let bool = value as? Bool {
              return bool
              */
@@ -2542,7 +2559,7 @@ private struct _PlistKey: CodingKey {
     var stringValue: String
     var intValue: Int?
 
-    init?(stringValue: String) {
+    init(stringValue: String) {
         self.stringValue = stringValue
         self.intValue = nil
     }
@@ -2557,5 +2574,5 @@ private struct _PlistKey: CodingKey {
         self.intValue = index
     }
 
-    fileprivate static let `super` = _PlistKey(stringValue: "super")!
+    fileprivate static let `super` = _PlistKey(stringValue: "super")
 }

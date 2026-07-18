@@ -36,10 +36,14 @@ public extension Snapshotting where Value == CGPath, Format == NSImage {
         ).pullback { path in
             let bounds = path.boundingBoxOfPath
             var transform = CGAffineTransform(translationX: -bounds.origin.x, y: -bounds.origin.y)
-            let path = path.copy(using: &transform)!
+            guard let path = path.copy(using: &transform) else {
+                preconditionFailure("Could not copy path")
+            }
 
             return snapshotImage(size: bounds.size) {
-                let context = NSGraphicsContext.current!.cgContext
+                guard let context = NSGraphicsContext.current?.cgContext else {
+                    preconditionFailure("Expected a graphics context while drawing a path")
+                }
                 context.addPath(path)
                 context.drawPath(using: drawingMode)
             }
@@ -132,8 +136,10 @@ public extension Snapshotting where Value == CGPath, Format == UIImage {
                     string +=
                         " "
                         + points.map { point in
-                            let x = numberFormatter.string(from: point.x as NSNumber)!
-                            let y = numberFormatter.string(from: point.y as NSNumber)!
+                            guard let x = numberFormatter.string(from: point.x as NSNumber),
+                                  let y = numberFormatter.string(from: point.y as NSNumber) else {
+                                preconditionFailure("Could not format path point")
+                            }
                             return "(\(x), \(y))"
                         }.joined(separator: " ")
                 }

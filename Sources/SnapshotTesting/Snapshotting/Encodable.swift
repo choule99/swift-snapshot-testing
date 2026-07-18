@@ -27,7 +27,15 @@ public extension Snapshotting where Value: Encodable, Format == String {
     /// - Parameter encoder: A JSON encoder.
     static func json(_ encoder: JSONEncoder) -> Snapshotting {
         var snapshotting = SimplySnapshotting.lines.pullback { (encodable: Value) in
-            try! String(decoding: encoder.encode(encodable), as: UTF8.self)
+            do {
+                let data = try encoder.encode(encodable)
+                guard let string = String(bytes: data, encoding: .utf8) else {
+                    fatalError("JSONEncoder must produce UTF-8 data")
+                }
+                return string
+            } catch {
+                fatalError("Failed to encode JSON: \(error)")
+            }
         }
         snapshotting.pathExtension = "json"
         return snapshotting
@@ -69,7 +77,15 @@ public extension Snapshotting where Value: Encodable, Format == String {
     /// - Parameter encoder: A property list encoder.
     static func plist(_ encoder: PropertyListEncoder) -> Snapshotting {
         var snapshotting = SimplySnapshotting.lines.pullback { (encodable: Value) in
-            try! String(decoding: encoder.encode(encodable), as: UTF8.self)
+            do {
+                let data = try encoder.encode(encodable)
+                guard let string = String(bytes: data, encoding: .utf8) else {
+                    fatalError("PropertyListEncoder must produce UTF-8 data")
+                }
+                return string
+            } catch {
+                fatalError("Failed to encode property list: \(error)")
+            }
         }
         snapshotting.pathExtension = "plist"
         return snapshotting

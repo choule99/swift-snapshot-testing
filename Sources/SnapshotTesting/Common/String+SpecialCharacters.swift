@@ -50,7 +50,9 @@ extension String {
     /// - Returns: The number of "number signs(#)" needed around a string literal.
     ///            When there is no "#, ... return 1
     func numberOfNumberSignsNeeded() -> Int {
-        let pattern = try! NSRegularExpression(pattern: ##""#{1,}"##, options: .init())
+        guard let pattern = try? NSRegularExpression(pattern: ##""#{1,}"##, options: .init()) else {
+            preconditionFailure("Invalid number-sign regular expression")
+        }
 
         let matches = pattern.matches(
             in: self, options: .init(), range: NSRange(location: 0, length: self.count)

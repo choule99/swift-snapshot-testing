@@ -7,13 +7,14 @@ class RecordTests: BaseTestCase {
     override func setUp() {
         super.setUp()
 
-        let testName = String(
-            self.name
-                .split(separator: " ")
-                .flatMap { String($0).split(separator: ".") }
-                .last!
-        )
-        .prefix(while: { $0 != "]" })
+        guard let name = self.name
+            .split(separator: " ")
+            .flatMap({ String($0).split(separator: ".") })
+            .last else {
+            XCTFail("Could not determine test name")
+            return
+        }
+        let testName = name.prefix(while: { $0 != "]" })
         let fileURL = URL(fileURLWithPath: #file, isDirectory: false)
         let testClassName = fileURL.deletingPathExtension().lastPathComponent
         let testDirectory =
@@ -70,7 +71,7 @@ class RecordTests: BaseTestCase {
         }
 
         try XCTAssertEqual(
-            String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
             "42"
         )
     }
@@ -93,7 +94,7 @@ class RecordTests: BaseTestCase {
         }
 
         try XCTAssertEqual(
-            String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
             "999"
         )
     }
@@ -114,7 +115,7 @@ class RecordTests: BaseTestCase {
         }
 
         try XCTAssertEqual(
-            String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
             "42"
         )
     }
@@ -137,7 +138,7 @@ class RecordTests: BaseTestCase {
         }
 
         try XCTAssertEqual(
-            String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
             "42"
         )
     }
@@ -160,7 +161,7 @@ class RecordTests: BaseTestCase {
         }
 
         try XCTAssertEqual(
-            String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
             "42"
         )
     }
@@ -180,7 +181,7 @@ class RecordTests: BaseTestCase {
         }
 
         try XCTAssertEqual(
-            String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
             "42"
         )
         XCTAssertEqual(
@@ -205,7 +206,7 @@ class RecordTests: BaseTestCase {
         }
 
         try XCTAssertEqual(
-            String(decoding: Data(contentsOf: snapshotURL), as: UTF8.self),
+            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
             "42"
         )
     }

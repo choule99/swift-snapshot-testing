@@ -74,12 +74,18 @@ public extension Snapshotting where Format == String {
         ]
 
         var snapshotting = SimplySnapshotting.lines.pullback { (data: Value) in
-            try! String(
-                decoding: JSONSerialization.data(
+            do {
+                let json = try JSONSerialization.data(
                     withJSONObject: data,
                     options: options
-                ), as: UTF8.self
-            )
+                )
+                guard let string = String(bytes: json, encoding: .utf8) else {
+                    preconditionFailure("Expected JSONSerialization to produce UTF-8")
+                }
+                return string
+            } catch {
+                preconditionFailure("Could not serialize value as JSON: \(error)")
+            }
         }
         snapshotting.pathExtension = "json"
         return snapshotting

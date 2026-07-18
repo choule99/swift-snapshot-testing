@@ -473,46 +473,13 @@ public func verifySnapshot<Value, Format>(
             )
             try snapshotting.diffing.toData(diffable).write(to: failedSnapshotFileUrl)
 
-            if !attachments.isEmpty {
-                #if !os(Linux) && !os(Android) && !os(Windows)
-                if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
-                    if isSwiftTesting {
-                        #if compiler(>=6.2)
-                        for attachment in attachments {
-                            switch attachment {
-                                case .xcTest:
-                                    break
-                                case let .data(data, name):
-                                    recordSwiftTestingAttachment(
-                                        data,
-                                        named: name,
-                                        sourceLocation: SourceLocation(
-                                            fileID: fileID.description,
-                                            filePath: filePath.description,
-                                            line: Int(line),
-                                            column: Int(column)
-                                        )
-                                    )
-                            }
-                        }
-                        #endif
-                    } else {
-                        XCTContext.runActivity(named: "Attached Failure Diff") { activity in
-                            for item in attachments {
-                                switch item {
-                                    case let .xcTest(attachment):
-                                        activity.add(attachment)
-                                    case let .data(data, name):
-                                        let attachment = XCTAttachment(data: data)
-                                        attachment.name = name
-                                        activity.add(attachment)
-                                }
-                            }
-                        }
-                    }
-                }
-                #endif
-            }
+            recordFailureAttachments(
+                attachments,
+                fileID: fileID,
+                filePath: filePath,
+                line: line,
+                column: column
+            )
 
             let diffMessage = (SnapshotTestingConfiguration.current?.diffTool ?? _diffTool)(
                 currentFilePath: snapshotFileUrl.path,
@@ -558,6 +525,57 @@ private var counter: File.Counter {
 }
 
 private let _counter = File.Counter()
+
+private func recordFailureAttachments(
+    _ attachments: [DiffAttachment],
+    fileID: StaticString,
+    filePath: StaticString,
+    line: UInt,
+    column: UInt
+) {
+    guard !attachments.isEmpty else {
+        return
+    }
+    #if !os(Linux) && !os(Android) && !os(Windows)
+    guard ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") else {
+        return
+    }
+    if isSwiftTesting {
+        #if compiler(>=6.2)
+        for attachment in attachments {
+            switch attachment {
+                case .xcTest:
+                    break
+                case let .data(data, name):
+                    recordSwiftTestingAttachment(
+                        data,
+                        named: name,
+                        sourceLocation: SourceLocation(
+                            fileID: fileID.description,
+                            filePath: filePath.description,
+                            line: Int(line),
+                            column: Int(column)
+                        )
+                    )
+            }
+        }
+        #endif
+    } else {
+        XCTContext.runActivity(named: "Attached Failure Diff") { activity in
+            for item in attachments {
+                switch item {
+                    case let .xcTest(attachment):
+                        activity.add(attachment)
+                    case let .data(data, name):
+                        let attachment = XCTAttachment(data: data)
+                        attachment.name = name
+                        activity.add(attachment)
+                }
+            }
+        }
+    }
+    #endif
+}
 
 func sanitizePathComponent(_ string: String) -> String {
     string
@@ -609,7 +627,7 @@ enum File {
             lock.lock()
             defer { lock.unlock() }
             counts[key, default: 0] += 1
-            return counts[key]!
+            return counts[key, default: 0]
         }
 
         func reset() {

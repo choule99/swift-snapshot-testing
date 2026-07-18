@@ -17,23 +17,38 @@ public extension Diffing where Value == NSImage {
     /// - Returns: A new diffing strategy.
     static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
         .diff(
-            toData: { NSImagePNGRepresentation($0)! },
-            fromData: { NSImage(data: $0)! }
-        ) { old, new in
-            guard let message = compare(
-                old, new, precision: precision, perceptualPrecision: perceptualPrecision
-            ) else {
-                return nil
+            toData: { requirePNGData($0) },
+            fromData: { data in
+                guard let image = NSImage(data: data) else {
+                    fatalError("Could not decode image from PNG.")
+                }
+                return image
+            },
+            diffV2: { old, new in
+                guard let message = compare(
+                    old, new, precision: precision, perceptualPrecision: perceptualPrecision
+                ) else {
+                    return nil
+                }
+                let difference = SnapshotTesting.diff(old, new)
+                let oldAttachment = DiffAttachment.data(
+                    requirePNGData(old),
+                    name: "reference.png"
+                )
+                let newAttachment = DiffAttachment.data(
+                    requirePNGData(new),
+                    name: "failure.png"
+                )
+                let differenceAttachment = DiffAttachment.data(
+                    requirePNGData(difference),
+                    name: "difference.png"
+                )
+                return (
+                    message,
+                    [oldAttachment, newAttachment, differenceAttachment]
+                )
             }
-            let difference = SnapshotTesting.diff(old, new)
-            let oldAttachment = DiffAttachment.data(NSImagePNGRepresentation(old)!, name: "reference.png")
-            let newAttachment = DiffAttachment.data(NSImagePNGRepresentation(new)!, name: "failure.png")
-            let differenceAttachment = DiffAttachment.data(NSImagePNGRepresentation(difference)!, name: "difference.png")
-            return (
-                message,
-                [oldAttachment, newAttachment, differenceAttachment]
-            )
-        }
+        )
     }
 }
 
@@ -77,6 +92,13 @@ private func NSImagePNGRepresentation(_ image: NSImage) -> Data? {
     let rep = NSBitmapImageRep(cgImage: cgImage)
     rep.size = image.size
     return rep.representation(using: .png, properties: [:])
+}
+
+private func requirePNGData(_ image: NSImage) -> Data {
+    guard let data = NSImagePNGRepresentation(image) else {
+        fatalError("Could not encode image as PNG.")
+    }
+    return data
 }
 
 private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptualPrecision: Float)
@@ -125,8 +147,10 @@ private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptua
             perceptualPrecision: perceptualPrecision
         )
     } else {
-        let oldRep = NSBitmapImageRep(cgImage: oldCgImage).bitmapData!
-        let newRep = NSBitmapImageRep(cgImage: newerCgImage).bitmapData!
+        guard let oldRep = NSBitmapImageRep(cgImage: oldCgImage).bitmapData,
+              let newRep = NSBitmapImageRep(cgImage: newerCgImage).bitmapData else {
+            fatalError("Could not access image bitmap data.")
+        }
         let byteCountThreshold = Int((1 - precision) * Float(byteCount))
         var differentByteCount = 0
         // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
@@ -167,16 +191,23 @@ private func context(for cgImage: CGImage) -> CGContext? {
 }
 
 private func diff(_ old: NSImage, _ new: NSImage) -> NSImage {
-    let oldCiImage = CIImage(cgImage: old.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
-    let newCiImage = CIImage(cgImage: new.cgImage(forProposedRect: nil, context: nil, hints: nil)!)
-    let differenceFilter = CIFilter(name: "CIDifferenceBlendMode")!
+    guard let oldCgImage = old.cgImage(forProposedRect: nil, context: nil, hints: nil),
+          let newCgImage = new.cgImage(forProposedRect: nil, context: nil, hints: nil),
+          let differenceFilter = CIFilter(name: "CIDifferenceBlendMode") else {
+        fatalError("Could not create image difference.")
+    }
+    let oldCiImage = CIImage(cgImage: oldCgImage)
+    let newCiImage = CIImage(cgImage: newCgImage)
     differenceFilter.setValue(oldCiImage, forKey: kCIInputImageKey)
     differenceFilter.setValue(newCiImage, forKey: kCIInputBackgroundImageKey)
     let maxSize = CGSize(
         width: max(old.size.width, new.size.width),
         height: max(old.size.height, new.size.height)
     )
-    let rep = NSCIImageRep(ciImage: differenceFilter.outputImage!)
+    guard let outputImage = differenceFilter.outputImage else {
+        fatalError("Could not create image difference.")
+    }
+    let rep = NSCIImageRep(ciImage: outputImage)
     let difference = NSImage(size: maxSize)
     difference.addRepresentation(rep)
     return difference

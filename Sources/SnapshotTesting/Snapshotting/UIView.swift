@@ -84,10 +84,11 @@ public extension Snapshotting where Value == UIView, Format == String {
                 viewController: .init()
             )
             defer { dispose() }
-            return purgePointers(
-                view.perform(Selector(("recursiveDescription"))).retain().takeUnretainedValue()
-                    as! String
-            )
+            let description = view.perform(Selector(("recursiveDescription"))).retain().takeUnretainedValue()
+            guard let description = description as? String else {
+                preconditionFailure("Expected recursiveDescription to return a string")
+            }
+            return purgePointers(description)
         }
     }
 }

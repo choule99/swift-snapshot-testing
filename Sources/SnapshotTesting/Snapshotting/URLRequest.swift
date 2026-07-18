@@ -45,7 +45,10 @@ public extension Snapshotting where Value == URLRequest, Format == String {
                                     withJSONObject: $0, options: [.prettyPrinted, .sortedKeys]
                                 )
                             }
-                            .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
+                            .map { data in
+                                let body = String(lossyUTF8: data)
+                                return ["\n\(body)"]
+                            }
                             ?? []
                 } else {
                     throw NSError(domain: "co.pointfree.Never", code: 1, userInfo: nil)
@@ -53,7 +56,10 @@ public extension Snapshotting where Value == URLRequest, Format == String {
             } catch {
                 body =
                     request.httpBody
-                        .map { ["\n\(String(decoding: $0, as: UTF8.self))"] }
+                        .map { data in
+                            let body = String(lossyUTF8: data)
+                            return ["\n\(body)"]
+                        }
                         ?? []
             }
 
@@ -63,25 +69,27 @@ public extension Snapshotting where Value == URLRequest, Format == String {
 
     /// A snapshot strategy for comparing requests based on a cURL representation.
     ///
-    // ``` swift
-    // assertSnapshot(of: request, as: .curl)
-    // ```
-    //
-    // Records:
-    //
-    // ```
-    // curl \
-    //   --request POST \
-    //   --header "Accept: text/html" \
-    //   --data 'pricing[billing]=monthly&pricing[lane]=individual' \
-    //   "https://www.pointfree.co/subscribe"
-    // ```
+    /// ``` swift
+    /// assertSnapshot(of: request, as: .curl)
+    /// ```
+    ///
+    /// Records:
+    ///
+    /// ```
+    /// curl \
+    ///   --request POST \
+    ///   --header "Accept: text/html" \
+    ///   --data 'pricing[billing]=monthly&pricing[lane]=individual' \
+    ///   "https://www.pointfree.co/subscribe"
+    /// ```
     static let curl = SimplySnapshotting.lines.pullback { (request: URLRequest) in
 
         var components = ["curl"]
 
         // HTTP Method
-        let httpMethod = request.httpMethod!
+        guard let httpMethod = request.httpMethod else {
+            fatalError("URLRequest must have an HTTP method")
+        }
         switch httpMethod {
             case "GET": break
             case "HEAD": components.append("--head")
@@ -91,7 +99,10 @@ public extension Snapshotting where Value == URLRequest, Format == String {
         // Headers
         if let headers = request.allHTTPHeaderFields {
             for field in headers.keys.sorted() where field != "Cookie" {
-                let escapedValue = headers[field]!.replacingOccurrences(of: "\"", with: "\\\"")
+                guard let value = headers[field] else {
+                    fatalError("URLRequest header missing value")
+                }
+                let escapedValue = value.replacingOccurrences(of: "\"", with: "\\\"")
                 components.append("--header \"\(field): \(escapedValue)\"")
             }
         }
@@ -112,7 +123,10 @@ public extension Snapshotting where Value == URLRequest, Format == String {
         }
 
         // URL
-        components.append("\"\(request.url!.sortingQueryItems()!.absoluteString)\"")
+        guard let url = request.url, let sortedURL = url.sortingQueryItems() else {
+            fatalError("URLRequest must have a valid URL")
+        }
+        components.append("\"\(sortedURL.absoluteString)\"")
 
         return components.joined(separator: " \\\n\t")
     }

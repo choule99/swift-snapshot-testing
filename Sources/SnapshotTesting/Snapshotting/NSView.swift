@@ -62,10 +62,11 @@ public extension Snapshotting where Value == NSView, Format == String {
     /// ```
     static var recursiveDescription: Snapshotting<NSView, String> {
         SimplySnapshotting.lines.pullback { view in
-            purgePointers(
-                view.perform(Selector(("_subtreeDescription"))).retain().takeUnretainedValue()
-                    as! String
-            )
+            let description = view.perform(Selector(("_subtreeDescription"))).retain().takeUnretainedValue()
+            guard let description = description as? String else {
+                preconditionFailure("Expected _subtreeDescription to return a string")
+            }
+            return purgePointers(description)
         }
     }
 }
@@ -74,7 +75,10 @@ func snapshotImage(_ view: NSView) -> NSImage {
     onMain {
         let proxy = NSView(frame: view.bounds)
         let bitmapRep = withScaledWindow(proxy) {
-            proxy.bitmapImageRepForCachingDisplay(in: proxy.bounds)!
+            guard let representation = proxy.bitmapImageRepForCachingDisplay(in: proxy.bounds) else {
+                preconditionFailure("Could not create bitmap representation")
+            }
+            return representation
         }
         view.cacheDisplay(in: view.bounds, to: bitmapRep)
         let image = NSImage(size: view.bounds.size)

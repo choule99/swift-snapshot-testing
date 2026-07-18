@@ -24,26 +24,37 @@ public extension Diffing where Value == UIImage {
         } else {
             UIScreen.main.scale
         }
-        let toData: (UIImage) -> Data = { $0.pngData() ?? emptyImage().pngData()! }
+        let toData: (UIImage) -> Data = {
+            guard let data = $0.pngData() ?? emptyImage().pngData() else {
+                fatalError("Could not encode image as PNG.")
+            }
+            return data
+        }
         return .diff(
             toData: toData,
-            fromData: { UIImage(data: $0, scale: imageScale)! }
-        ) { old, new in
-            let new = new.size == .zero ? emptyImage() : new
-            guard let message = compare(
-                old, new, precision: precision, perceptualPrecision: perceptualPrecision
-            ) else {
-                return nil
+            fromData: { data in
+                guard let image = UIImage(data: data, scale: imageScale) else {
+                    fatalError("Could not decode image from PNG.")
+                }
+                return image
+            },
+            diffV2: { old, new in
+                let new = new.size == .zero ? emptyImage() : new
+                guard let message = compare(
+                    old, new, precision: precision, perceptualPrecision: perceptualPrecision
+                ) else {
+                    return nil
+                }
+                let difference = SnapshotTesting.diff(old, new)
+                let referenceAttachment = DiffAttachment.data(toData(old), name: "reference.png")
+                let failureAttachment = DiffAttachment.data(toData(new), name: "failure.png")
+                let differenceAttachment = DiffAttachment.data(toData(difference), name: "difference.png")
+                return (
+                    message,
+                    [referenceAttachment, failureAttachment, differenceAttachment]
+                )
             }
-            let difference = SnapshotTesting.diff(old, new)
-            let referenceAttachment = DiffAttachment.data(toData(old), name: "reference.png")
-            let failureAttachment = DiffAttachment.data(toData(new), name: "failure.png")
-            let differenceAttachment = DiffAttachment.data(toData(difference), name: "difference.png")
-            return (
-                message,
-                [referenceAttachment, failureAttachment, differenceAttachment]
-            )
-        }
+        )
     }
 
     /// Used when the image size has no width or no height to generated the default empty image
@@ -188,7 +199,9 @@ private func blendModeDiff(_ old: UIImage, _ new: UIImage) -> UIImage {
     UIGraphicsBeginImageContextWithOptions(CGSize(width: width, height: height), true, scale)
     new.draw(at: .zero)
     old.draw(at: .zero, blendMode: .difference, alpha: 1)
-    let differenceImage = UIGraphicsGetImageFromCurrentImageContext()!
+    guard let differenceImage = UIGraphicsGetImageFromCurrentImageContext() else {
+        fatalError("Could not create image difference.")
+    }
     UIGraphicsEndImageContext()
     return differenceImage
 }
@@ -219,8 +232,10 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
     let pixelCount = width * height
     let scale = old.scale
 
-    let oldBytes = CFDataGetBytePtr(oldData)!
-    let newBytes = CFDataGetBytePtr(newData)!
+    guard let oldBytes = CFDataGetBytePtr(oldData),
+          let newBytes = CFDataGetBytePtr(newData) else {
+        fatalError("Could not access image data.")
+    }
     var diffBytes = [UInt8](repeating: 0, count: pixelCount)
 
     var index = 0
@@ -442,7 +457,7 @@ extension CIImage {
         return MPSSupportsMTLDevice(device)
     }
 
-    override class func process(
+    override static func process(
         with inputs: [CIImageProcessorInput]?, arguments: [String: Any]?,
         output: CIImageProcessorOutput
     ) throws {

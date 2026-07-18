@@ -115,10 +115,11 @@ public extension Snapshotting where Value == UIViewController, Format == String 
                 viewController: viewController
             )
             defer { dispose() }
-            return purgePointers(
-                viewController.perform(Selector(("_printHierarchy"))).retain().takeUnretainedValue()
-                    as! String
-            )
+            let hierarchy = viewController.perform(Selector(("_printHierarchy"))).retain().takeUnretainedValue()
+            guard let hierarchy = hierarchy as? String else {
+                preconditionFailure("Expected _printHierarchy to return a string")
+            }
+            return purgePointers(hierarchy)
         }
     }
 
@@ -152,11 +153,12 @@ public extension Snapshotting where Value == UIViewController, Format == String 
                 viewController: viewController
             )
             defer { dispose() }
-            return purgePointers(
-                viewController.view.perform(Selector(("recursiveDescription"))).retain()
-                    .takeUnretainedValue()
-                    as! String
-            )
+            let description = viewController.view.perform(Selector(("recursiveDescription"))).retain()
+                .takeUnretainedValue()
+            guard let description = description as? String else {
+                preconditionFailure("Expected recursiveDescription to return a string")
+            }
+            return purgePointers(description)
         }
     }
 }

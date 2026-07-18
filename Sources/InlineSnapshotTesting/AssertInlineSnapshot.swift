@@ -457,11 +457,7 @@ private final class SnapshotRewriter: SyntaxRewriter {
         defer { self.snapshots.removeFirst(snapshots.count) }
 
         var functionCallExpr = functionCallExpr
-        for snapshot in snapshots {
-            guard snapshot.expected != snapshot.actual else {
-                continue
-            }
-
+        for snapshot in snapshots where snapshot.expected != snapshot.actual {
             self.function =
                 self.function
                     ?? functionCallExpr.calledExpression.as(DeclReferenceExprSyntax.self)?.baseName.text
@@ -539,7 +535,6 @@ private final class SnapshotRewriter: SyntaxRewriter {
                         functionCallExpr.rightParen?.trailingTrivia = .space
                         let trailingClosureTrivia = functionCallExpr.trailingClosure?.trailingTrivia
                         if let snapshotClosure {
-                            // FIXME: ?? multipleTrailingClosures.removeFirst()
                             functionCallExpr.trailingClosure =
                                 if let trailingClosureTrivia, !trailingClosureTrivia.isEmpty {
                                     snapshotClosure.with(
@@ -639,16 +634,21 @@ private final class SnapshotRewriter: SyntaxRewriter {
             }
         }
 
-        if functionCallExpr.arguments.isEmpty,
-           functionCallExpr.trailingClosure != nil,
-           functionCallExpr.leftParen != nil,
-           functionCallExpr.rightParen != nil {
-            functionCallExpr.leftParen = nil
-            functionCallExpr.rightParen = nil
-            functionCallExpr.calledExpression.trailingTrivia = .space
-        }
+        removeEmptyArgumentParens(from: &functionCallExpr)
 
         return ExprSyntax(functionCallExpr)
+    }
+
+    private func removeEmptyArgumentParens(from functionCallExpr: inout FunctionCallExprSyntax) {
+        guard functionCallExpr.arguments.isEmpty,
+              functionCallExpr.trailingClosure != nil,
+              functionCallExpr.leftParen != nil,
+              functionCallExpr.rightParen != nil else {
+            return
+        }
+        functionCallExpr.leftParen = nil
+        functionCallExpr.rightParen = nil
+        functionCallExpr.calledExpression.trailingTrivia = .space
     }
 }
 
