@@ -1,0 +1,94 @@
+extension Mirror {
+    var isSingleValueContainer: Bool {
+        switch self.displayStyle {
+            case .collection?,
+                 .dictionary?,
+                 .set?:
+                return false
+            default:
+                guard self.children.count == 1,
+                      let child = self.children.first else {
+                    return false
+                }
+                var value = child.value
+                if value is any _CustomDiffObject {
+                    return false
+                }
+                while let representable = value as? any CustomDumpRepresentable {
+                    value = representable.customDumpValue
+                    if value is any _CustomDiffObject {
+                        return false
+                    }
+                }
+                if let convertible = child.value as? any CustomDumpStringConvertible {
+                    return !convertible.customDumpDescription.contains("\n")
+                }
+                return Mirror(customDumpReflecting: value).children.isEmpty
+        }
+    }
+}
+
+func isMirrorEqual(_ lhs: Any, _ rhs: Any) -> Bool {
+    var visitedPairs: Set<MirrorPair> = []
+    return isMirrorEqual(lhs, rhs, visitedPairs: &visitedPairs)
+}
+
+private struct MirrorPair: Hashable {
+    let lhs: ObjectIdentifier
+    let rhs: ObjectIdentifier
+}
+
+private func mirrorIdentifier(_ value: Any) -> ObjectIdentifier? {
+    if let value = value as? any _CustomDiffObject {
+        return value._objectIdentifier
+    }
+    let valueType = type(of: value)
+    guard valueType is AnyClass else {
+        return nil
+    }
+    return ObjectIdentifier(value as AnyObject)
+}
+
+private func isMirrorEqual(
+    _ lhs: Any,
+    _ rhs: Any,
+    visitedPairs: inout Set<MirrorPair>
+) -> Bool {
+    if let lhsIdentifier = mirrorIdentifier(lhs),
+       let rhsIdentifier = mirrorIdentifier(rhs) {
+        let pair = MirrorPair(lhs: lhsIdentifier, rhs: rhsIdentifier)
+        if visitedPairs.contains(pair) {
+            return true
+        }
+        visitedPairs.insert(pair)
+    }
+    guard let lhs = lhs as? any Equatable else {
+        let lhsType = type(of: lhs)
+        if lhsType is AnyClass, lhsType == type(of: rhs), lhs as AnyObject === rhs as AnyObject {
+            return true
+        }
+        let lhsMirror = Mirror(customDumpReflecting: lhs)
+        let rhsMirror = Mirror(customDumpReflecting: rhs)
+        guard lhsMirror.subjectType == rhsMirror.subjectType,
+              lhsMirror.children.count == rhsMirror.children.count else {
+            return false
+        }
+        guard !lhsMirror.children.isEmpty, !rhsMirror.children.isEmpty else {
+            return String(describing: lhs) == String(describing: rhs)
+        }
+        for (lhsChild, rhsChild) in zip(lhsMirror.children, rhsMirror.children) {
+            guard lhsChild.label == rhsChild.label,
+                  isMirrorEqual(lhsChild.value, rhsChild.value, visitedPairs: &visitedPairs) else {
+                return false
+            }
+        }
+        return true
+    }
+    func open<T: Equatable>(_ lhs: T) -> Bool {
+        guard let rhs = rhs as? T else {
+            return false
+        }
+        return lhs == rhs
+    }
+    return open(lhs)
+}

@@ -292,6 +292,18 @@ targets: [
 The package also includes `InlineSnapshotTesting`. Import it and use `assertInlineSnapshot` to
 store string snapshots directly in test source files.
 
+### Custom dumps
+
+The package includes `CustomDump`, a collection of tools for dumping, diffing, and testing Swift
+values. Add the `CustomDump` product to use its APIs directly.
+
+For snapshot strategies, add the `SnapshotTestingCustomDump` product and import it to use
+`.customDump` with snapshot or inline snapshot assertions.
+
+Custom Dump was imported from
+[`pointfreeco/swift-custom-dump`](https://github.com/pointfreeco/swift-custom-dump) at commit
+[`924df7d`](https://github.com/pointfreeco/swift-custom-dump/commit/924df7d28207eb4f3528e0ef403d24ef3657671c).
+
 ## Features
 
   - [**Dozens of snapshot strategies**][available-strategies]. Snapshot
@@ -327,4 +339,5 @@ store string snapshots directly in test source files.
 
 ## License
 
-This library is released under the MIT license. See [LICENSE](LICENSE) for details.
+This library is released under the MIT license. See [LICENSE](LICENSE) and
+[LICENSE-swift-custom-dump](LICENSE-swift-custom-dump) for details.

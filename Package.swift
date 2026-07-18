@@ -2,6 +2,15 @@
 
 import PackageDescription
 
+let customDumpSwiftSettings: [SwiftSetting] = [
+    .enableUpcomingFeature("ExistentialAny"),
+    .enableUpcomingFeature("ImmutableWeakCaptures"),
+    .enableUpcomingFeature("InferIsolatedConformances"),
+    .enableUpcomingFeature("InternalImportsByDefault"),
+    .enableUpcomingFeature("MemberImportVisibility"),
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault")
+]
+
 let package = Package(
     name: "swift-snapshot-testing",
     platforms: [
@@ -18,9 +27,22 @@ let package = Package(
         .library(
             name: "InlineSnapshotTesting",
             targets: ["InlineSnapshotTesting"]
+        ),
+        .library(
+            name: "CustomDump",
+            targets: ["CustomDump"]
+        ),
+        .library(
+            name: "SnapshotTestingCustomDump",
+            targets: ["SnapshotTestingCustomDump"]
         )
     ],
+    traits: [
+        "FoundationNetworking",
+        .default(enabledTraits: ["FoundationNetworking"])
+    ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.2.2"),
         .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0" ..< "605.0.0")
     ],
     targets: [
@@ -38,6 +60,29 @@ let package = Package(
             ]
         ),
         .target(
+            name: "CustomDump",
+            dependencies: [
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay"),
+                .product(name: "XCTestDynamicOverlay", package: "xctest-dynamic-overlay")
+            ],
+            swiftSettings: customDumpSwiftSettings
+        ),
+        .testTarget(
+            name: "CustomDumpTests",
+            dependencies: [
+                "CustomDump",
+                .product(name: "IssueReportingTestSupport", package: "xctest-dynamic-overlay")
+            ],
+            swiftSettings: customDumpSwiftSettings
+        ),
+        .target(
+            name: "SnapshotTestingCustomDump",
+            dependencies: [
+                "CustomDump",
+                "SnapshotTesting"
+            ]
+        ),
+        .target(
             name: "InlineSnapshotTesting",
             dependencies: [
                 "SnapshotTesting",
@@ -49,7 +94,8 @@ let package = Package(
         .testTarget(
             name: "InlineSnapshotTestingTests",
             dependencies: [
-                "InlineSnapshotTesting"
+                "InlineSnapshotTesting",
+                "SnapshotTestingCustomDump"
             ]
         )
     ],

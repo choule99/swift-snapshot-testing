@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import Foundation
 @testable import SnapshotTesting
 import SwiftUI
@@ -115,6 +116,7 @@ import UIKit
         XCTAssertTrue(state.didObserveSettling)
         XCTAssertEqual(image.size, CGSize(width: 10, height: 10))
     }
+
     #elseif os(macOS)
     func testAppKitPrepareRunsAfterLayoutAndBeforeRendering() async {
         let state = PrepareState()
@@ -169,6 +171,7 @@ import UIKit
             }
         }
     }
+
     #elseif os(macOS)
     private func snapshot<Value>(
         _ value: Value,
@@ -220,6 +223,7 @@ private struct SnapshotEnvironmentProbe: SwiftUI.View {
         didLayout = true
     }
 }
+
 #elseif os(macOS)
 @MainActor private final class PrepareNSView: NSView {
     var color = NSColor.blue
@@ -235,4 +239,5 @@ private struct SnapshotEnvironmentProbe: SwiftUI.View {
         dirtyRect.fill()
     }
 }
+#endif
 #endif
