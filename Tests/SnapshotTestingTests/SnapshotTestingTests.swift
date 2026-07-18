@@ -835,6 +835,36 @@ final class SnapshotTestingTests: BaseTestCase {
         let difference = try XCTUnwrap(UIImage(data: differenceData, scale: 1))
         XCTAssertEqual(attachedReference.size, CGSize(width: 3, height: 2))
         XCTAssertEqual(difference.size, CGSize(width: 3, height: 2))
+
+        let renderedDiffing = Diffing<UIImage>.image(
+            scale: 1,
+            orientationComparison: .rendered
+        )
+        let orientationResult = try XCTUnwrap(
+            renderedDiffing.diffV2(reference, matchingLandscape)
+        )
+        guard case let .data(renderedReferenceData, _) = orientationResult.1[0],
+              case let .data(renderedFailureData, _) = orientationResult.1[1] else {
+            return XCTFail("Expected rendered image data attachments.")
+        }
+        let renderedReference = try XCTUnwrap(UIImage(data: renderedReferenceData, scale: 1))
+        let renderedFailure = try XCTUnwrap(UIImage(data: renderedFailureData, scale: 1))
+        XCTAssertEqual(renderedReference.imageOrientation, .up)
+        XCTAssertEqual(renderedReference.size, CGSize(width: 2, height: 3))
+        XCTAssertEqual(renderedFailure.imageOrientation, .up)
+        XCTAssertEqual(renderedFailure.size, CGSize(width: 3, height: 2))
+
+        let persistedReference = try XCTUnwrap(
+            renderedDiffing.fromData(renderedDiffing.toData(matchingLandscape))
+        )
+        XCTAssertEqual(persistedReference.imageOrientation, .up)
+        XCTAssertNil(renderedDiffing.diffV2(persistedReference, matchingLandscape))
+
+        let renderedSnapshotting = Snapshotting<UIImage, UIImage>.image(
+            scale: 1,
+            orientationComparison: .rendered
+        )
+        XCTAssertNotNil(renderedSnapshotting.diffing.diffV2(reference, matchingLandscape))
         #endif
     }
 

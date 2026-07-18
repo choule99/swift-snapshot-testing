@@ -4,6 +4,16 @@ import CoreImage
 #endif
 import UIKit
 
+public extension UIImage {
+    /// How image orientation affects snapshot comparison.
+    enum OrientationComparison: Sendable {
+        /// Compare backing pixels and ignore orientation metadata.
+        case ignored
+        /// Independently render each image upright before comparing its visible pixels.
+        case rendered
+    }
+}
+
 @MainActor public extension Diffing where Value == UIImage {
     /// A pixel-diffing strategy for UIImage's which requires a 100% match.
     static let image = Diffing.image()
@@ -15,7 +25,12 @@ import UIKit
     ///   - precision: The percentage of pixels that must match.
     ///   - scale: The scale used when loading the reference image from disk. Defaults to `1`.
     static func image(precision: Float = 1, scale: CGFloat? = nil) -> Diffing {
-        imageDiffing(precision: precision, perceptualPrecision: 1, scale: scale)
+        imageDiffing(
+            precision: precision,
+            perceptualPrecision: 1,
+            scale: scale,
+            orientationComparison: .ignored
+        )
     }
     #else
     /// A pixel-diffing strategy for UIImage that allows customizing how precise the matching must be.
@@ -28,14 +43,19 @@ import UIKit
     ///     human eye.
     ///   - scale: Scale to use when loading the reference image from disk. If `nil` or the
     ///     `UITraitCollection`s default value of `0.0`, the screens scale is used.
+    ///   - orientationComparison: How image orientation affects comparison.
     /// - Returns: A new diffing strategy.
     static func image(
-        precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat? = nil
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        scale: CGFloat? = nil,
+        orientationComparison: UIImage.OrientationComparison = .ignored
     ) -> Diffing {
         imageDiffing(
             precision: precision,
             perceptualPrecision: perceptualPrecision,
-            scale: scale
+            scale: scale,
+            orientationComparison: orientationComparison
         )
     }
     #endif
@@ -43,7 +63,8 @@ import UIKit
     private static func imageDiffing(
         precision: Float,
         perceptualPrecision: Float,
-        scale: CGFloat?
+        scale: CGFloat?,
+        orientationComparison: UIImage.OrientationComparison
     ) -> Diffing {
         let imageScale: CGFloat = if let scale, scale != 0.0 {
             scale
@@ -55,7 +76,13 @@ import UIKit
             #endif
         }
         let toData: @MainActor @Sendable (UIImage) -> Data = {
-            guard let data = $0.pngData() ?? emptyImage().pngData() else {
+            var image = $0
+            #if !os(watchOS)
+            if case .rendered = orientationComparison {
+                image = renderedUp(image)
+            }
+            #endif
+            guard let data = image.pngData() ?? emptyImage().pngData() else {
                 fatalError("Could not encode image as PNG.")
             }
             return data
@@ -64,10 +91,19 @@ import UIKit
             toData: toData,
             fromDataOptional: { UIImage(data: $0, scale: imageScale) },
             diffV2: { old, new in
-                let new = new.size == .zero ? emptyImage() : new
-                let old = old.cgImage.map {
-                    UIImage(cgImage: $0, scale: old.scale, orientation: new.imageOrientation)
-                } ?? old
+                var old = old
+                var new = new.size == .zero ? emptyImage() : new
+                switch orientationComparison {
+                    case .ignored:
+                        old = old.cgImage.map {
+                            UIImage(cgImage: $0, scale: old.scale, orientation: new.imageOrientation)
+                        } ?? old
+                    case .rendered:
+                        #if !os(watchOS)
+                        old = renderedUp(old)
+                        new = renderedUp(new)
+                        #endif
+                }
                 guard let message = compare(
                     old, new, precision: precision, perceptualPrecision: perceptualPrecision
                 ) else {
@@ -148,22 +184,41 @@ import UIKit
     ///     human eye.
     ///   - scale: The scale of the reference image stored on disk.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    ///   - orientationComparison: How image orientation affects comparison.
     static func image(
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         scale: CGFloat? = nil,
-        isOpaque: Bool = false
+        isOpaque: Bool = false,
+        orientationComparison: UIImage.OrientationComparison = .ignored
     ) -> Snapshotting {
         .init(
             pathExtension: "png",
             diffing: .image(
-                precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+                precision: precision,
+                perceptualPrecision: perceptualPrecision,
+                scale: scale,
+                orientationComparison: orientationComparison
             ),
             snapshot: { isOpaque ? opaqueImage($0) : $0 }
         )
     }
     #endif
 }
+
+#if !os(watchOS)
+@MainActor private func renderedUp(_ image: UIImage) -> UIImage {
+    guard image.imageOrientation != .up else {
+        return image
+    }
+    let format = UIGraphicsImageRendererFormat()
+    format.scale = image.scale
+    format.preferredRange = .standard
+    return UIGraphicsImageRenderer(size: image.size, format: format).image { _ in
+        image.draw(in: CGRect(origin: .zero, size: image.size))
+    }
+}
+#endif
 
 @MainActor private func opaqueImage(_ image: UIImage) -> UIImage {
     let cgImage: CGImage?
