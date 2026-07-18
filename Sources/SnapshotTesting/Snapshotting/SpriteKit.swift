@@ -11,40 +11,49 @@ import UIKit
     /// A snapshot strategy for comparing SpriteKit scenes based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - size: The size of the scene.
-    static func image(precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize)
+    static func image(options: ImageSnapshotOptions = .init(), size: CGSize)
         -> Snapshotting {
-        .skScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
+        .skScene(options: options, size: size)
+    }
+
+    @available(*, deprecated, message: "Use image(options:size:) instead") static func image(precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize)
+        -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            size: size
+        )
     }
 }
+
 #elseif os(iOS) || os(tvOS)
 @MainActor public extension Snapshotting where Value == SKScene, Format == UIImage {
     /// A snapshot strategy for comparing SpriteKit scenes based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - size: The size of the scene.
-    static func image(precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize)
+    static func image(options: ImageSnapshotOptions = .init(), size: CGSize)
         -> Snapshotting {
-        .skScene(precision: precision, perceptualPrecision: perceptualPrecision, size: size)
+        .skScene(options: options, size: size)
+    }
+
+    @available(*, deprecated, message: "Use image(options:size:) instead") static func image(precision: Float = 1, perceptualPrecision: Float = 1, size: CGSize)
+        -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            size: size
+        )
     }
 }
 #endif
 
 @MainActor fileprivate extension Snapshotting where Value == SKScene, Format == Image {
-    static func skScene(precision: Float, perceptualPrecision: Float, size: CGSize)
+    static func skScene(options: ImageSnapshotOptions, size: CGSize)
         -> Snapshotting {
         Snapshotting<View, Image>.image(
-            precision: precision, perceptualPrecision: perceptualPrecision
+            options: options
         ).pullback { scene in
             let view = SKView(frame: .init(x: 0, y: 0, width: size.width, height: size.height))
             view.presentScene(scene)

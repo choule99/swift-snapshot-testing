@@ -16,23 +16,18 @@ import CoreGraphics
     /// assertSnapshot(of: path, as: .image)
     ///
     /// // Allow for a 1% pixel difference.
-    /// assertSnapshot(of: path, as: .image(precision: 0.99))
+    /// assertSnapshot(of: path, as: .image(options: .init(precision: 0.99)))
     /// ```
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - drawingMode: The drawing mode.
     static func image(
-        precision: Float = 1,
-        perceptualPrecision: Float = 1,
+        options: ImageSnapshotOptions = .init(),
         drawingMode: CGPathDrawingMode = .eoFill
     ) -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision
+            options: options
         ).pullback { path in
             let bounds = path.boundingBoxOfPath
             var transform = CGAffineTransform(translationX: -bounds.origin.x, y: -bounds.origin.y)
@@ -49,7 +44,19 @@ import CoreGraphics
             }
         }
     }
+
+    @available(*, deprecated, message: "Use image(options:drawingMode:) instead") static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        drawingMode: CGPathDrawingMode = .eoFill
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            drawingMode: drawingMode
+        )
+    }
 }
+
 #elseif os(iOS) || os(tvOS)
 import UIKit
 
@@ -62,17 +69,13 @@ import UIKit
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     static func image(
-        precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1,
+        options: ImageSnapshotOptions = .init(), scale: CGFloat = 1,
         drawingMode: CGPathDrawingMode = .eoFill
     ) -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+            options: options, scale: scale
         ).pullback { path in
             let bounds = path.boundingBoxOfPath
             let format = if #available(iOS 11.0, tvOS 11.0, *) {
@@ -87,6 +90,17 @@ import UIKit
                 cgContext.drawPath(using: drawingMode)
             }
         }
+    }
+
+    @available(*, deprecated, message: "Use image(options:scale:drawingMode:) instead") static func image(
+        precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1,
+        drawingMode: CGPathDrawingMode = .eoFill
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            scale: scale,
+            drawingMode: drawingMode
+        )
     }
 }
 #endif

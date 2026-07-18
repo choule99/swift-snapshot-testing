@@ -19,14 +19,6 @@
 - ``image-5ftbk``
 - ``image-8eey6``
 - ``image-8ng2q``
-- ``image(precision:perceptualPrecision:)-2gh0i``
-- ``image(precision:perceptualPrecision:)-2x9v4``
-- ``image(precision:perceptualPrecision:)-4o0qz``
-- ``image(precision:perceptualPrecision:size:)-1sccj``
-- ``image(precision:perceptualPrecision:size:)-20l7o``
-- ``image(precision:perceptualPrecision:size:)-7hqxj``
-- ``image(precision:perceptualPrecision:size:)-ba2u``
-- ``image(precision:perceptualPrecision:drawingMode:)``
 - ``json-745rx``
 - ``json-9cu20``
 - ``json(_:)``
@@ -60,4 +52,5 @@
 
 - ``AnySnapshotStringConvertible``
 - ``SimplySnapshotting``
+- ``ImageSnapshotOptions``
 - ``SwiftUISnapshotLayout``

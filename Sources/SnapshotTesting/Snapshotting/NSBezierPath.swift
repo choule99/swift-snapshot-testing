@@ -15,18 +15,14 @@ import Cocoa
     /// assertSnapshot(of: path, as: .image)
     ///
     /// // Allow for a 1% pixel difference.
-    /// assertSnapshot(of: path, as: .image(precision: 0.99))
+    /// assertSnapshot(of: path, as: .image(options: .init(precision: 0.99)))
     /// ```
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
-    static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
+    ///   - options: The image comparison options.
+    static func image(options: ImageSnapshotOptions = .init()) -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision
+            options: options
         ).pullback { path in
             // Move path info frame:
             let bounds = path.bounds
@@ -37,6 +33,10 @@ import Cocoa
                 path.fill()
             }
         }
+    }
+
+    @available(*, deprecated, message: "Use image(options:) instead") static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
+        .image(options: .init(precision: precision, perceptualPrecision: perceptualPrecision))
     }
 }
 

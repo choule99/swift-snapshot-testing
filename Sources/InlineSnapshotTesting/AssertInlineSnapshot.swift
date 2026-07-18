@@ -1,7 +1,51 @@
 import Foundation
+@_spi(Internals) import SnapshotTesting
+
+/// Options that control inline snapshot assertions.
+public struct InlineSnapshotAssertionOptions: Sendable {
+    /// The record mode to use while asserting snapshots.
+    public var record: SnapshotTestingConfiguration.Record?
+
+    /// The amount of time a snapshot must be generated in.
+    public var timeout: TimeInterval
+
+    /// A description of where the snapshot is inlined.
+    public var syntaxDescriptor: InlineSnapshotSyntaxDescriptor
+
+    /// Creates inline snapshot assertion options.
+    public init(
+        record: SnapshotTestingConfiguration.Record? = nil,
+        timeout: TimeInterval = 5,
+        syntaxDescriptor: InlineSnapshotSyntaxDescriptor = .init()
+    ) {
+        self.record = record
+        self.timeout = timeout
+        self.syntaxDescriptor = syntaxDescriptor
+    }
+
+    /// Returns options with the given record mode.
+    public func recording(_ record: SnapshotTestingConfiguration.Record?) -> Self {
+        var options = self
+        options.record = record
+        return options
+    }
+
+    /// Returns options with the given timeout.
+    public func waiting(upTo timeout: TimeInterval) -> Self {
+        var options = self
+        options.timeout = timeout
+        return options
+    }
+
+    /// Returns options with the given inline snapshot syntax descriptor.
+    public func usingSyntaxDescriptor(_ syntaxDescriptor: InlineSnapshotSyntaxDescriptor) -> Self {
+        var options = self
+        options.syntaxDescriptor = syntaxDescriptor
+        return options
+    }
+}
 
 #if canImport(SwiftSyntax509)
-@_spi(Internals) import SnapshotTesting
 import SwiftParser
 import SwiftSyntax
 import SwiftSyntaxBuilder
@@ -15,11 +59,7 @@ import XCTest
 ///   - value: A value to compare against a snapshot.
 ///   - snapshotting: A strategy for snapshotting and comparing values.
 ///   - message: An optional description of the assertion, for inclusion in test results.
-///   - isRecording: Whether or not to record a new reference.
-///   - timeout: The amount of time a snapshot must be generated in.
-///   - syntaxDescriptor: An optional description of where the snapshot is inlined. This parameter
-///     should be omitted unless you are writing a custom helper that calls this function under
-///     the hood. See ``InlineSnapshotSyntaxDescriptor`` for more.
+///   - options: Options that control recording, timeout, and source rewriting.
 ///   - expected: An optional closure that returns a previously generated snapshot. When omitted,
 ///     the library will automatically write a snapshot into your test file at the call sight of
 ///     the assertion.
@@ -37,9 +77,7 @@ import XCTest
     of value: @autoclosure () throws -> Value?,
     as snapshotting: Snapshotting<Value, String>,
     message: @autoclosure () -> String = "",
-    record: SnapshotTestingConfiguration.Record? = nil,
-    timeout: TimeInterval = 5,
-    syntaxDescriptor: InlineSnapshotSyntaxDescriptor = InlineSnapshotSyntaxDescriptor(),
+    options: InlineSnapshotAssertionOptions = .init(),
     matches expected: (() -> String)? = nil,
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
@@ -47,7 +85,7 @@ import XCTest
     line: UInt = #line,
     column: UInt = #column
 ) {
-    let record = record ?? SnapshotTestingConfiguration.current?.record ?? _record
+    let record = options.record ?? SnapshotTestingConfiguration.current?.record ?? _record
     withSnapshotTesting(record: record) {
         let _: Void = installTestObserver
         do {
@@ -58,17 +96,17 @@ import XCTest
                     actual = $0
                     expectation.fulfill()
                 }
-                switch XCTWaiter.wait(for: [expectation], timeout: timeout) {
+                switch XCTWaiter.wait(for: [expectation], timeout: options.timeout) {
                     case .completed:
                         break
                     case .timedOut:
                         recordIssue(
                             """
-                            Exceeded timeout of \(timeout) seconds waiting for snapshot.
+                            Exceeded timeout of \(options.timeout) seconds waiting for snapshot.
 
                             This can happen when an asynchronously loaded value (like a network response) has not \
-                            loaded. If a timeout is unavoidable, consider setting the "timeout" parameter of
-                            "assertInlineSnapshot" to a higher value.
+                            loaded. If a timeout is unavoidable, consider increasing
+                            "InlineSnapshotAssertionOptions.timeout".
                             """,
                             fileID: fileID,
                             filePath: filePath,
@@ -107,7 +145,7 @@ import XCTest
                             expected: expected,
                             actual: actual,
                             wasRecording: record == .all || record == .failed,
-                            syntaxDescriptor: syntaxDescriptor,
+                            syntaxDescriptor: options.syntaxDescriptor,
                             function: "\(function)",
                             line: line,
                             column: column
@@ -119,12 +157,12 @@ import XCTest
                   (record != .missing && record != .failed) || expected != nil else {
                 recordSnapshot()
 
-                var failure = if syntaxDescriptor.trailingClosureLabel
+                var failure = if options.syntaxDescriptor.trailingClosureLabel
                     == InlineSnapshotSyntaxDescriptor.defaultTrailingClosureLabel {
                     "Automatically recorded a new snapshot."
                 } else {
                     """
-                    Automatically recorded a new snapshot for "\(syntaxDescriptor.trailingClosureLabel)".
+                    Automatically recorded a new snapshot for "\(options.syntaxDescriptor.trailingClosureLabel)".
                     """
                 }
                 if let difference = snapshotting.diffing.diffV2(expected ?? "", actual ?? "")?.0 {
@@ -172,7 +210,7 @@ import XCTest
                 failureMessage += "\n\nA new snapshot was automatically recorded."
             }
 
-            syntaxDescriptor.fail(
+            options.syntaxDescriptor.fail(
                 failureMessage,
                 fileID: fileID,
                 file: filePath,
@@ -190,14 +228,60 @@ import XCTest
         }
     }
 }
+
+@available(*, deprecated, message: "Use 'options: InlineSnapshotAssertionOptions'.")
+@MainActor @_disfavoredOverload public func assertInlineSnapshot<Value>(
+    of value: @autoclosure () throws -> Value?,
+    as snapshotting: Snapshotting<Value, String>,
+    message: @autoclosure () -> String = "",
+    record: SnapshotTestingConfiguration.Record? = nil,
+    timeout: TimeInterval = 5,
+    syntaxDescriptor: InlineSnapshotSyntaxDescriptor = .init(),
+    matches expected: (() -> String)? = nil,
+    fileID: StaticString = #fileID,
+    file filePath: StaticString = #filePath,
+    function: StaticString = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) {
+    assertInlineSnapshot(
+        of: try value(),
+        as: snapshotting,
+        message: message(),
+        options: .init(record: record, timeout: timeout, syntaxDescriptor: syntaxDescriptor),
+        matches: expected,
+        fileID: fileID,
+        file: filePath,
+        function: function,
+        line: line,
+        column: column
+    )
+}
 #else
 @available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0") @MainActor public func assertInlineSnapshot<Value>(
     of value: @autoclosure () throws -> Value?,
     as snapshotting: Snapshotting<Value, String>,
     message: @autoclosure () -> String = "",
+    options: InlineSnapshotAssertionOptions = .init(),
+    matches expected: (() -> String)? = nil,
+    fileID: StaticString = #fileID,
+    file filePath: StaticString = #filePath,
+    function: StaticString = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) {
+    fatalError()
+}
+
+@available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0")
+@available(*, deprecated, message: "Use 'options: InlineSnapshotAssertionOptions'.")
+@MainActor @_disfavoredOverload public func assertInlineSnapshot<Value>(
+    of value: @autoclosure () throws -> Value?,
+    as snapshotting: Snapshotting<Value, String>,
+    message: @autoclosure () -> String = "",
     record isRecording: Bool? = nil,
     timeout: TimeInterval = 5,
-    syntaxDescriptor: InlineSnapshotSyntaxDescriptor = InlineSnapshotSyntaxDescriptor(),
+    syntaxDescriptor: InlineSnapshotSyntaxDescriptor = .init(),
     matches expected: (() -> String)? = nil,
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
@@ -212,7 +296,7 @@ import XCTest
 /// A structure that describes the location of an inline snapshot.
 ///
 /// Provide this structure when defining custom snapshot functions that call
-/// ``assertInlineSnapshot(of:as:message:record:timeout:syntaxDescriptor:matches:file:function:line:column:)``
+/// ``assertInlineSnapshot(of:as:message:options:matches:fileID:file:function:line:column:)``
 /// under the hood.
 public struct InlineSnapshotSyntaxDescriptor: Hashable, Sendable {
     /// The default label describing an inline snapshot.

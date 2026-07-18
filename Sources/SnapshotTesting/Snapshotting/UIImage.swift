@@ -16,44 +16,57 @@ public extension UIImage {
 
 @MainActor public extension Diffing where Value == UIImage {
     /// A pixel-diffing strategy for UIImage's which requires a 100% match.
-    static let image = Diffing.image()
+    static let image = Diffing.image(options: .init())
 
     #if os(watchOS)
     /// A pixel-diffing strategy for `UIImage` that allows customizing how precise matching must be.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
+    ///   - options: The image comparison options.
     ///   - scale: The scale used when loading the reference image from disk. Defaults to `1`.
-    static func image(precision: Float = 1, scale: CGFloat? = nil) -> Diffing {
+    static func image(options: ImageSnapshotOptions = .init(), scale: CGFloat? = nil) -> Diffing {
         imageDiffing(
-            precision: precision,
+            precision: options.precision,
             perceptualPrecision: 1,
             scale: scale,
             orientationComparison: .ignored
         )
     }
+
+    @available(*, deprecated, message: "Use image(options:scale:) instead")
+    @_disfavoredOverload static func image(precision: Float = 1, scale: CGFloat? = nil) -> Diffing {
+        .image(options: .init(precision: precision), scale: scale)
+    }
     #else
     /// A pixel-diffing strategy for UIImage that allows customizing how precise the matching must be.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - scale: Scale to use when loading the reference image from disk. If `nil` or the
     ///     `UITraitCollection`s default value of `0.0`, the screens scale is used.
     ///   - orientationComparison: How image orientation affects comparison.
     /// - Returns: A new diffing strategy.
     static func image(
+        options: ImageSnapshotOptions = .init(),
+        scale: CGFloat? = nil,
+        orientationComparison: UIImage.OrientationComparison = .ignored
+    ) -> Diffing {
+        imageDiffing(
+            precision: options.precision,
+            perceptualPrecision: options.perceptualPrecision,
+            scale: scale,
+            orientationComparison: orientationComparison
+        )
+    }
+
+    @available(*, deprecated, message: "Use image(options:scale:orientationComparison:) instead") static func image(
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         scale: CGFloat? = nil,
         orientationComparison: UIImage.OrientationComparison = .ignored
     ) -> Diffing {
-        imageDiffing(
-            precision: precision,
-            perceptualPrecision: perceptualPrecision,
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
             scale: scale,
             orientationComparison: orientationComparison
         )
@@ -152,42 +165,46 @@ public extension UIImage {
 @MainActor public extension Snapshotting where Value == UIImage, Format == UIImage {
     /// A snapshot strategy for comparing images based on pixel equality.
     static var image: Snapshotting {
-        .image()
+        .image(options: .init())
     }
 
     #if os(watchOS)
     /// A snapshot strategy for comparing images based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
+    ///   - options: The image comparison options.
     ///   - scale: The scale of the reference image stored on disk. Defaults to `1`.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
-        precision: Float = 1,
+        options: ImageSnapshotOptions = .init(),
         scale: CGFloat? = nil,
         isOpaque: Bool = false
     ) -> Snapshotting {
         .init(
             pathExtension: "png",
-            diffing: .image(precision: precision, scale: scale),
+            diffing: .image(options: options, scale: scale),
             snapshot: { isOpaque ? opaqueImage($0) : $0 }
         )
+    }
+
+    @available(*, deprecated, message: "Use image(options:scale:isOpaque:) instead")
+    @_disfavoredOverload static func image(
+        precision: Float = 1,
+        scale: CGFloat? = nil,
+        isOpaque: Bool = false
+    ) -> Snapshotting {
+        .image(options: .init(precision: precision), scale: scale, isOpaque: isOpaque)
     }
     #else
     /// A snapshot strategy for comparing images based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - scale: The scale of the reference image stored on disk.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     ///   - orientationComparison: How image orientation affects comparison.
     static func image(
-        precision: Float = 1,
-        perceptualPrecision: Float = 1,
+        options: ImageSnapshotOptions = .init(),
         scale: CGFloat? = nil,
         isOpaque: Bool = false,
         orientationComparison: UIImage.OrientationComparison = .ignored
@@ -195,12 +212,26 @@ public extension UIImage {
         .init(
             pathExtension: "png",
             diffing: .image(
-                precision: precision,
-                perceptualPrecision: perceptualPrecision,
+                options: options,
                 scale: scale,
                 orientationComparison: orientationComparison
             ),
             snapshot: { isOpaque ? opaqueImage($0) : $0 }
+        )
+    }
+
+    @available(*, deprecated, message: "Use image(options:scale:isOpaque:orientationComparison:) instead") static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        scale: CGFloat? = nil,
+        isOpaque: Bool = false,
+        orientationComparison: UIImage.OrientationComparison = .ignored
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            scale: scale,
+            isOpaque: isOpaque,
+            orientationComparison: orientationComparison
         )
     }
     #endif

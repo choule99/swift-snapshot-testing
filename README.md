@@ -41,7 +41,11 @@ You can record a new reference by customizing snapshots inline with the assertio
 
 ```swift
 // Record just this one snapshot
-assertSnapshot(of: vc, as: .image, record: .all)
+assertSnapshot(
+  of: vc,
+  as: .image,
+  options: SnapshotAssertionOptions().recording(.all)
+)
 
 // Record all snapshots in a scope:
 withSnapshotTesting(record: .all) {
@@ -68,13 +72,24 @@ SwiftUI image snapshots use `en_US_POSIX`, UTC, and the Gregorian calendar by de
 them for a scope when needed:
 
 ```swift
-withSnapshotTesting(
-  locale: Locale(identifier: "fr_CA"),
-  timeZone: TimeZone(identifier: "America/Toronto"),
-  calendar: Calendar(identifier: .gregorian)
-) {
+let configuration = SnapshotTestingConfiguration()
+  .usingLocale(Locale(identifier: "fr_CA"))
+  .usingTimeZone(TimeZone(identifier: "America/Toronto"))
+  .usingCalendar(Calendar(identifier: .gregorian))
+
+withSnapshotTesting(configuration) {
   assertSnapshot(of: view, as: .image)
 }
+```
+
+Image comparison precision can be reused independently from assertion and environment options:
+
+```swift
+let imageOptions = ImageSnapshotOptions()
+  .requiringPixelPrecision(0.99)
+  .requiringPerceptualPrecision(0.98)
+
+assertSnapshot(of: view, as: .image(options: imageOptions))
 ```
 
 ## Snapshot Anything

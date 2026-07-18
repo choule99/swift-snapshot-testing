@@ -11,29 +11,23 @@ import QuartzCore
     /// assertSnapshot(of: layer, as: .image)
     ///
     /// // Allow for a 1% pixel difference.
-    /// assertSnapshot(of: layer, as: .image(precision: 0.99))
+    /// assertSnapshot(of: layer, as: .image(options: .init(precision: 0.99)))
     /// ```
     static var image: Snapshotting {
-        .image(precision: 1)
+        .image(options: .init())
     }
 
     /// A snapshot strategy for comparing layers based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
-        precision: Float,
-        perceptualPrecision: Float = 1,
+        options: ImageSnapshotOptions = .init(),
         isOpaque: Bool = false
     ) -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision,
-            perceptualPrecision: perceptualPrecision,
+            options: options,
             isOpaque: isOpaque
         ).pullback { layer in
             let image = NSImage(size: layer.bounds.size)
@@ -48,7 +42,19 @@ import QuartzCore
             return image
         }
     }
+
+    @available(*, deprecated, message: "Use image(options:isOpaque:) instead") static func image(
+        precision: Float,
+        perceptualPrecision: Float = 1,
+        isOpaque: Bool = false
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            isOpaque: isOpaque
+        )
+    }
 }
+
 #elseif os(iOS) || os(tvOS)
 import UIKit
 
@@ -61,23 +67,17 @@ import UIKit
     /// A snapshot strategy for comparing layers based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - traits: A trait collection override.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
-        precision: Float = 1,
-        perceptualPrecision: Float = 1,
+        options: ImageSnapshotOptions = .init(),
         traits: UITraitCollection = .init(),
         isOpaque: Bool = false
     )
         -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision,
-            perceptualPrecision: perceptualPrecision,
+            options: options,
             scale: traits.displayScale,
             isOpaque: isOpaque
         ).pullback { layer in
@@ -87,6 +87,19 @@ import UIKit
                 layer.render(in: ctx.cgContext)
             }
         }
+    }
+
+    @available(*, deprecated, message: "Use image(options:traits:isOpaque:) instead") static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        traits: UITraitCollection = .init(),
+        isOpaque: Bool = false
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            traits: traits,
+            isOpaque: isOpaque
+        )
     }
 }
 #endif

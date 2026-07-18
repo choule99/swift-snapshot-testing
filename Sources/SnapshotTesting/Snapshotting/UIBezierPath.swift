@@ -10,17 +10,13 @@ import UIKit
     /// A snapshot strategy for comparing bezier paths based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - scale: The scale to use when loading the reference image from disk.
     static func image(
-        precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1
+        options: ImageSnapshotOptions = .init(), scale: CGFloat = 1
     ) -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision, perceptualPrecision: perceptualPrecision, scale: scale
+            options: options, scale: scale
         ).pullback { path in
             let bounds = path.bounds
             let format = if #available(iOS 11.0, tvOS 11.0, *) {
@@ -33,6 +29,15 @@ import UIKit
                 path.fill()
             }
         }
+    }
+
+    @available(*, deprecated, message: "Use image(options:scale:) instead") static func image(
+        precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat = 1
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            scale: scale
+        )
     }
 }
 

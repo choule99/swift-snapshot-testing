@@ -9,19 +9,17 @@ import XCTest
     /// A pixel-diffing strategy for NSImage that allows customizing how precise the matching must be.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     /// - Returns: A new diffing strategy.
-    static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
+    static func image(options: ImageSnapshotOptions = .init()) -> Diffing {
         .init(
             toData: { requirePNGData($0) },
             fromDataOptional: { NSImage(data: $0) },
             diffV2: { old, new in
                 guard let message = compare(
-                    old, new, precision: precision, perceptualPrecision: perceptualPrecision
+                    old, new,
+                    precision: options.precision,
+                    perceptualPrecision: options.perceptualPrecision
                 ) else {
                     return nil
                 }
@@ -45,6 +43,10 @@ import XCTest
             }
         )
     }
+
+    @available(*, deprecated, message: "Use image(options:) instead") static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
+        .image(options: .init(precision: precision, perceptualPrecision: perceptualPrecision))
+    }
 }
 
 @MainActor public extension Snapshotting where Value == NSImage, Format == NSImage {
@@ -56,20 +58,15 @@ import XCTest
     /// A snapshot strategy for comparing images based on pixel equality.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
-        precision: Float = 1,
-        perceptualPrecision: Float = 1,
+        options: ImageSnapshotOptions = .init(),
         isOpaque: Bool = false
     ) -> Snapshotting {
         .init(
             pathExtension: "png",
-            diffing: .image(precision: precision, perceptualPrecision: perceptualPrecision),
+            diffing: .image(options: options),
             snapshot: { image in
                 let pixelSize = CGSize(width: image.size.width * 2, height: image.size.height * 2)
                 let snapshot: NSImage =
@@ -84,6 +81,17 @@ import XCTest
                     }
                 return isOpaque ? opaqueImage(snapshot) : snapshot
             }
+        )
+    }
+
+    @available(*, deprecated, message: "Use image(options:isOpaque:) instead") static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        isOpaque: Bool = false
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            isOpaque: isOpaque
         )
     }
 }

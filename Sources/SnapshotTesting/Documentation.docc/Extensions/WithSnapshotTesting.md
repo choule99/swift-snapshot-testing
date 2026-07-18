@@ -5,3 +5,4 @@
 ### Overloads
 
 - ``withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-6cqyq``
+- ``withSnapshotTesting(_:operation:)``

@@ -68,7 +68,8 @@ Re-run "testMySnapshot" to test against the newly-recorded snapshot.
 
 ### Essentials
 
-- ``assertInlineSnapshot(of:as:message:record:timeout:syntaxDescriptor:matches:file:function:line:column:)``
+- ``assertInlineSnapshot(of:as:message:options:matches:fileID:file:function:line:column:)``
+- ``InlineSnapshotAssertionOptions``
 
 ### Writing a custom helper
 

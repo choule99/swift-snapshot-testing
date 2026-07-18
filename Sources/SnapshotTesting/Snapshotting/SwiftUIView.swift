@@ -42,11 +42,7 @@ public enum SwiftUISnapshotLayout {
     ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
     ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
     ///     tests and will not work for framework or package test targets.
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - layout: A view layout override.
     ///   - traits: A trait collection override.
     ///   - settlingDelay: The time to wait after the hosting view appears and before rendering. Keep
@@ -54,9 +50,8 @@ public enum SwiftUISnapshotLayout {
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     ///   - prepare: A closure to run after layout and before rendering.
     static func image(
+        options: ImageSnapshotOptions = .init(),
         drawHierarchyInKeyWindow: Bool = false,
-        precision: Float = 1,
-        perceptualPrecision: Float = 1,
         layout: SwiftUISnapshotLayout = .sizeThatFits,
         traits: UITraitCollection = .init(),
         settlingDelay: TimeInterval = 0,
@@ -79,8 +74,7 @@ public enum SwiftUISnapshotLayout {
         }
 
         return SimplySnapshotting.image(
-            precision: precision,
-            perceptualPrecision: perceptualPrecision,
+            options: options,
             scale: traits.displayScale,
             isOpaque: isOpaque
         ).asyncPullback { view in
@@ -128,6 +122,27 @@ public enum SwiftUISnapshotLayout {
             return snapshot
         }
     }
+
+    @available(*, deprecated, message: "Use image(options:drawHierarchyInKeyWindow:layout:traits:settlingDelay:isOpaque:prepare:) instead") static func image(
+        drawHierarchyInKeyWindow: Bool = false,
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        layout: SwiftUISnapshotLayout = .sizeThatFits,
+        traits: UITraitCollection = .init(),
+        settlingDelay: TimeInterval = 0,
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+            layout: layout,
+            traits: traits,
+            settlingDelay: settlingDelay,
+            isOpaque: isOpaque,
+            prepare: prepare
+        )
+    }
 }
 #endif
 
@@ -147,23 +162,19 @@ public enum SwiftUISnapshotLayout {
     /// differences in system rendering.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match.
+    ///   - options: The image comparison options.
     ///   - layout: A view layout override. `sizeThatFits` uses the view's ideal size, while `fixed`
     ///     centers the view in the requested point size.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     ///   - prepare: A closure to run after layout and before rendering.
     static func image(
-        precision: Float = 1,
-        perceptualPrecision: Float = 1,
+        options: ImageSnapshotOptions = .init(),
         layout: SwiftUISnapshotLayout = .sizeThatFits,
         isOpaque: Bool = false,
         prepare: (@MainActor @Sendable () -> Void)? = nil
     ) -> Snapshotting {
         SimplySnapshotting.image(
-            precision: precision,
-            perceptualPrecision: perceptualPrecision,
+            options: options,
             isOpaque: isOpaque
         ).pullback { view in
             let renderer = ImageRenderer(
@@ -181,6 +192,21 @@ public enum SwiftUISnapshotLayout {
             }
             return image
         }
+    }
+
+    @available(*, deprecated, message: "Use image(options:layout:isOpaque:prepare:) instead") static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        layout: SwiftUISnapshotLayout = .sizeThatFits,
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            layout: layout,
+            isOpaque: isOpaque,
+            prepare: prepare
+        )
     }
 }
 
@@ -206,7 +232,7 @@ public enum SwiftUISnapshotLayout {
     /// `ImageRenderer` renders SwiftUI-native content. Views backed by native platform frameworks
     /// may render placeholders. Perceptual precision is unavailable on watchOS.
     static var image: Snapshotting {
-        .image()
+        .image(options: .init())
     }
 
     /// A snapshot strategy for comparing SwiftUI views rendered with `ImageRenderer`.
@@ -215,15 +241,15 @@ public enum SwiftUISnapshotLayout {
     /// may render placeholders. Perceptual precision is unavailable on watchOS.
     ///
     /// - Parameters:
-    ///   - precision: The percentage of image bytes that must match.
+    ///   - options: The image comparison options.
     ///   - layout: A view layout override.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     static func image(
-        precision: Float = 1,
+        options: ImageSnapshotOptions = .init(),
         layout: SwiftUISnapshotLayout = .sizeThatFits,
         isOpaque: Bool = false
     ) -> Snapshotting {
-        SimplySnapshotting.image(precision: precision, scale: 1, isOpaque: isOpaque).pullback { view in
+        SimplySnapshotting.image(options: options, scale: 1, isOpaque: isOpaque).pullback { view in
             let renderer = ImageRenderer(
                 content: WatchSnapshottingView(layout: layout, content: view)
                     .snapshotTestingEnvironment()
@@ -234,6 +260,15 @@ public enum SwiftUISnapshotLayout {
             }
             return image
         }
+    }
+
+    @available(*, deprecated, message: "Use image(options:layout:isOpaque:) instead")
+    @_disfavoredOverload static func image(
+        precision: Float = 1,
+        layout: SwiftUISnapshotLayout = .sizeThatFits,
+        isOpaque: Bool = false
+    ) -> Snapshotting {
+        .image(options: .init(precision: precision), layout: layout, isOpaque: isOpaque)
     }
 }
 

@@ -68,8 +68,8 @@ extension BaseSuite {
                 Diffing<UIImage>.image.diffV2(red, blue)?.0
                     == "Newly-taken snapshot does not match reference."
             )
-            #expect(Diffing<UIImage>.image(precision: 0.5).diffV2(red, blue) == nil)
-            #expect(Diffing<UIImage>.image(precision: 0.51).diffV2(red, blue) != nil)
+            #expect(Diffing<UIImage>.image(options: .init(precision: 0.5)).diffV2(red, blue) == nil)
+            #expect(Diffing<UIImage>.image(options: .init(precision: 0.51)).diffV2(red, blue) != nil)
             #expect(!Diffing<UIImage>.image.toData(UIImage()).isEmpty)
 
             let strategy: Snapshotting<Text, UIImage> = .image(

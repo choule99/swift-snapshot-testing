@@ -38,20 +38,17 @@ public func withSnapshotTesting<R>(
     calendar: Calendar? = nil,
     operation: () throws -> R
 ) rethrows -> R {
-    try SnapshotTestingConfiguration.$current.withValue(
+    try withSnapshotTesting(
         SnapshotTestingConfiguration(
-            record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
-            diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool
-                ?? SnapshotTesting._diffTool,
-            snapshotNaming: snapshotNaming
-                ?? SnapshotTestingConfiguration.current?.snapshotNaming,
-            locale: locale ?? SnapshotTestingConfiguration.current?.locale,
-            timeZone: timeZone ?? SnapshotTestingConfiguration.current?.timeZone,
-            calendar: calendar ?? SnapshotTestingConfiguration.current?.calendar
-        )
-    ) {
-        try operation()
-    }
+            record: record,
+            diffTool: diffTool,
+            snapshotNaming: snapshotNaming,
+            locale: locale,
+            timeZone: timeZone,
+            calendar: calendar
+        ),
+        operation: operation
+    )
 }
 
 /// Customizes `assertSnapshot` for the duration of an asynchronous operation.
@@ -65,19 +62,40 @@ public func withSnapshotTesting<R>(
     locale: Locale? = nil,
     timeZone: TimeZone? = nil,
     calendar: Calendar? = nil,
+    isolation: isolated (any Actor)? = #isolation,
     operation: () async throws -> R
 ) async rethrows -> R {
-    try await SnapshotTestingConfiguration.$current.withValue(
+    try await withSnapshotTesting(
         SnapshotTestingConfiguration(
-            record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
-            diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool,
-            snapshotNaming: snapshotNaming
-                ?? SnapshotTestingConfiguration.current?.snapshotNaming,
-            locale: locale ?? SnapshotTestingConfiguration.current?.locale,
-            timeZone: timeZone ?? SnapshotTestingConfiguration.current?.timeZone,
-            calendar: calendar ?? SnapshotTestingConfiguration.current?.calendar
-        )
-    ) {
+            record: record,
+            diffTool: diffTool,
+            snapshotNaming: snapshotNaming,
+            locale: locale,
+            timeZone: timeZone,
+            calendar: calendar
+        ),
+        isolation: isolation,
+        operation: operation
+    )
+}
+
+/// Customizes snapshot testing for the duration of an operation.
+public func withSnapshotTesting<R>(
+    _ configuration: SnapshotTestingConfiguration,
+    operation: () throws -> R
+) rethrows -> R {
+    try SnapshotTestingConfiguration.$current.withValue(configuration.resolved) {
+        try operation()
+    }
+}
+
+/// Customizes snapshot testing for the duration of an asynchronous operation.
+public func withSnapshotTesting<R>(
+    _ configuration: SnapshotTestingConfiguration,
+    isolation: isolated (any Actor)? = #isolation,
+    operation: () async throws -> R
+) async rethrows -> R {
+    try await SnapshotTestingConfiguration.$current.withValue(configuration.resolved) {
         try await operation()
     }
 }
@@ -110,8 +128,8 @@ public struct SnapshotTestingConfiguration: Sendable {
     public var calendar: Calendar?
 
     public init(
-        record: Record?,
-        diffTool: DiffTool?,
+        record: Record? = nil,
+        diffTool: DiffTool? = nil,
         snapshotNaming: SnapshotNaming? = nil,
         locale: Locale? = nil,
         timeZone: TimeZone? = nil,
@@ -123,6 +141,59 @@ public struct SnapshotTestingConfiguration: Sendable {
         self.record = record
         self.snapshotNaming = snapshotNaming
         self.timeZone = timeZone
+    }
+
+    /// Returns a copy configured with the given recording strategy.
+    public func recording(_ record: Record?) -> Self {
+        var copy = self
+        copy.record = record
+        return copy
+    }
+
+    /// Returns a copy configured with the given diff tool.
+    public func usingDiffTool(_ diffTool: DiffTool?) -> Self {
+        var copy = self
+        copy.diffTool = diffTool
+        return copy
+    }
+
+    /// Returns a copy configured with the given snapshot naming strategy.
+    public func namingSnapshots(_ snapshotNaming: SnapshotNaming?) -> Self {
+        var copy = self
+        copy.snapshotNaming = snapshotNaming
+        return copy
+    }
+
+    /// Returns a copy configured with the given locale.
+    public func usingLocale(_ locale: Locale?) -> Self {
+        var copy = self
+        copy.locale = locale
+        return copy
+    }
+
+    /// Returns a copy configured with the given time zone.
+    public func usingTimeZone(_ timeZone: TimeZone?) -> Self {
+        var copy = self
+        copy.timeZone = timeZone
+        return copy
+    }
+
+    /// Returns a copy configured with the given calendar.
+    public func usingCalendar(_ calendar: Calendar?) -> Self {
+        var copy = self
+        copy.calendar = calendar
+        return copy
+    }
+
+    fileprivate var resolved: Self {
+        Self(
+            record: record ?? Self.current?.record ?? _record,
+            diffTool: diffTool ?? Self.current?.diffTool ?? _diffTool,
+            snapshotNaming: snapshotNaming ?? Self.current?.snapshotNaming,
+            locale: locale ?? Self.current?.locale,
+            timeZone: timeZone ?? Self.current?.timeZone,
+            calendar: calendar ?? Self.current?.calendar
+        )
     }
 
     static var resolvedLocale: Locale {

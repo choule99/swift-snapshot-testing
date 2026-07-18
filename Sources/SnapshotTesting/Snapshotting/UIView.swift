@@ -21,19 +21,14 @@ import UIKit
     ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render
     ///     `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your
     ///     tests and will not work for framework or package test targets.
-    ///   - precision: The percentage of pixels that must match.
-    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
-    ///     match. 98-99% mimics
-    ///     [the precision](http://zschuessler.github.io/DeltaE/learn/#toc-defining-delta-e) of the
-    ///     human eye.
+    ///   - options: The image comparison options.
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
     ///   - prepare: A closure to run after layout and before rendering.
     static func image(
+        options: ImageSnapshotOptions = .init(),
         drawHierarchyInKeyWindow: Bool = false,
-        precision: Float = 1,
-        perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
         isOpaque: Bool = false,
@@ -42,8 +37,7 @@ import UIKit
         -> Snapshotting {
 
         SimplySnapshotting.image(
-            precision: precision,
-            perceptualPrecision: perceptualPrecision,
+            options: options,
             scale: traits.displayScale,
             isOpaque: isOpaque
         ).asyncPullback { view in
@@ -56,6 +50,25 @@ import UIKit
                 prepare: prepare
             )
         }
+    }
+
+    @available(*, deprecated, message: "Use image(options:drawHierarchyInKeyWindow:size:traits:isOpaque:prepare:) instead") static func image(
+        drawHierarchyInKeyWindow: Bool = false,
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        size: CGSize? = nil,
+        traits: UITraitCollection = .init(),
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
+    ) -> Snapshotting {
+        .image(
+            options: .init(precision: precision, perceptualPrecision: perceptualPrecision),
+            drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
+            size: size,
+            traits: traits,
+            isOpaque: isOpaque,
+            prepare: prepare
+        )
     }
 }
 

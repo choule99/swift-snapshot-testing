@@ -6,7 +6,8 @@ Powerfully flexible snapshot testing.
 
 ### Essentials
 
-- ``assertSnapshot(of:as:named:record:timeout:file:testName:line:)``
+- ``assertSnapshot(of:as:named:options:fileID:file:testName:line:column:)``
+- ``SnapshotAssertionOptions``
 - <doc:IntegratingWithTestFrameworks>
 - <doc:MigrationGuides>
 
@@ -21,9 +22,14 @@ Powerfully flexible snapshot testing.
 
 - ``Testing/Trait/snapshots(record:diffTool:snapshotNaming:locale:timeZone:calendar:)``
 - ``withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-9ywgk``
+- ``withSnapshotTesting(_:operation:)``
 - ``SnapshotTestingConfiguration``
 - ``accessedSnapshotPaths``
 - ``resetAccessedSnapshotPaths()``
+
+### Image comparison
+
+- ``ImageSnapshotOptions``
 
 ### Deprecations
 

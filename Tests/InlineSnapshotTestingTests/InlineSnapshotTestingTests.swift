@@ -4,6 +4,29 @@ import SnapshotTesting
 import XCTest
 
 final class InlineSnapshotTestingTests: BaseTestCase {
+    func testInlineSnapshotAssertionOptions() {
+        let descriptor = InlineSnapshotSyntaxDescriptor(trailingClosureLabel: "is")
+        let options = InlineSnapshotAssertionOptions()
+            .recording(.never)
+            .waiting(upTo: 1)
+            .usingSyntaxDescriptor(descriptor)
+
+        XCTAssertNil(InlineSnapshotAssertionOptions().record)
+        XCTAssertEqual(InlineSnapshotAssertionOptions().timeout, 5)
+        XCTAssertEqual(options.record, .never)
+        XCTAssertEqual(options.timeout, 1)
+        XCTAssertEqual(options.syntaxDescriptor, descriptor)
+
+        assertInlineSnapshot(of: ["Hello", "World"], as: .dump, options: options) {
+            """
+            ▿ 2 elements
+              - "Hello"
+              - "World"
+
+            """
+        }
+    }
+
     func testInlineSnapshot() {
         assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
             """

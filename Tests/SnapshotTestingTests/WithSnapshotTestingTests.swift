@@ -15,8 +15,10 @@ import XCTest
             verifySnapshot(
                 of: value,
                 as: .json,
-                record: .all,
-                snapshotDirectory: snapshotDirectory.path,
+                options: SnapshotAssertionOptions(
+                    record: .all,
+                    snapshotDirectory: snapshotDirectory.path
+                ),
                 testName: testName
             )
         }
@@ -136,6 +138,55 @@ import XCTest
         }
     }
 
+    func testConfigurationBuilderAndOverloads() async throws {
+        let locale = Locale(identifier: "fr_CA")
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "America/Toronto"))
+        let calendar = Calendar(identifier: .hebrew)
+        let original = SnapshotTestingConfiguration()
+        let configuration = original
+            .recording(.all)
+            .usingDiffTool("diff")
+            .namingSnapshots(.testName)
+            .usingLocale(locale)
+            .usingTimeZone(timeZone)
+            .usingCalendar(calendar)
+
+        XCTAssertNil(original.record)
+        XCTAssertNil(original.locale)
+        withSnapshotTesting(configuration) {
+            XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
+            XCTAssertEqual(SnapshotTestingConfiguration.current?.snapshotNaming, .testName)
+            XCTAssertEqual(SnapshotTestingConfiguration.resolvedLocale, locale)
+            XCTAssertEqual(SnapshotTestingConfiguration.resolvedTimeZone, timeZone)
+            XCTAssertEqual(SnapshotTestingConfiguration.resolvedCalendar, calendar)
+        }
+        await withSnapshotTesting(configuration) {
+            await Task.yield()
+            XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
+        }
+    }
+
+    func testAssertionOptionsBuilder() async {
+        let original = SnapshotAssertionOptions()
+        let options = original
+            .recording(.failed)
+            .usingDiffTool("diff")
+            .savingSnapshots(in: "/snapshots")
+            .savingArtifacts(in: "/artifacts")
+            .waiting(upTo: 10)
+
+        XCTAssertNil(original.record)
+        XCTAssertEqual(original.timeout, 5)
+        XCTAssertEqual(options.record, .failed)
+        XCTAssertEqual(options.snapshotDirectory, "/snapshots")
+        XCTAssertEqual(options.artifactsDirectory, "/artifacts")
+        XCTAssertEqual(options.timeout, 10)
+        XCTAssertEqual(
+            options.diffTool?(currentFilePath: "old", failedFilePath: "new"),
+            "diff old new"
+        )
+    }
+
     func testVerifySnapshotDiffToolOverride() async {
         let snapshotDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -155,9 +206,11 @@ import XCTest
                 of: "Blob",
                 as: strategy,
                 named: "per-call-diff-tool",
-                record: .never,
-                diffTool: "inner",
-                snapshotDirectory: snapshotDirectory.path
+                options: SnapshotAssertionOptions(
+                    record: .never,
+                    diffTool: "inner",
+                    snapshotDirectory: snapshotDirectory.path
+                )
             )
 
             XCTAssertEqual(

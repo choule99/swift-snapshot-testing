@@ -647,9 +647,9 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
         if !ProcessInfo.processInfo.environment.keys.contains("GITHUB_WORKFLOW") {
             label.text = "Hello."
-            assertSnapshot(of: label, as: .image(precision: 0.9), named: platform)
+            assertSnapshot(of: label, as: .image(options: .init(precision: 0.9)), named: platform)
             label.text = "Hello"
-            assertSnapshot(of: label, as: .image(precision: 0.9), named: platform)
+            assertSnapshot(of: label, as: .image(options: .init(precision: 0.9)), named: platform)
         }
         #endif
     }
@@ -665,10 +665,16 @@ final class SnapshotTestingTests: BaseTestCase {
         let image = try XCTUnwrap(NSImage(byReferencing: imageURL))
         #endif
 
-        assertSnapshot(of: image, as: .image(precision: 0.995), named: "\(platform)-exact")
+        assertSnapshot(
+            of: image,
+            as: .image(options: .init(precision: 0.995)),
+            named: "\(platform)-exact"
+        )
         if #available(iOS 11.0, tvOS 11.0, macOS 10.13, *) {
             assertSnapshot(
-                of: image, as: .image(perceptualPrecision: 0.98), named: "\(platform)-perceptual"
+                of: image,
+                as: .image(options: .init(perceptualPrecision: 0.98)),
+                named: "\(platform)-perceptual"
             )
         }
         #endif
@@ -721,11 +727,12 @@ final class SnapshotTestingTests: BaseTestCase {
 
         XCTAssertNil(Diffing<NSImage>.image.diffV2(sRGBImage, displayP3Image))
         XCTAssertNil(
-            Diffing<NSImage>.image(perceptualPrecision: 0.99)
+            Diffing<NSImage>.image(options: .init(perceptualPrecision: 0.99))
                 .diffV2(sRGBImage, similarDisplayP3Image)
         )
         XCTAssertNil(
-            Diffing<NSImage>.image(precision: 0.99).diffV2(sRGBImage, oneDifferentPixelImage)
+            Diffing<NSImage>.image(options: .init(precision: 0.99))
+                .diffV2(sRGBImage, oneDifferentPixelImage)
         )
         #endif
     }

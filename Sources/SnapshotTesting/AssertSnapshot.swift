@@ -110,19 +110,66 @@ public func resetAccessedSnapshotPaths() {
     set { globalState.withLock { $0.record = newValue } }
 }
 
+/// Options that customize a snapshot assertion.
+public struct SnapshotAssertionOptions: Sendable {
+    public var record: SnapshotTestingConfiguration.Record?
+    public var diffTool: SnapshotTestingConfiguration.DiffTool?
+    public var snapshotDirectory: String?
+    public var artifactsDirectory: String?
+    public var timeout: TimeInterval
+
+    public init(
+        record: SnapshotTestingConfiguration.Record? = nil,
+        diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
+        snapshotDirectory: String? = nil,
+        artifactsDirectory: String? = nil,
+        timeout: TimeInterval = 5
+    ) {
+        self.record = record
+        self.diffTool = diffTool
+        self.snapshotDirectory = snapshotDirectory
+        self.artifactsDirectory = artifactsDirectory
+        self.timeout = timeout
+    }
+
+    public func recording(_ record: SnapshotTestingConfiguration.Record?) -> Self {
+        var copy = self
+        copy.record = record
+        return copy
+    }
+
+    public func usingDiffTool(_ diffTool: SnapshotTestingConfiguration.DiffTool?) -> Self {
+        var copy = self
+        copy.diffTool = diffTool
+        return copy
+    }
+
+    public func savingSnapshots(in snapshotDirectory: String?) -> Self {
+        var copy = self
+        copy.snapshotDirectory = snapshotDirectory
+        return copy
+    }
+
+    public func savingArtifacts(in artifactsDirectory: String?) -> Self {
+        var copy = self
+        copy.artifactsDirectory = artifactsDirectory
+        return copy
+    }
+
+    public func waiting(upTo timeout: TimeInterval) -> Self {
+        var copy = self
+        copy.timeout = timeout
+        return copy
+    }
+}
+
 /// Asserts that a given value matches a reference on disk.
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
 ///   - snapshotting: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
-///   - record: The record mode to use while asserting snapshots.
-///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
-///     in a directory with the same name as the test file, and that directory will sit inside a
-///     directory `__Snapshots__` that sits next to your test file.
-///   - artifactsDirectory: Optional directory for failure artifacts. An explicit nonblank value
-///     takes precedence over `SNAPSHOT_ARTIFACTS` and preserves references in failed record mode.
-///   - timeout: The amount of time a snapshot must be generated in.
+///   - options: Options controlling recording, diffing, directories, and timeout.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
 ///   - file: The file in which failure occurred. Defaults to the file path of the test case in
@@ -137,10 +184,7 @@ public func resetAccessedSnapshotPaths() {
     of value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, some Any>,
     named name: String? = nil,
-    record: SnapshotTestingConfiguration.Record? = nil,
-    snapshotDirectory: String? = nil,
-    artifactsDirectory: String? = nil,
-    timeout: TimeInterval = 5,
+    options: SnapshotAssertionOptions = .init(),
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
     testName: String = #function,
@@ -151,10 +195,7 @@ public func resetAccessedSnapshotPaths() {
         of: try value(),
         as: snapshotting,
         named: name,
-        record: record,
-        snapshotDirectory: snapshotDirectory,
-        artifactsDirectory: artifactsDirectory,
-        timeout: timeout,
+        options: options,
         fileID: fileID,
         file: filePath,
         testName: testName,
@@ -173,17 +214,46 @@ public func resetAccessedSnapshotPaths() {
     )
 }
 
+@available(*, deprecated, message: "Use the 'options:' parameter instead.")
+@MainActor @_disfavoredOverload public func assertSnapshot<Value>(
+    of value: @autoclosure () throws -> Value,
+    as snapshotting: Snapshotting<Value, some Any>,
+    named name: String? = nil,
+    record: SnapshotTestingConfiguration.Record? = nil,
+    snapshotDirectory: String? = nil,
+    artifactsDirectory: String? = nil,
+    timeout: TimeInterval = 5,
+    fileID: StaticString = #fileID,
+    file filePath: StaticString = #filePath,
+    testName: String = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) {
+    assertSnapshot(
+        of: try value(),
+        as: snapshotting,
+        named: name,
+        options: SnapshotAssertionOptions(
+            record: record,
+            snapshotDirectory: snapshotDirectory,
+            artifactsDirectory: artifactsDirectory,
+            timeout: timeout
+        ),
+        fileID: fileID,
+        file: filePath,
+        testName: testName,
+        line: line,
+        column: column
+    )
+}
+
 /// Asserts that a given value matches references on disk.
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
 ///   - strategies: A dictionary of names and strategies for serializing, deserializing, and
 ///     comparing values.
-///   - recording: The record mode to use while asserting snapshots.
-///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
-///     in a directory with the same name as the test file, and that directory will sit inside a
-///     directory `__Snapshots__` that sits next to your test file.
-///   - timeout: The amount of time a snapshot must be generated in.
+///   - options: Options controlling recording, diffing, directories, and timeout.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
 ///   - file: The file in which failure occurred. Defaults to the file path of the test case in
@@ -197,9 +267,7 @@ public func resetAccessedSnapshotPaths() {
 @MainActor public func assertSnapshots<Value>(
     of value: @autoclosure () throws -> Value,
     as strategies: [String: Snapshotting<Value, some Any>],
-    record: SnapshotTestingConfiguration.Record? = nil,
-    snapshotDirectory: String? = nil,
-    timeout: TimeInterval = 5,
+    options: SnapshotAssertionOptions = .init(),
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
     testName: String = #function,
@@ -211,9 +279,7 @@ public func resetAccessedSnapshotPaths() {
             of: try value(),
             as: strategy,
             named: name,
-            record: record,
-            snapshotDirectory: snapshotDirectory,
-            timeout: timeout,
+            options: options,
             fileID: fileID,
             file: filePath,
             testName: testName,
@@ -223,16 +289,41 @@ public func resetAccessedSnapshotPaths() {
     }
 }
 
+@available(*, deprecated, message: "Use the 'options:' parameter instead.")
+@MainActor @_disfavoredOverload public func assertSnapshots<Value>(
+    of value: @autoclosure () throws -> Value,
+    as strategies: [String: Snapshotting<Value, some Any>],
+    record: SnapshotTestingConfiguration.Record? = nil,
+    snapshotDirectory: String? = nil,
+    timeout: TimeInterval = 5,
+    fileID: StaticString = #fileID,
+    file filePath: StaticString = #filePath,
+    testName: String = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) {
+    assertSnapshots(
+        of: try value(),
+        as: strategies,
+        options: SnapshotAssertionOptions(
+            record: record,
+            snapshotDirectory: snapshotDirectory,
+            timeout: timeout
+        ),
+        fileID: fileID,
+        file: filePath,
+        testName: testName,
+        line: line,
+        column: column
+    )
+}
+
 /// Asserts that a given value matches references on disk.
 ///
 /// - Parameters:
 ///   - value: A value to compare against a reference.
 ///   - strategies: An array of strategies for serializing, deserializing, and comparing values.
-///   - record: The record mode to use while asserting snapshots.
-///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
-///     in a directory with the same name as the test file, and that directory will sit inside a
-///     directory `__Snapshots__` that sits next to your test file.
-///   - timeout: The amount of time a snapshot must be generated in.
+///   - options: Options controlling recording, diffing, directories, and timeout.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
 ///   - file: The file in which failure occurred. Defaults to the file path of the test case in
@@ -246,9 +337,7 @@ public func resetAccessedSnapshotPaths() {
 @MainActor public func assertSnapshots<Value>(
     of value: @autoclosure () throws -> Value,
     as strategies: [Snapshotting<Value, some Any>],
-    record: SnapshotTestingConfiguration.Record? = nil,
-    snapshotDirectory: String? = nil,
-    timeout: TimeInterval = 5,
+    options: SnapshotAssertionOptions = .init(),
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
     testName: String = #function,
@@ -259,9 +348,7 @@ public func resetAccessedSnapshotPaths() {
         assertSnapshot(
             of: try value(),
             as: strategy,
-            record: record,
-            snapshotDirectory: snapshotDirectory,
-            timeout: timeout,
+            options: options,
             fileID: fileID,
             file: filePath,
             testName: testName,
@@ -269,6 +356,35 @@ public func resetAccessedSnapshotPaths() {
             column: column
         )
     }
+}
+
+@available(*, deprecated, message: "Use the 'options:' parameter instead.")
+@MainActor @_disfavoredOverload public func assertSnapshots<Value>(
+    of value: @autoclosure () throws -> Value,
+    as strategies: [Snapshotting<Value, some Any>],
+    record: SnapshotTestingConfiguration.Record? = nil,
+    snapshotDirectory: String? = nil,
+    timeout: TimeInterval = 5,
+    fileID: StaticString = #fileID,
+    file filePath: StaticString = #filePath,
+    testName: String = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) {
+    assertSnapshots(
+        of: try value(),
+        as: strategies,
+        options: SnapshotAssertionOptions(
+            record: record,
+            snapshotDirectory: snapshotDirectory,
+            timeout: timeout
+        ),
+        fileID: fileID,
+        file: filePath,
+        testName: testName,
+        line: line,
+        column: column
+    )
 }
 
 /// Verifies that a given value matches a reference on disk.
@@ -295,9 +411,11 @@ public func resetAccessedSnapshotPaths() {
 ///       of: try value(),
 ///       as: snapshotting,
 ///       named: name,
-///       record: record,
-///       snapshotDirectory: snapshotDirectory,
-///       timeout: timeout,
+///       options: SnapshotAssertionOptions(
+///         record: record,
+///         snapshotDirectory: snapshotDirectory,
+///         timeout: timeout
+///       ),
 ///       file: file,
 ///       testName: testName
 ///     )
@@ -310,14 +428,7 @@ public func resetAccessedSnapshotPaths() {
 ///   - value: A value to compare against a reference.
 ///   - snapshotting: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
-///   - record: The record mode to use while asserting snapshots.
-///   - diffTool: The diff tool to use while verifying this snapshot.
-///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
-///     in a directory with the same name as the test file, and that directory will sit inside a
-///     directory `__Snapshots__` that sits next to your test file.
-///   - artifactsDirectory: Optional directory for failure artifacts. An explicit nonblank value
-///     takes precedence over `SNAPSHOT_ARTIFACTS` and preserves references in failed record mode.
-///   - timeout: The amount of time a snapshot must be generated in.
+///   - options: Options controlling recording, diffing, directories, and timeout.
 ///   - file: The file in which failure occurred. Defaults to the file name of the test case in
 ///     which this function was called.
 ///   - testName: The name of the test in which failure occurred. Defaults to the function name of
@@ -329,11 +440,7 @@ public func resetAccessedSnapshotPaths() {
     of value: @autoclosure () throws -> Value,
     as snapshotting: Snapshotting<Value, Format>,
     named name: String? = nil,
-    record: SnapshotTestingConfiguration.Record? = nil,
-    diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
-    snapshotDirectory: String? = nil,
-    artifactsDirectory: String? = nil,
-    timeout: TimeInterval = 5,
+    options: SnapshotAssertionOptions = .init(),
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
     testName: String = #function,
@@ -348,8 +455,8 @@ public func resetAccessedSnapshotPaths() {
     CleanCounterBetweenTestCases.registerIfNeeded()
     #endif
 
-    let record = record ?? SnapshotTestingConfiguration.current?.record ?? _record
-    return withSnapshotTesting(record: record, diffTool: diffTool) { () -> String? in
+    let record = options.record ?? SnapshotTestingConfiguration.current?.record ?? _record
+    return withSnapshotTesting(record: record, diffTool: options.diffTool) { () -> String? in
         do {
             let fileUrl = URL(fileURLWithPath: "\(filePath)", isDirectory: false)
             let fileName = fileUrl.deletingPathExtension().lastPathComponent
@@ -365,9 +472,9 @@ public func resetAccessedSnapshotPaths() {
             #endif
 
             let snapshotDirectoryUrl =
-                snapshotDirectory.map { URL(fileURLWithPath: $0, isDirectory: true) }
+                options.snapshotDirectory.map { URL(fileURLWithPath: $0, isDirectory: true) }
                     ?? snapshotsBaseUrl.appendingPathComponent("__Snapshots__").appendingPathComponent(fileName)
-            let explicitArtifactsDirectory = artifactsDirectory.flatMap {
+            let explicitArtifactsDirectory = options.artifactsDirectory.flatMap {
                 $0.allSatisfy(\.isWhitespace) ? nil : $0
             }
 
@@ -406,13 +513,13 @@ public func resetAccessedSnapshotPaths() {
                 optionalDiffable = b
                 tookSnapshot.fulfill()
             }
-            let result = XCTWaiter.wait(for: [tookSnapshot], timeout: timeout)
+            let result = XCTWaiter.wait(for: [tookSnapshot], timeout: options.timeout)
             switch result {
                 case .completed:
                     break
                 case .timedOut:
                     return """
-                    Exceeded timeout of \(timeout) seconds waiting for snapshot.
+                    Exceeded timeout of \(options.timeout) seconds waiting for snapshot.
 
                     This can happen when an asynchronously rendered view (like a web view) has not loaded. \
                     Ensure that every subview of the view hierarchy has loaded to avoid timeouts, or, if a \
@@ -599,6 +706,41 @@ public func resetAccessedSnapshotPaths() {
             return error.localizedDescription
         }
     }
+}
+
+@available(*, deprecated, message: "Use the 'options:' parameter instead.")
+@MainActor @_disfavoredOverload public func verifySnapshot<Value>(
+    of value: @autoclosure () throws -> Value,
+    as snapshotting: Snapshotting<Value, some Any>,
+    named name: String? = nil,
+    record: SnapshotTestingConfiguration.Record? = nil,
+    diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
+    snapshotDirectory: String? = nil,
+    artifactsDirectory: String? = nil,
+    timeout: TimeInterval = 5,
+    fileID: StaticString = #fileID,
+    file filePath: StaticString = #filePath,
+    testName: String = #function,
+    line: UInt = #line,
+    column: UInt = #column
+) -> String? {
+    verifySnapshot(
+        of: try value(),
+        as: snapshotting,
+        named: name,
+        options: SnapshotAssertionOptions(
+            record: record,
+            diffTool: diffTool,
+            snapshotDirectory: snapshotDirectory,
+            artifactsDirectory: artifactsDirectory,
+            timeout: timeout
+        ),
+        fileID: fileID,
+        file: filePath,
+        testName: testName,
+        line: line,
+        column: column
+    )
 }
 
 // MARK: - Private
