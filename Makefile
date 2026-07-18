@@ -26,14 +26,14 @@ test-linux:
 test-macos:
 	set -o pipefail && \
 	xcodebuild test \
-		-scheme SnapshotTesting \
-		-destination platform="macOS" \
+		-scheme swift-snapshot-testing-Package \
+		-destination platform="macOS"
 
 test-ios:
 	set -o pipefail && \
 	xcodebuild test \
-		-scheme SnapshotTesting \
-		-destination platform="iOS Simulator,name=iPhone 11 Pro Max,OS=13.3"
+		-scheme swift-snapshot-testing-Package \
+		-destination platform="iOS Simulator,name=iPhone 17 Pro,OS=26.5"
 
 test-swift:
 	swift test
@@ -42,6 +42,6 @@ test-tvos:
 	set -o pipefail && \
 	xcodebuild test \
 		-scheme SnapshotTesting \
-		-destination platform="tvOS Simulator,name=Apple TV 4K,OS=13.3"
+		-destination platform="tvOS Simulator,name=Apple TV 4K,OS=26.5"
 
 test-all: test-linux test-macos test-ios
