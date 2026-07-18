@@ -512,11 +512,7 @@ public func resetAccessedSnapshotPaths() {
                 return nil
             }
 
-            let artifactsUrl = URL(
-                fileURLWithPath: ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
-                    ?? NSTemporaryDirectory(),
-                isDirectory: true
-            )
+            let artifactsUrl = snapshotArtifactsDirectory()
             let artifactsSubUrl = artifactsUrl.appendingPathComponent(fileName)
             try fileManager.createDirectory(at: artifactsSubUrl, withIntermediateDirectories: true)
             let failedSnapshotFileUrl = artifactsSubUrl.appendingPathComponent(
@@ -637,6 +633,14 @@ func sanitizePathComponent(_ string: String) -> String {
     string
         .replacingOccurrences(of: "\\W+", with: "-", options: .regularExpression)
         .replacingOccurrences(of: "^-|-$", with: "", options: .regularExpression)
+}
+
+func snapshotArtifactsDirectory(
+    _ path: String? = ProcessInfo.processInfo.environment["SNAPSHOT_ARTIFACTS"]
+) -> URL {
+    let path = path.flatMap { $0.allSatisfy(\.isWhitespace) ? nil : $0 }
+        ?? NSTemporaryDirectory()
+    return URL(fileURLWithPath: path, isDirectory: true)
 }
 
 #if !os(Android) && !os(Linux) && !os(Windows)

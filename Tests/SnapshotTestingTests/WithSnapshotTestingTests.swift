@@ -6,6 +6,20 @@ import XCTest
 // swiftformat:disable redundantAsync
 
 @MainActor class WithSnapshotTestingTests: XCTestCase {
+    func testSnapshotArtifactsDirectory() async {
+        let temporaryDirectory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+
+        XCTAssertEqual(snapshotArtifactsDirectory(nil), temporaryDirectory)
+        XCTAssertEqual(snapshotArtifactsDirectory(""), temporaryDirectory)
+        XCTAssertEqual(snapshotArtifactsDirectory(" \t\n"), temporaryDirectory)
+
+        let configuredDirectory = URL(fileURLWithPath: "/tmp/snapshot artifacts ", isDirectory: true)
+        XCTAssertEqual(
+            snapshotArtifactsDirectory("/tmp/snapshot artifacts "),
+            configuredDirectory
+        )
+    }
+
     func testNesting() async {
         withSnapshotTesting(record: .all) {
             XCTAssertEqual(
