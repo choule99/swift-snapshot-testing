@@ -89,6 +89,9 @@ import Testing
 ///   - snapshotting: A strategy for serializing, deserializing, and comparing values.
 ///   - name: An optional description of the snapshot.
 ///   - record: The record mode to use while asserting snapshots.
+///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
+///     in a directory with the same name as the test file, and that directory will sit inside a
+///     directory `__Snapshots__` that sits next to your test file.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
@@ -105,6 +108,7 @@ public func assertSnapshot<Value>(
     as snapshotting: Snapshotting<Value, some Any>,
     named name: String? = nil,
     record: SnapshotTestingConfiguration.Record? = nil,
+    snapshotDirectory: String? = nil,
     timeout: TimeInterval = 5,
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
@@ -117,6 +121,7 @@ public func assertSnapshot<Value>(
         as: snapshotting,
         named: name,
         record: record,
+        snapshotDirectory: snapshotDirectory,
         timeout: timeout,
         fileID: fileID,
         file: filePath,
@@ -143,6 +148,9 @@ public func assertSnapshot<Value>(
 ///   - strategies: A dictionary of names and strategies for serializing, deserializing, and
 ///     comparing values.
 ///   - recording: The record mode to use while asserting snapshots.
+///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
+///     in a directory with the same name as the test file, and that directory will sit inside a
+///     directory `__Snapshots__` that sits next to your test file.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
@@ -158,6 +166,7 @@ public func assertSnapshots<Value>(
     of value: @autoclosure () throws -> Value,
     as strategies: [String: Snapshotting<Value, some Any>],
     record: SnapshotTestingConfiguration.Record? = nil,
+    snapshotDirectory: String? = nil,
     timeout: TimeInterval = 5,
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
@@ -171,6 +180,7 @@ public func assertSnapshots<Value>(
             as: strategy,
             named: name,
             record: record,
+            snapshotDirectory: snapshotDirectory,
             timeout: timeout,
             fileID: fileID,
             file: filePath,
@@ -187,6 +197,9 @@ public func assertSnapshots<Value>(
 ///   - value: A value to compare against a reference.
 ///   - strategies: An array of strategies for serializing, deserializing, and comparing values.
 ///   - record: The record mode to use while asserting snapshots.
+///   - snapshotDirectory: Optional directory to save snapshots. By default snapshots will be saved
+///     in a directory with the same name as the test file, and that directory will sit inside a
+///     directory `__Snapshots__` that sits next to your test file.
 ///   - timeout: The amount of time a snapshot must be generated in.
 ///   - fileID: The file ID in which failure occurred. Defaults to the file ID of the test case in
 ///     which this function was called.
@@ -202,6 +215,7 @@ public func assertSnapshots<Value>(
     of value: @autoclosure () throws -> Value,
     as strategies: [Snapshotting<Value, some Any>],
     record: SnapshotTestingConfiguration.Record? = nil,
+    snapshotDirectory: String? = nil,
     timeout: TimeInterval = 5,
     fileID: StaticString = #fileID,
     file filePath: StaticString = #filePath,
@@ -214,6 +228,7 @@ public func assertSnapshots<Value>(
             of: try value(),
             as: strategy,
             record: record,
+            snapshotDirectory: snapshotDirectory,
             timeout: timeout,
             fileID: fileID,
             file: filePath,
