@@ -12,6 +12,7 @@
   - Fix Swiftlint & SwiftFormat warnings
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/934/changes
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/944/changes
+- Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/528/changes
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/998/changes
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1007/changes
 - Fix nested iOS WebView and SpriteKit snapshots

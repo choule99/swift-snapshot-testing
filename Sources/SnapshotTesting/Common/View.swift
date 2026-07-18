@@ -1374,7 +1374,7 @@ public extension UITraitCollection {
             viewController: viewController
         )
     }
-    let dispose = add(traits: traits, viewController: viewController, to: window)
+    let dispose = addViewController(traits: traits, viewController: viewController, to: window)
 
     if size.width == 0 || size.height == 0 {
         // Try to call sizeToFit() if the view still has invalid size
@@ -1439,11 +1439,11 @@ private let offscreen: CGFloat = 10000
     }
 }
 
-@MainActor private func add(
+@MainActor func addViewController(
     traits: UITraitCollection, viewController: UIViewController, to window: UIWindow
 ) -> @MainActor () -> Void {
     let originalRootViewController = window.rootViewController
-    let rootViewController = UIViewController()
+    let rootViewController = RootViewController()
     rootViewController.view.backgroundColor = .clear
     rootViewController.view.frame = window.frame
     rootViewController.view.translatesAutoresizingMaskIntoConstraints =
@@ -1467,8 +1467,8 @@ private let offscreen: CGFloat = 10000
 
     window.rootViewController = rootViewController
 
-    rootViewController.beginAppearanceTransition(true, animated: false)
-    rootViewController.endAppearanceTransition()
+    viewController.beginAppearanceTransition(true, animated: false)
+    viewController.endAppearanceTransition()
 
     rootViewController.view.setNeedsLayout()
     rootViewController.view.layoutIfNeeded()
@@ -1477,12 +1477,12 @@ private let offscreen: CGFloat = 10000
     viewController.view.layoutIfNeeded()
 
     return {
-        rootViewController.beginAppearanceTransition(false, animated: false)
-        rootViewController.endAppearanceTransition()
+        viewController.beginAppearanceTransition(false, animated: false)
         viewController.willMove(toParent: nil)
         viewController.view.removeFromSuperview()
         viewController.removeFromParent()
         viewController.didMove(toParent: nil)
+        viewController.endAppearanceTransition()
         window.rootViewController = originalRootViewController
     }
 }
@@ -1533,6 +1533,12 @@ private let offscreen: CGFloat = 10000
         }
         #endif
         return self.config.safeArea
+    }
+}
+
+@MainActor private final class RootViewController: UIViewController {
+    override var shouldAutomaticallyForwardAppearanceMethods: Bool {
+        false
     }
 }
 #endif

@@ -19,7 +19,7 @@ import SwiftUI
 @preconcurrency import WebKit
 #endif
 #if canImport(UIKit)
-import UIKit.UIView
+import UIKit
 #endif
 
 final class SnapshotTestingTests: BaseTestCase {
@@ -1534,10 +1534,14 @@ final class SnapshotTestingTests: BaseTestCase {
         let viewDidAppearExpectation = expectation(description: "viewDidAppear")
         let viewWillDisappearExpectation = expectation(description: "viewWillDisappear")
         let viewDidDisappearExpectation = expectation(description: "viewDidDisappear")
-        viewWillAppearExpectation.expectedFulfillmentCount = 4
-        viewDidAppearExpectation.expectedFulfillmentCount = 4
-        viewWillDisappearExpectation.expectedFulfillmentCount = 4
-        viewDidDisappearExpectation.expectedFulfillmentCount = 4
+        viewWillAppearExpectation.expectedFulfillmentCount = 2
+        viewDidAppearExpectation.expectedFulfillmentCount = 2
+        viewWillDisappearExpectation.expectedFulfillmentCount = 2
+        viewDidDisappearExpectation.expectedFulfillmentCount = 2
+        viewWillAppearExpectation.assertForOverFulfill = true
+        viewDidAppearExpectation.assertForOverFulfill = true
+        viewWillDisappearExpectation.assertForOverFulfill = true
+        viewDidDisappearExpectation.assertForOverFulfill = true
 
         let viewController = ViewController(
             viewDidLoadExpectation: viewDidLoadExpectation,
@@ -1559,6 +1563,44 @@ final class SnapshotTestingTests: BaseTestCase {
                 viewDidDisappearExpectation
             ], timeout: 1.0, enforceOrder: true
         )
+
+        let window = UIWindow(frame: .init(x: 0, y: 0, width: 100, height: 100))
+        let originalRootViewController = UIViewController()
+        window.rootViewController = originalRootViewController
+        window.isHidden = false
+        let existingViewDidLoadExpectation = expectation(description: "existing window viewDidLoad")
+        let existingViewWillAppearExpectation = expectation(description: "existing window viewWillAppear")
+        let existingViewDidAppearExpectation = expectation(description: "existing window viewDidAppear")
+        let existingViewWillDisappearExpectation = expectation(description: "existing window viewWillDisappear")
+        let existingViewDidDisappearExpectation = expectation(description: "existing window viewDidDisappear")
+        existingViewWillAppearExpectation.assertForOverFulfill = true
+        existingViewDidAppearExpectation.assertForOverFulfill = true
+        existingViewWillDisappearExpectation.assertForOverFulfill = true
+        existingViewDidDisappearExpectation.assertForOverFulfill = true
+
+        let existingViewController = ViewController(
+            viewDidLoadExpectation: existingViewDidLoadExpectation,
+            viewWillAppearExpectation: existingViewWillAppearExpectation,
+            viewDidAppearExpectation: existingViewDidAppearExpectation,
+            viewWillDisappearExpectation: existingViewWillDisappearExpectation,
+            viewDidDisappearExpectation: existingViewDidDisappearExpectation
+        )
+
+        let dispose = addViewController(
+            traits: .init(), viewController: existingViewController, to: window
+        )
+        dispose()
+
+        await fulfillment(
+            of: [
+                existingViewDidLoadExpectation,
+                existingViewWillAppearExpectation,
+                existingViewDidAppearExpectation,
+                existingViewWillDisappearExpectation,
+                existingViewDidDisappearExpectation
+            ], timeout: 1.0, enforceOrder: true
+        )
+        XCTAssertTrue(window.rootViewController === originalRootViewController)
         #endif
     }
 
