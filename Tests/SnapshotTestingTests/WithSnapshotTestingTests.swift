@@ -112,6 +112,30 @@ import XCTest
         }
     }
 
+    func testSnapshotEnvironmentDefaultsAndNesting() async throws {
+        XCTAssertEqual(SnapshotTestingConfiguration.resolvedLocale.identifier, "en_US_POSIX")
+        XCTAssertEqual(SnapshotTestingConfiguration.resolvedTimeZone.secondsFromGMT(), 0)
+        XCTAssertEqual(SnapshotTestingConfiguration.resolvedCalendar.identifier, .gregorian)
+
+        let locale = Locale(identifier: "fr_CA")
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "America/Toronto"))
+        var calendar = Calendar(identifier: .hebrew)
+        calendar.locale = locale
+        calendar.timeZone = timeZone
+
+        withSnapshotTesting(locale: locale, timeZone: timeZone, calendar: calendar) {
+            XCTAssertEqual(SnapshotTestingConfiguration.resolvedLocale, locale)
+            XCTAssertEqual(SnapshotTestingConfiguration.resolvedTimeZone, timeZone)
+            XCTAssertEqual(SnapshotTestingConfiguration.resolvedCalendar, calendar)
+
+            withSnapshotTesting(record: .all) {
+                XCTAssertEqual(SnapshotTestingConfiguration.resolvedLocale, locale)
+                XCTAssertEqual(SnapshotTestingConfiguration.resolvedTimeZone, timeZone)
+                XCTAssertEqual(SnapshotTestingConfiguration.resolvedCalendar, calendar)
+            }
+        }
+    }
+
     func testVerifySnapshotDiffToolOverride() async {
         let snapshotDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

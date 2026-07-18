@@ -1,7 +1,7 @@
-# ``SnapshotTesting/withSnapshotTesting(record:diffTool:operation:)-2kuyr``
+# ``SnapshotTesting/withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-9ywgk``
 
 ## Topics
 
 ### Overloads
 
-- ``withSnapshotTesting(record:diffTool:operation:)-6bsqw``
+- ``withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-6cqyq``

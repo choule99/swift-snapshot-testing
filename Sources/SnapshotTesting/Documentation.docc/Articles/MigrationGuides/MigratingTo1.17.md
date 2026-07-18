@@ -42,7 +42,8 @@ These customization options have a few downsides currently.
 
 Because of these reasons, the globals ``isRecording`` and ``diffTool`` are now deprecated, and we
 have introduced a new tool that greatly improves upon all of these problems. There is now a function
-called ``withSnapshotTesting(record:diffTool:operation:)-2kuyr`` for customizing snapshots. It 
+called ``withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-9ywgk``
+for customizing snapshots. It
 allows you to customize how the `assertSnapshot` tool behaves for a well-defined scope.
 
 Rather than overriding `isRecording` or `diffTool` directly in your tests, you can wrap your test in

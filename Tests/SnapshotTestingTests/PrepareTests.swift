@@ -5,11 +5,63 @@ import XCTest
 
 #if os(macOS)
 import AppKit
-#elseif os(iOS) || os(tvOS)
+#elseif os(iOS) || os(tvOS) || os(watchOS)
 import UIKit
 #endif
 
 @MainActor final class PrepareTests: BaseTestCase {
+    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+    func testSwiftUISnapshotEnvironment() throws {
+        let defaultState = renderSnapshotEnvironment()
+        XCTAssertEqual(defaultState.locale?.identifier, "en_US_POSIX")
+        XCTAssertEqual(defaultState.timeZone?.secondsFromGMT(), 0)
+        XCTAssertEqual(defaultState.calendar?.identifier, .gregorian)
+        XCTAssertEqual(defaultState.calendar?.locale?.identifier, "en_US_POSIX")
+        XCTAssertEqual(defaultState.calendar?.timeZone.secondsFromGMT(), 0)
+
+        let locale = Locale(identifier: "fr_CA")
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "America/Toronto"))
+        var calendar = Calendar(identifier: .hebrew)
+        calendar.locale = locale
+        calendar.timeZone = timeZone
+        let state = renderSnapshotEnvironment(locale: locale, timeZone: timeZone, calendar: calendar)
+
+        XCTAssertEqual(state.locale, locale)
+        XCTAssertEqual(state.timeZone, timeZone)
+        XCTAssertEqual(state.calendar, calendar)
+    }
+
+    private func renderSnapshotEnvironment(
+        locale: Locale? = nil,
+        timeZone: TimeZone? = nil,
+        calendar: Calendar? = nil
+    ) -> SnapshotEnvironmentState {
+        let state = SnapshotEnvironmentState()
+        withSnapshotTesting(locale: locale, timeZone: timeZone, calendar: calendar) {
+            let tookSnapshot = XCTestExpectation(description: "Took snapshot")
+            #if os(macOS)
+            let strategy = Snapshotting<SnapshotEnvironmentProbe, NSImage>.image(
+                layout: .fixed(width: 10, height: 10)
+            )
+            #elseif os(watchOS)
+            let strategy = Snapshotting<SnapshotEnvironmentProbe, UIImage>.image(
+                layout: .fixed(width: 10, height: 10)
+            )
+            #else
+            let strategy = Snapshotting<SnapshotEnvironmentProbe, UIImage>.image(
+                layout: .fixed(width: 10, height: 10),
+                traits: .init(displayScale: 1)
+            )
+            #endif
+            strategy.snapshot(SnapshotEnvironmentProbe(state: state)).run { _ in
+                tookSnapshot.fulfill()
+            }
+            XCTAssertEqual(XCTWaiter.wait(for: [tookSnapshot], timeout: 1), .completed)
+        }
+        return state
+    }
+    #endif
+
     #if os(iOS) || os(tvOS)
     func testUIKitPrepareRunsAfterLayoutAndBeforeRendering() async {
         let state = PrepareState()
@@ -136,6 +188,27 @@ import UIKit
     var didObserveLayout = false
     var didObserveSettling = false
     var didSettle = false
+}
+
+@MainActor private final class SnapshotEnvironmentState {
+    var calendar: Calendar?
+    var locale: Locale?
+    var timeZone: TimeZone?
+}
+
+private struct SnapshotEnvironmentProbe: SwiftUI.View {
+    @Environment(\.calendar) private var calendar
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
+
+    let state: SnapshotEnvironmentState
+
+    var body: some SwiftUI.View {
+        state.calendar = calendar
+        state.locale = locale
+        state.timeZone = timeZone
+        return SwiftUI.Color.clear
+    }
 }
 
 #if os(iOS) || os(tvOS)

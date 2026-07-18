@@ -87,6 +87,7 @@ public enum SwiftUISnapshotLayout {
             var config = config
             var snapshot: Async<UIImage>?
             let layoutTraits = UITraitCollection.merging([config.traits, traits])
+            let view = view.snapshotTestingEnvironment()
 
             layoutTraits.performAsCurrent {
                 let controller: UIViewController
@@ -167,6 +168,7 @@ public enum SwiftUISnapshotLayout {
         ).pullback { view in
             let renderer = ImageRenderer(
                 content: MacSnapshottingView(layout: layout, content: view)
+                    .snapshotTestingEnvironment()
             )
             renderer.scale = 2
             if let prepare {
@@ -222,7 +224,10 @@ public enum SwiftUISnapshotLayout {
         isOpaque: Bool = false
     ) -> Snapshotting {
         SimplySnapshotting.image(precision: precision, scale: 1, isOpaque: isOpaque).pullback { view in
-            let renderer = ImageRenderer(content: WatchSnapshottingView(layout: layout, content: view))
+            let renderer = ImageRenderer(
+                content: WatchSnapshottingView(layout: layout, content: view)
+                    .snapshotTestingEnvironment()
+            )
             renderer.scale = 1
             guard let image = renderer.uiImage else {
                 preconditionFailure("Could not render SwiftUI view as an image.")
@@ -246,4 +251,12 @@ public enum SwiftUISnapshotLayout {
     }
 }
 #endif
+
+private extension SwiftUI.View {
+    func snapshotTestingEnvironment() -> some SwiftUI.View {
+        environment(\.locale, SnapshotTestingConfiguration.resolvedLocale)
+            .environment(\.timeZone, SnapshotTestingConfiguration.resolvedTimeZone)
+            .environment(\.calendar, SnapshotTestingConfiguration.resolvedCalendar)
+    }
+}
 #endif

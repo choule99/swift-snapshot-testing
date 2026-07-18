@@ -64,6 +64,19 @@ class FeatureTests: XCTestCase {
 }
 ```
 
+SwiftUI image snapshots use `en_US_POSIX`, UTC, and the Gregorian calendar by default. Override
+them for a scope when needed:
+
+```swift
+withSnapshotTesting(
+  locale: Locale(identifier: "fr_CA"),
+  timeZone: TimeZone(identifier: "America/Toronto"),
+  calendar: Calendar(identifier: .gregorian)
+) {
+  assertSnapshot(of: view, as: .image)
+}
+```
+
 ## Snapshot Anything
 
 While most snapshot testing libraries in the Swift community are limited to `UIImage`s of `UIView`s,

@@ -1,4 +1,5 @@
 #if compiler(>=6) && canImport(Testing)
+import Foundation
 import Testing
 @_spi(Internals) import SnapshotTesting
 
@@ -6,6 +7,18 @@ extension BaseSuite {
     struct SnapshotsTraitTests {
         @Test(.snapshots(snapshotNaming: .testName)) func testSnapshotNaming() {
             #expect(SnapshotTestingConfiguration.current?.snapshotNaming == .testName)
+        }
+
+        @Test(
+            .snapshots(
+                locale: Locale(identifier: "fr_CA"),
+                timeZone: TimeZone(secondsFromGMT: 3600),
+                calendar: Calendar(identifier: .hebrew)
+            )
+        ) func snapshotEnvironment() {
+            #expect(SnapshotTestingConfiguration.current?.locale?.identifier == "fr_CA")
+            #expect(SnapshotTestingConfiguration.current?.timeZone?.secondsFromGMT() == 3600)
+            #expect(SnapshotTestingConfiguration.current?.calendar?.identifier == .hebrew)
         }
 
         @Test(.snapshots(diffTool: "ksdiff")) func testDiffTool() {

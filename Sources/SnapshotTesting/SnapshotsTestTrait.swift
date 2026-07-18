@@ -1,4 +1,5 @@
 #if canImport(Testing)
+import Foundation
 import Testing
 
 /// A type representing the configuration of snapshot testing.
@@ -19,16 +20,25 @@ public extension Trait where Self == _SnapshotsTestTrait {
     ///   - record: The record mode of the test.
     ///   - diffTool: The diff tool to use in failure messages.
     ///   - snapshotNaming: The naming strategy for unnamed snapshots.
+    ///   - locale: The locale for SwiftUI snapshots. Defaults to `en_US_POSIX`.
+    ///   - timeZone: The time zone for SwiftUI snapshots. Defaults to UTC.
+    ///   - calendar: The calendar for SwiftUI snapshots. Defaults to Gregorian.
     static func snapshots(
         record: SnapshotTestingConfiguration.Record? = nil,
         diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
-        snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil
+        snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil,
+        locale: Locale? = nil,
+        timeZone: TimeZone? = nil,
+        calendar: Calendar? = nil
     ) -> Self {
         _SnapshotsTestTrait(
             configuration: SnapshotTestingConfiguration(
                 record: record,
                 diffTool: diffTool,
-                snapshotNaming: snapshotNaming
+                snapshotNaming: snapshotNaming,
+                locale: locale,
+                timeZone: timeZone,
+                calendar: calendar
             )
         )
     }
@@ -53,7 +63,10 @@ extension _SnapshotsTestTrait: TestScoping {
         try await withSnapshotTesting(
             record: configuration.record,
             diffTool: configuration.diffTool,
-            snapshotNaming: configuration.snapshotNaming
+            snapshotNaming: configuration.snapshotNaming,
+            locale: configuration.locale,
+            timeZone: configuration.timeZone,
+            calendar: configuration.calendar
         ) {
             try await File.$counter.withValue(File.Counter()) {
                 try await function()

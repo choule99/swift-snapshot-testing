@@ -1,3 +1,5 @@
+import Foundation
+
 /// Customizes `assertSnapshot` for the duration of an operation.
 ///
 /// Use this operation to customize how the `assertSnapshot` function behaves in a test. It is most
@@ -5,7 +7,7 @@
 /// subclass so that the configuration applies to every test method.
 ///
 /// > Note: To customize tests when using Swift's native Testing library, use the
-/// > ``Testing/Trait/snapshots(record:diffTool:snapshotNaming:)`` trait.
+/// > ``Testing/Trait/snapshots(record:diffTool:snapshotNaming:locale:timeZone:calendar:)`` trait.
 ///
 /// For example, to specify to put an entire test class in record mode you do the following:
 ///
@@ -23,11 +25,17 @@
 ///   - record: The record mode to use while asserting snapshots.
 ///   - diffTool: The diff tool to use while asserting snapshots.
 ///   - snapshotNaming: The naming strategy for unnamed snapshots.
+///   - locale: The locale for SwiftUI snapshots. Defaults to `en_US_POSIX`.
+///   - timeZone: The time zone for SwiftUI snapshots. Defaults to UTC.
+///   - calendar: The calendar for SwiftUI snapshots. Defaults to Gregorian.
 ///   - operation: The operation to perform.
 public func withSnapshotTesting<R>(
     record: SnapshotTestingConfiguration.Record? = nil,
     diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
     snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil,
+    locale: Locale? = nil,
+    timeZone: TimeZone? = nil,
+    calendar: Calendar? = nil,
     operation: () throws -> R
 ) rethrows -> R {
     try SnapshotTestingConfiguration.$current.withValue(
@@ -36,7 +44,10 @@ public func withSnapshotTesting<R>(
             diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool
                 ?? SnapshotTesting._diffTool,
             snapshotNaming: snapshotNaming
-                ?? SnapshotTestingConfiguration.current?.snapshotNaming
+                ?? SnapshotTestingConfiguration.current?.snapshotNaming,
+            locale: locale ?? SnapshotTestingConfiguration.current?.locale,
+            timeZone: timeZone ?? SnapshotTestingConfiguration.current?.timeZone,
+            calendar: calendar ?? SnapshotTestingConfiguration.current?.calendar
         )
     ) {
         try operation()
@@ -45,11 +56,15 @@ public func withSnapshotTesting<R>(
 
 /// Customizes `assertSnapshot` for the duration of an asynchronous operation.
 ///
-/// See ``withSnapshotTesting`` for more information.
+/// See ``withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-9ywgk``
+/// for more information.
 public func withSnapshotTesting<R>(
     record: SnapshotTestingConfiguration.Record? = nil,
     diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
     snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil,
+    locale: Locale? = nil,
+    timeZone: TimeZone? = nil,
+    calendar: Calendar? = nil,
     operation: () async throws -> R
 ) async rethrows -> R {
     try await SnapshotTestingConfiguration.$current.withValue(
@@ -57,7 +72,10 @@ public func withSnapshotTesting<R>(
             record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
             diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool,
             snapshotNaming: snapshotNaming
-                ?? SnapshotTestingConfiguration.current?.snapshotNaming
+                ?? SnapshotTestingConfiguration.current?.snapshotNaming,
+            locale: locale ?? SnapshotTestingConfiguration.current?.locale,
+            timeZone: timeZone ?? SnapshotTestingConfiguration.current?.timeZone,
+            calendar: calendar ?? SnapshotTestingConfiguration.current?.calendar
         )
     ) {
         try await operation()
@@ -82,14 +100,47 @@ public struct SnapshotTestingConfiguration: Sendable {
     /// The naming strategy for unnamed snapshots.
     public var snapshotNaming: SnapshotNaming?
 
+    /// The locale for SwiftUI snapshots. Defaults to `en_US_POSIX` when unspecified.
+    public var locale: Locale?
+
+    /// The time zone for SwiftUI snapshots. Defaults to UTC when unspecified.
+    public var timeZone: TimeZone?
+
+    /// The calendar for SwiftUI snapshots. Defaults to Gregorian when unspecified.
+    public var calendar: Calendar?
+
     public init(
         record: Record?,
         diffTool: DiffTool?,
-        snapshotNaming: SnapshotNaming? = nil
+        snapshotNaming: SnapshotNaming? = nil,
+        locale: Locale? = nil,
+        timeZone: TimeZone? = nil,
+        calendar: Calendar? = nil
     ) {
+        self.calendar = calendar
         self.diffTool = diffTool
+        self.locale = locale
         self.record = record
         self.snapshotNaming = snapshotNaming
+        self.timeZone = timeZone
+    }
+
+    static var resolvedLocale: Locale {
+        current?.locale ?? Locale(identifier: "en_US_POSIX")
+    }
+
+    static var resolvedTimeZone: TimeZone {
+        current?.timeZone ?? TimeZone(identifier: "UTC") ?? .gmt
+    }
+
+    static var resolvedCalendar: Calendar {
+        if let calendar = current?.calendar {
+            return calendar
+        }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = resolvedLocale
+        calendar.timeZone = resolvedTimeZone
+        return calendar
     }
 
     /// The filename strategy for unnamed snapshots.
