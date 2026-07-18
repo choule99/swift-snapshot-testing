@@ -780,6 +780,64 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testLandscapeImageDiffOrientation() async throws {
+        #if os(iOS)
+        func image(
+            color: CGColor,
+            differingPixelColor: CGColor? = nil,
+            orientation: UIImage.Orientation
+        ) throws -> UIImage {
+            let context = try XCTUnwrap(
+                CGContext(
+                    data: nil,
+                    width: 2,
+                    height: 3,
+                    bitsPerComponent: 8,
+                    bytesPerRow: 8,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                )
+            )
+            context.setFillColor(color)
+            context.fill(CGRect(x: 0, y: 0, width: 2, height: 3))
+            if let differingPixelColor {
+                context.setFillColor(differingPixelColor)
+                context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+            }
+            return UIImage(
+                cgImage: try XCTUnwrap(context.makeImage()),
+                scale: 1,
+                orientation: orientation
+            )
+        }
+
+        let reference = try image(color: UIColor.red.cgColor, orientation: .up)
+        let matchingLandscape = try image(color: UIColor.red.cgColor, orientation: .right)
+        let failure = try image(
+            color: UIColor.red.cgColor,
+            differingPixelColor: UIColor.blue.cgColor,
+            orientation: .right
+        )
+
+        XCTAssertNil(Diffing<UIImage>.image(scale: 1).diffV2(reference, matchingLandscape))
+        let result = try XCTUnwrap(
+            Diffing<UIImage>.image(scale: 1).diffV2(reference, failure)
+        )
+
+        XCTAssertEqual(result.0, "Newly-taken snapshot does not match reference.")
+        guard case let .data(referenceData, referenceName) = result.1[0],
+              case let .data(differenceData, differenceName) = result.1[2] else {
+            return XCTFail("Expected image data attachments.")
+        }
+        XCTAssertEqual(referenceName, "reference.png")
+        XCTAssertEqual(differenceName, "difference.png")
+        let attachedReference = try XCTUnwrap(UIImage(data: referenceData, scale: 1))
+        let difference = try XCTUnwrap(UIImage(data: differenceData, scale: 1))
+        XCTAssertEqual(attachedReference.size, CGSize(width: 3, height: 2))
+        XCTAssertEqual(difference.size, CGSize(width: 3, height: 2))
+        #endif
+    }
+
     func testOpaqueImageSnapshots() async throws {
         #if os(iOS) || os(macOS) || os(tvOS)
         func hasAlpha(_ image: CGImage) -> Bool {

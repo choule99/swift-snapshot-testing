@@ -65,6 +65,9 @@ import UIKit
             fromDataOptional: { UIImage(data: $0, scale: imageScale) },
             diffV2: { old, new in
                 let new = new.size == .zero ? emptyImage() : new
+                let old = old.cgImage.map {
+                    UIImage(cgImage: $0, scale: old.scale, orientation: new.imageOrientation)
+                } ?? old
                 guard let message = compare(
                     old, new, precision: precision, perceptualPrecision: perceptualPrecision
                 ) else {
@@ -409,7 +412,7 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
         return nil
     }
 
-    return UIImage(cgImage: outputCgImage, scale: scale, orientation: .up)
+    return UIImage(cgImage: outputCgImage, scale: scale, orientation: new.imageOrientation)
 }
 #endif
 
