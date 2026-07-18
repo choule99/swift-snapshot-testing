@@ -687,6 +687,184 @@ public struct ViewImageConfig: Sendable {
             safeArea: .init(top: 20, left: 0, bottom: 0, right: 0), size: size, traits: traits
         )
     }
+
+    public static let iPadMini6thGen = ViewImageConfig.iPadMini6thGen(.landscape)
+
+    public static func iPadMini6thGen(_ orientation: Orientation) -> ViewImageConfig {
+        iPadMini6thGen(tabletOrientation(orientation))
+    }
+
+    public static func iPadMini6thGen(_ orientation: TabletOrientation) -> ViewImageConfig {
+        modernIPad(
+            orientation,
+            portraitSize: .init(width: 744, height: 1133),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: false
+        )
+    }
+
+    public static let iPadMiniA17Pro = iPadMini6thGen
+
+    public static func iPadMiniA17Pro(_ orientation: Orientation) -> ViewImageConfig {
+        iPadMini6thGen(orientation)
+    }
+
+    public static func iPadMiniA17Pro(_ orientation: TabletOrientation) -> ViewImageConfig {
+        iPadMini6thGen(orientation)
+    }
+
+    public static let iPadA16 = ViewImageConfig.iPadA16(.landscape)
+
+    public static func iPadA16(_ orientation: Orientation) -> ViewImageConfig {
+        iPadA16(tabletOrientation(orientation))
+    }
+
+    public static func iPadA16(_ orientation: TabletOrientation) -> ViewImageConfig {
+        modernIPad(
+            orientation,
+            portraitSize: .init(width: 820, height: 1180),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: false
+        )
+    }
+
+    public static let iPadAir11 = iPadA16
+
+    public static func iPadAir11(_ orientation: Orientation) -> ViewImageConfig {
+        iPadA16(orientation)
+    }
+
+    public static func iPadAir11(_ orientation: TabletOrientation) -> ViewImageConfig {
+        iPadA16(orientation)
+    }
+
+    public static let iPadAir13 = ViewImageConfig.iPadAir13(.landscape)
+
+    public static func iPadAir13(_ orientation: Orientation) -> ViewImageConfig {
+        iPadAir13(tabletOrientation(orientation))
+    }
+
+    public static func iPadAir13(_ orientation: TabletOrientation) -> ViewImageConfig {
+        modernIPad(
+            orientation,
+            portraitSize: .init(width: 1024, height: 1366),
+            portraitOneThirdWidth: 375,
+            hasRegularHalfWidth: true
+        )
+    }
+
+    public static let iPadPro11M4 = ViewImageConfig.iPadPro11M4(.landscape)
+
+    public static func iPadPro11M4(_ orientation: Orientation) -> ViewImageConfig {
+        iPadPro11M4(tabletOrientation(orientation))
+    }
+
+    public static func iPadPro11M4(_ orientation: TabletOrientation) -> ViewImageConfig {
+        modernIPad(
+            orientation,
+            portraitSize: .init(width: 834, height: 1210),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: true
+        )
+    }
+
+    public static let iPadPro11M5 = iPadPro11M4
+
+    public static func iPadPro11M5(_ orientation: Orientation) -> ViewImageConfig {
+        iPadPro11M4(orientation)
+    }
+
+    public static func iPadPro11M5(_ orientation: TabletOrientation) -> ViewImageConfig {
+        iPadPro11M4(orientation)
+    }
+
+    public static let iPadPro13M4 = ViewImageConfig.iPadPro13M4(.landscape)
+
+    public static func iPadPro13M4(_ orientation: Orientation) -> ViewImageConfig {
+        iPadPro13M4(tabletOrientation(orientation))
+    }
+
+    public static func iPadPro13M4(_ orientation: TabletOrientation) -> ViewImageConfig {
+        modernIPad(
+            orientation,
+            portraitSize: .init(width: 1032, height: 1376),
+            portraitOneThirdWidth: 375,
+            hasRegularHalfWidth: true
+        )
+    }
+
+    public static let iPadPro13M5 = iPadPro13M4
+
+    public static func iPadPro13M5(_ orientation: Orientation) -> ViewImageConfig {
+        iPadPro13M4(orientation)
+    }
+
+    public static func iPadPro13M5(_ orientation: TabletOrientation) -> ViewImageConfig {
+        iPadPro13M4(orientation)
+    }
+
+    private static func tabletOrientation(_ orientation: Orientation) -> TabletOrientation {
+        switch orientation {
+            case .landscape:
+                .landscape(splitView: .full)
+            case .portrait:
+                .portrait(splitView: .full)
+        }
+    }
+
+    private static func modernIPad(
+        _ orientation: TabletOrientation,
+        portraitSize: CGSize,
+        portraitOneThirdWidth: CGFloat,
+        hasRegularHalfWidth: Bool
+    ) -> ViewImageConfig {
+        let size: CGSize
+        let horizontalSizeClass: UIUserInterfaceSizeClass
+        switch orientation {
+            case let .landscape(splitView):
+                switch splitView {
+                    case .oneThird:
+                        size = .init(width: 375, height: portraitSize.width)
+                        horizontalSizeClass = .compact
+                    case .oneHalf:
+                        size = .init(
+                            width: (portraitSize.height - 10) / 2,
+                            height: portraitSize.width
+                        )
+                        horizontalSizeClass = hasRegularHalfWidth ? .regular : .compact
+                    case .twoThirds:
+                        size = .init(width: portraitSize.height - 385, height: portraitSize.width)
+                        horizontalSizeClass = .regular
+                    case .full:
+                        size = .init(width: portraitSize.height, height: portraitSize.width)
+                        horizontalSizeClass = .regular
+                }
+            case let .portrait(splitView):
+                switch splitView {
+                    case .oneThird:
+                        size = .init(width: portraitOneThirdWidth, height: portraitSize.height)
+                        horizontalSizeClass = .compact
+                    case .twoThirds:
+                        size = .init(
+                            width: portraitSize.width - 10 - portraitOneThirdWidth,
+                            height: portraitSize.height
+                        )
+                        horizontalSizeClass = .compact
+                    case .full:
+                        size = portraitSize
+                        horizontalSizeClass = .regular
+                }
+        }
+        return .init(
+            safeArea: .init(top: 24, left: 0, bottom: 20, right: 0),
+            size: size,
+            traits: .merging([
+                .init(horizontalSizeClass: horizontalSizeClass),
+                .init(verticalSizeClass: .regular),
+                .init(userInterfaceIdiom: .pad)
+            ])
+        )
+    }
     #elseif os(tvOS)
     public static let tv = ViewImageConfig(
         safeArea: .init(top: 60, left: 90, bottom: 60, right: 90),

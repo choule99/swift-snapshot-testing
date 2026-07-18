@@ -207,6 +207,163 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testModernIPadConfigs() {
+        #if os(iOS)
+        func assertDevice(
+            _ name: String,
+            landscape: ViewImageConfig,
+            portrait: ViewImageConfig,
+            config: (ViewImageConfig.TabletOrientation) -> ViewImageConfig,
+            portraitSize: CGSize,
+            portraitOneThirdWidth: CGFloat,
+            hasRegularHalfWidth: Bool
+        ) {
+            let landscapeSize = CGSize(width: portraitSize.height, height: portraitSize.width)
+            let expected: [(ViewImageConfig.TabletOrientation, CGSize, UIUserInterfaceSizeClass)] = [
+                (
+                    .landscape(splitView: .oneThird),
+                    .init(width: 375, height: portraitSize.width),
+                    .compact
+                ),
+                (
+                    .landscape(splitView: .oneHalf),
+                    .init(width: (portraitSize.height - 10) / 2, height: portraitSize.width),
+                    hasRegularHalfWidth ? .regular : .compact
+                ),
+                (
+                    .landscape(splitView: .twoThirds),
+                    .init(width: portraitSize.height - 385, height: portraitSize.width),
+                    .regular
+                ),
+                (.landscape(splitView: .full), landscapeSize, .regular),
+                (
+                    .portrait(splitView: .oneThird),
+                    .init(width: portraitOneThirdWidth, height: portraitSize.height),
+                    .compact
+                ),
+                (
+                    .portrait(splitView: .twoThirds),
+                    .init(
+                        width: portraitSize.width - 10 - portraitOneThirdWidth,
+                        height: portraitSize.height
+                    ),
+                    .compact
+                ),
+                (.portrait(splitView: .full), portraitSize, .regular)
+            ]
+
+            XCTAssertEqual(landscape.size, landscapeSize, name)
+            XCTAssertEqual(portrait.size, portraitSize, name)
+            for (orientation, size, horizontalSizeClass) in expected {
+                let config = config(orientation)
+                XCTAssertEqual(config.size, size, name)
+                XCTAssertEqual(
+                    config.safeArea,
+                    .init(top: 24, left: 0, bottom: 20, right: 0),
+                    name
+                )
+                XCTAssertEqual(config.traits.horizontalSizeClass, horizontalSizeClass, name)
+                XCTAssertEqual(config.traits.verticalSizeClass, .regular, name)
+                XCTAssertEqual(config.traits.userInterfaceIdiom, .pad, name)
+            }
+        }
+
+        assertDevice(
+            "iPad mini (6th generation)",
+            landscape: .iPadMini6thGen,
+            portrait: .iPadMini6thGen(.portrait),
+            config: { .iPadMini6thGen($0) },
+            portraitSize: .init(width: 744, height: 1133),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: false
+        )
+        assertDevice(
+            "iPad mini (A17 Pro)",
+            landscape: .iPadMiniA17Pro,
+            portrait: .iPadMiniA17Pro(.portrait),
+            config: { .iPadMiniA17Pro($0) },
+            portraitSize: .init(width: 744, height: 1133),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: false
+        )
+        assertDevice(
+            "iPad (A16)",
+            landscape: .iPadA16,
+            portrait: .iPadA16(.portrait),
+            config: { .iPadA16($0) },
+            portraitSize: .init(width: 820, height: 1180),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: false
+        )
+        assertDevice(
+            "iPad Air 11-inch",
+            landscape: .iPadAir11,
+            portrait: .iPadAir11(.portrait),
+            config: { .iPadAir11($0) },
+            portraitSize: .init(width: 820, height: 1180),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: false
+        )
+        assertDevice(
+            "iPad Air 13-inch",
+            landscape: .iPadAir13,
+            portrait: .iPadAir13(.portrait),
+            config: { .iPadAir13($0) },
+            portraitSize: .init(width: 1024, height: 1366),
+            portraitOneThirdWidth: 375,
+            hasRegularHalfWidth: true
+        )
+        assertDevice(
+            "iPad Pro 11-inch (M4)",
+            landscape: .iPadPro11M4,
+            portrait: .iPadPro11M4(.portrait),
+            config: { .iPadPro11M4($0) },
+            portraitSize: .init(width: 834, height: 1210),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: true
+        )
+        assertDevice(
+            "iPad Pro 11-inch (M5)",
+            landscape: .iPadPro11M5,
+            portrait: .iPadPro11M5(.portrait),
+            config: { .iPadPro11M5($0) },
+            portraitSize: .init(width: 834, height: 1210),
+            portraitOneThirdWidth: 320,
+            hasRegularHalfWidth: true
+        )
+        assertDevice(
+            "iPad Pro 13-inch (M4)",
+            landscape: .iPadPro13M4,
+            portrait: .iPadPro13M4(.portrait),
+            config: { .iPadPro13M4($0) },
+            portraitSize: .init(width: 1032, height: 1376),
+            portraitOneThirdWidth: 375,
+            hasRegularHalfWidth: true
+        )
+        assertDevice(
+            "iPad Pro 13-inch (M5)",
+            landscape: .iPadPro13M5,
+            portrait: .iPadPro13M5(.portrait),
+            config: { .iPadPro13M5($0) },
+            portraitSize: .init(width: 1032, height: 1376),
+            portraitOneThirdWidth: 375,
+            hasRegularHalfWidth: true
+        )
+        #endif
+    }
+
+    func testLegacyIPadConfigsRemainUnchanged() {
+        #if os(iOS)
+        XCTAssertEqual(ViewImageConfig.iPadMini.size, .init(width: 1024, height: 768))
+        XCTAssertEqual(
+            ViewImageConfig.iPadMini.safeArea,
+            .init(top: 20, left: 0, bottom: 0, right: 0)
+        )
+        XCTAssertEqual(ViewImageConfig.iPadPro11.size, .init(width: 1194, height: 834))
+        XCTAssertEqual(ViewImageConfig.iPadPro12_9.size, .init(width: 1366, height: 1024))
+        #endif
+    }
+
     func testSubclassSnapshottingStrategies() {
         #if os(macOS)
         final class View: NSView {}
