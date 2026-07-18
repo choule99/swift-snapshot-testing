@@ -826,11 +826,23 @@ public extension UITraitCollection {
 #endif
 
 func addImagesForRenderedViews(_ view: View) -> [Async<View>] {
-    view.snapshot
+    #if os(iOS)
+    // Preserve hierarchy while special views render in a temporary window.
+    let frame = view.frame
+    let superview = view.superview
+    let index = superview?.subviews.firstIndex(of: view)
+    #endif
+    return view.snapshot
         .map { async in
             [
                 Async { callback in
                     async.run { image in
+                        #if os(iOS)
+                        if let superview, let index, view.superview !== superview {
+                            superview.insertSubview(view, at: index)
+                            view.frame = frame
+                        }
+                        #endif
                         let imageView = ImageView()
                         imageView.image = image
                         imageView.frame = view.frame
