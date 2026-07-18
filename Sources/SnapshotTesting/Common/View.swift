@@ -1402,8 +1402,8 @@ public extension UITraitCollection {
         view: view,
         viewController: viewController
     )
-    // NB: Avoid safe area influence.
-    if config.safeArea == .zero {
+    // NB: Avoid key-window safe area influence.
+    if drawHierarchyInKeyWindow, config.safeArea == .zero {
         view.frame.origin = .init(x: offscreen, y: offscreen)
     }
 

@@ -1678,6 +1678,52 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testKeyboardLayoutGuideSafeArea() async {
+        #if os(iOS)
+        final class ViewController: UIViewController {
+            let contentView = UIView()
+
+            override func viewDidLoad() {
+                super.viewDidLoad()
+                view.backgroundColor = .blue
+                contentView.backgroundColor = .red
+                contentView.translatesAutoresizingMaskIntoConstraints = false
+                view.addSubview(contentView)
+                NSLayoutConstraint.activate([
+                    contentView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                    contentView.leadingAnchor.constraint(
+                        equalTo: view.safeAreaLayoutGuide.leadingAnchor
+                    ),
+                    contentView.trailingAnchor.constraint(
+                        equalTo: view.safeAreaLayoutGuide.trailingAnchor
+                    ),
+                    contentView.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor)
+                ])
+            }
+        }
+
+        func config(bottomSafeArea: CGFloat) -> ViewImageConfig {
+            .init(
+                safeArea: .init(top: 0, left: 0, bottom: bottomSafeArea, right: 0),
+                size: .init(width: 20, height: 20),
+                traits: .init(displayScale: 3)
+            )
+        }
+        let traits = UITraitCollection(displayScale: 3)
+
+        assertSnapshot(
+            of: ViewController(),
+            as: .image(on: config(bottomSafeArea: 0), traits: traits),
+            named: "zero"
+        )
+        assertSnapshot(
+            of: ViewController(),
+            as: .image(on: config(bottomSafeArea: 1), traits: traits),
+            named: "nonzero"
+        )
+        #endif
+    }
+
     func testCALayer() async {
         #if os(iOS)
         let layer = CALayer()
