@@ -509,6 +509,27 @@ public struct ViewImageConfig: Sendable {
 }
 
 public extension UITraitCollection {
+    fileprivate static func merging(_ traitCollections: [UITraitCollection]) -> UITraitCollection {
+        traitCollections.reduce(UITraitCollection()) { result, traitCollection in
+            result.modifyingTraits { mutableTraits in
+                traitCollection.apply(to: &mutableTraits)
+            }
+        }
+    }
+
+    fileprivate func apply<T: UIMutableTraits>(to mutableTraits: inout T) {
+        for trait in changedTraits(from: nil) {
+            apply(trait, to: &mutableTraits)
+        }
+    }
+
+    private func apply<Trait: UITraitDefinition, Traits: UIMutableTraits>(
+        _ trait: Trait.Type,
+        to mutableTraits: inout Traits
+    ) {
+        mutableTraits[trait] = self[trait]
+    }
+
     #if os(iOS)
     static func iPhoneSe(_ orientation: ViewImageConfig.Orientation)
         -> UITraitCollection {
@@ -520,15 +541,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -546,15 +567,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -572,15 +593,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .regular),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -598,15 +619,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -624,15 +645,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .regular),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -650,15 +671,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .regular),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -676,15 +697,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -702,15 +723,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .regular),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -727,15 +748,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -753,15 +774,15 @@ public extension UITraitCollection {
         ]
         switch orientation {
             case .landscape:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .regular),
                         .init(verticalSizeClass: .compact)
                     ]
                 )
             case .portrait:
-                return .init(
-                    traitsFrom: base + [
+                return .merging(
+                    base + [
                         .init(horizontalSizeClass: .compact),
                         .init(verticalSizeClass: .regular)
                     ]
@@ -782,8 +803,8 @@ public extension UITraitCollection {
     static let iPadPro12_9 = iPad
     static let iPadPro12_9_Compact_SplitView = iPadCompactSplitView
 
-    private static let iPad = UITraitCollection(
-        traitsFrom: [
+    private static let iPad = UITraitCollection.merging(
+        [
             //      .init(displayScale: 2),
             .init(horizontalSizeClass: .regular),
             .init(verticalSizeClass: .regular),
@@ -791,8 +812,8 @@ public extension UITraitCollection {
         ]
     )
 
-    private static let iPadCompactSplitView = UITraitCollection(
-        traitsFrom: [
+    private static let iPadCompactSplitView = UITraitCollection.merging(
+        [
             .init(horizontalSizeClass: .compact),
             .init(verticalSizeClass: .regular),
             .init(userInterfaceIdiom: .pad)
@@ -932,7 +953,7 @@ func prepareView(
         viewController.view.bounds = view.bounds
         viewController.view.addSubview(view)
     }
-    let traits = UITraitCollection(traitsFrom: [config.traits, traits])
+    let traits = UITraitCollection.merging([config.traits, traits])
     let window: UIWindow
     if drawHierarchyInKeyWindow {
         guard let keyWindow = getKeyWindow() else {
@@ -1044,7 +1065,8 @@ private func add(
     } else {
         rootViewController = viewController
     }
-    rootViewController.setOverrideTraitCollection(traits, forChild: viewController)
+    let originalTraitOverrides = viewController.traitOverrides
+    traits.apply(to: &viewController.traitOverrides)
     viewController.didMove(toParent: rootViewController)
 
     window.rootViewController = rootViewController
@@ -1065,16 +1087,17 @@ private func add(
         viewController.view.removeFromSuperview()
         viewController.removeFromParent()
         viewController.didMove(toParent: nil)
+        viewController.traitOverrides = originalTraitOverrides
         window.rootViewController = nil
     }
 }
 
 private func getKeyWindow() -> UIWindow? {
-    if #available(iOS 13.0, *) {
-        UIApplication.sharedIfAvailable?.windows.first { $0.isKeyWindow }
-    } else {
-        UIApplication.sharedIfAvailable?.keyWindow
-    }
+    UIApplication.sharedIfAvailable?.connectedScenes
+        .compactMap { $0 as? UIWindowScene }
+        .filter { $0.activationState == .foregroundActive }
+        .flatMap(\.windows)
+        .first { $0.isKeyWindow }
 }
 
 private final class Window: UIWindow {

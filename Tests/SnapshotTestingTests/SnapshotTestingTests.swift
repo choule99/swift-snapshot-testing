@@ -460,10 +460,14 @@ final class SnapshotTestingTests: BaseTestCase {
                             equalTo: self.view.safeAreaLayoutGuide.centerXAnchor
                         )
                     ])
+
+                    self.registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (viewController: MyViewController, _) in
+                        viewController.updateFonts()
+                    }
+                    self.updateFonts()
                 }
 
-                override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-                    super.traitCollectionDidChange(previousTraitCollection)
+                private func updateFonts() {
                     self.topLabel.font = .preferredFont(
                         forTextStyle: .headline, compatibleWith: self.traitCollection
                     )
@@ -820,10 +824,14 @@ final class SnapshotTestingTests: BaseTestCase {
                             equalTo: self.view.safeAreaLayoutGuide.centerXAnchor
                         )
                     ])
+
+                    self.registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (viewController: MyViewController, _) in
+                        viewController.updateFonts()
+                    }
+                    self.updateFonts()
                 }
 
-                override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-                    super.traitCollectionDidChange(previousTraitCollection)
+                private func updateFonts() {
                     self.topLabel.font = .preferredFont(
                         forTextStyle: .headline, compatibleWith: self.traitCollection
                     )
@@ -972,11 +980,6 @@ final class SnapshotTestingTests: BaseTestCase {
 
             override func viewDidLayoutSubviews() {
                 super.viewDidLayoutSubviews()
-                collectionView.collectionViewLayout.invalidateLayout()
-            }
-
-            override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-                super.traitCollectionDidChange(previousTraitCollection)
                 collectionView.collectionViewLayout.invalidateLayout()
             }
 
