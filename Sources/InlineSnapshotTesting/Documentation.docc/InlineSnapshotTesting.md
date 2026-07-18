@@ -60,9 +60,9 @@ Re-run "testMySnapshot" to test against the newly-recorded snapshot.
 > [start a discussion][discussions] or [open a pull request][pull-requests].
 
 [apple-feedback]: https://www.apple.com/feedback/
-[discussions]: https://github.com/pointfreeco/swift-composable-architecture/discussions
-[pull-requests]: https://github.com/pointfreeco/swift-composable-architecture/pulls
-[swift-snapshot-testing]: https://github.com/pointfreeco/swift-snapshot-testing
+[discussions]: https://github.com/choule99/swift-snapshot-testing/discussions
+[pull-requests]: https://github.com/choule99/swift-snapshot-testing/pulls
+[swift-snapshot-testing]: https://github.com/choule99/swift-snapshot-testing
 
 ## Topics
 

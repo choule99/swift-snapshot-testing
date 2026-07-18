@@ -4,7 +4,7 @@ import SnapshotTesting
 
 public extension Snapshotting where Format == String {
     /// A snapshot strategy for comparing any structure based on a
-    /// [custom dump](https://github.com/pointfreeco/swift-custom-dump).
+    /// Custom dump.
     ///
     /// ```swift
     /// assertSnapshot(of: user, as: .customDump)
