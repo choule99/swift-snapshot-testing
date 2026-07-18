@@ -1405,7 +1405,9 @@ public extension UITraitCollection {
     )
     // NB: Avoid key-window safe area influence.
     if drawHierarchyInKeyWindow, config.safeArea == .zero {
+        let directionalLayoutMargins = view.directionalLayoutMargins
         view.frame.origin = .init(x: offscreen, y: offscreen)
+        view.directionalLayoutMargins = directionalLayoutMargins
     }
 
     return Async { callback in

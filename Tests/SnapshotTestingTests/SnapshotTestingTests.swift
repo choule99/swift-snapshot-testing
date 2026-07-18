@@ -1693,6 +1693,51 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testPreparedViewPreservesDirectionalLayoutMargins() async {
+        #if os(iOS)
+        final class ViewController: UIViewController {
+            let contentView = UIView()
+
+            override func viewDidLoad() {
+                super.viewDidLoad()
+                contentView.translatesAutoresizingMaskIntoConstraints = false
+                view.addSubview(contentView)
+                NSLayoutConstraint.activate([
+                    contentView.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor),
+                    contentView.leadingAnchor.constraint(
+                        equalTo: view.layoutMarginsGuide.leadingAnchor
+                    ),
+                    contentView.trailingAnchor.constraint(
+                        equalTo: view.layoutMarginsGuide.trailingAnchor
+                    ),
+                    contentView.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor)
+                ])
+            }
+        }
+
+        let config = ViewImageConfig.iPhone8(.landscape)
+        let viewController = ViewController()
+        let expectedMargins = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)
+        let snapshot = snapshotView(
+            config: config,
+            drawHierarchyInKeyWindow: false,
+            traits: .init(),
+            view: viewController.view,
+            viewController: viewController
+        )
+        viewController.view.layoutIfNeeded()
+        let preparedMargins = viewController.view.directionalLayoutMargins
+        let preparedLeadingEdge = viewController.contentView.frame.minX
+
+        await withCheckedContinuation { continuation in
+            snapshot.run { _ in continuation.resume() }
+        }
+
+        XCTAssertEqual(preparedMargins, expectedMargins)
+        XCTAssertEqual(preparedLeadingEdge, expectedMargins.leading)
+        #endif
+    }
+
     func testUIViewControllerLifeCycle() async {
         #if os(iOS)
         class ViewController: UIViewController {
