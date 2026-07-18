@@ -22,6 +22,8 @@ Powerfully flexible snapshot testing.
 - ``Testing/Trait/snapshots(diffTool:record:)``
 - ``withSnapshotTesting(record:diffTool:operation:)-2kuyr``
 - ``SnapshotTestingConfiguration``
+- ``accessedSnapshotPaths``
+- ``resetAccessedSnapshotPaths()``
 
 ### Deprecations
 

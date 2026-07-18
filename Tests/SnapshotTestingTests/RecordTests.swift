@@ -191,6 +191,30 @@ class RecordTests: BaseTestCase {
         )
     }
 
+    func testAccessedSnapshotPaths() async throws {
+        #if os(Android)
+        throw XCTSkip("cannot save next to file on Android")
+        #endif
+
+        resetAccessedSnapshotPaths()
+        defer { resetAccessedSnapshotPaths() }
+
+        try Data("42".utf8).write(to: snapshotURL)
+        XCTAssertNil(verifySnapshot(of: 42, as: .json, named: "1", record: .never))
+        XCTAssertEqual(accessedSnapshotPaths, [snapshotURL])
+
+        resetAccessedSnapshotPaths()
+        try Data([0xFF]).write(to: snapshotURL)
+        XCTAssertNotNil(verifySnapshot(of: 42, as: .json, named: "1", record: .never))
+        XCTAssertEqual(accessedSnapshotPaths, [snapshotURL])
+
+        XCTAssertNotNil(verifySnapshot(of: 42, as: .json, named: "1", record: .never))
+        XCTAssertEqual(accessedSnapshotPaths, [snapshotURL])
+
+        resetAccessedSnapshotPaths()
+        XCTAssertTrue(accessedSnapshotPaths.isEmpty)
+    }
+
     #if canImport(Darwin)
     func testRecordFailed_MissingFile() async throws {
         XCTExpectFailure {

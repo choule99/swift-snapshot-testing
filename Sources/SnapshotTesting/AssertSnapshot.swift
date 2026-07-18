@@ -12,6 +12,7 @@ import Testing
 #endif
 
 private struct GlobalState {
+    var accessedSnapshotPaths: Set<URL>
     var diffTool: SnapshotTestingConfiguration.DiffTool
     var record: SnapshotTestingConfiguration.Record
 }
@@ -20,8 +21,23 @@ private let globalState: LockIsolated<GlobalState> = {
     let record = ProcessInfo.processInfo.environment["SNAPSHOT_TESTING_RECORD"]
         .flatMap(SnapshotTestingConfiguration.Record.init(rawValue:))
         ?? .missing
-    return LockIsolated(GlobalState(diffTool: .default, record: record))
+    return LockIsolated(
+        GlobalState(accessedSnapshotPaths: [], diffTool: .default, record: record)
+    )
 }()
+
+/// The deduplicated reference file URLs read by snapshot assertions in this process.
+///
+/// Call ``resetAccessedSnapshotPaths()`` before collecting paths for a new test run. Do not reset
+/// this value while snapshot assertions are running.
+public var accessedSnapshotPaths: Set<URL> {
+    globalState.withLock { $0.accessedSnapshotPaths }
+}
+
+/// Clears the reference file URLs collected in ``accessedSnapshotPaths``.
+public func resetAccessedSnapshotPaths() {
+    globalState.withLock { $0.accessedSnapshotPaths.removeAll() }
+}
 
 /// Enhances failure messages with a command line diff tool expression that can be copied and pasted
 /// into a terminal.
@@ -476,7 +492,9 @@ private let globalState: LockIsolated<GlobalState> = {
                 }
             }
 
-            let data = try Data(contentsOf: snapshotFileUrl)
+            let referenceFileUrl = snapshotFileUrl
+            _ = globalState.withLock { $0.accessedSnapshotPaths.insert(referenceFileUrl) }
+            let data = try Data(contentsOf: referenceFileUrl)
             guard let reference = snapshotting.diffing.fromDataOptional(data) else {
                 return "Failed to serialize \(snapshotFileUrl) as \(Format.self)"
             }
