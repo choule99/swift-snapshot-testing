@@ -401,22 +401,22 @@ private let globalState: LockIsolated<GlobalState> = {
                     try snapshotData.write(to: snapshotFileUrl)
                 }
 
-                #if !os(Android) && !os(Linux) && !os(Windows)
-                if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
-                    if isSwiftTesting {
-                        #if compiler(>=6.2)
-                        recordSwiftTestingAttachment(
-                            writeToDisk ? try Data(contentsOf: snapshotFileUrl) : snapshotData,
-                            named: snapshotFileUrl.lastPathComponent,
-                            sourceLocation: SourceLocation(
-                                fileID: fileID.description,
-                                filePath: filePath.description,
-                                line: Int(line),
-                                column: Int(column)
-                            )
+                if isSwiftTesting {
+                    #if compiler(>=6.2)
+                    recordSwiftTestingAttachment(
+                        writeToDisk ? try Data(contentsOf: snapshotFileUrl) : snapshotData,
+                        named: snapshotFileUrl.lastPathComponent,
+                        sourceLocation: SourceLocation(
+                            fileID: fileID.description,
+                            filePath: filePath.description,
+                            line: Int(line),
+                            column: Int(column)
                         )
-                        #endif
-                    } else {
+                    )
+                    #endif
+                } else {
+                    #if !os(Android) && !os(Linux) && !os(Windows)
+                    if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
                         XCTContext.runActivity(named: "Attached Recorded Snapshot") { activity in
                             if writeToDisk {
                                 // Snapshot was written to disk. Create attachment from file
@@ -438,8 +438,8 @@ private let globalState: LockIsolated<GlobalState> = {
                             }
                         }
                     }
+                    #endif
                 }
-                #endif
             }
 
             if record == .all {
@@ -567,10 +567,6 @@ private let _counter = File.Counter()
     guard !attachments.isEmpty else {
         return
     }
-    #if !os(Linux) && !os(Android) && !os(Windows)
-    guard ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") else {
-        return
-    }
     if isSwiftTesting {
         #if compiler(>=6.2)
         for attachment in attachments {
@@ -592,6 +588,10 @@ private let _counter = File.Counter()
         }
         #endif
     } else {
+        #if !os(Linux) && !os(Android) && !os(Windows)
+        guard ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") else {
+            return
+        }
         XCTContext.runActivity(named: "Attached Failure Diff") { activity in
             for item in attachments {
                 switch item {
@@ -609,8 +609,8 @@ private let _counter = File.Counter()
                 }
             }
         }
+        #endif
     }
-    #endif
 }
 
 func sanitizePathComponent(_ string: String) -> String {
@@ -674,7 +674,6 @@ private func recordSwiftTestingAttachment(
     named name: String,
     sourceLocation: SourceLocation
 ) {
-    #if !os(Android) && !os(Linux) && !os(Windows)
     #if compiler(>=6.3) && !targetEnvironment(macCatalyst) && (canImport(UIKit) || canImport(AppKit))
     if #available(iOS 14.0, tvOS 14.0, macOS 11.0, *),
        name.hasSuffix(".png"),
@@ -683,7 +682,19 @@ private func recordSwiftTestingAttachment(
         return
     }
     #endif
-    Attachment.record(data, named: name, sourceLocation: sourceLocation)
-    #endif
+    Attachment.record(SnapshotAttachment(data: data), named: name, sourceLocation: sourceLocation)
+}
+
+private struct SnapshotAttachment: Attachable, Sendable {
+    let data: Data
+
+    borrowing func withUnsafeBytes<R>(
+        for attachment: borrowing Attachment<Self>,
+        _ body: (UnsafeRawBufferPointer) throws -> R
+    ) throws -> R {
+        try data.withUnsafeBytes { buffer in
+            try body(buffer)
+        }
+    }
 }
 #endif
