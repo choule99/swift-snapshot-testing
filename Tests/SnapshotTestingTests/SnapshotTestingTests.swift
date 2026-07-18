@@ -20,6 +20,26 @@ import UIKit.UIView
 #endif
 
 final class SnapshotTestingTests: BaseTestCase {
+    func testSubclassSnapshottingStrategies() {
+        #if os(macOS)
+        final class View: NSView {}
+        final class ViewController<Root>: NSViewController {}
+
+        let _: Snapshotting<View, NSImage> = .image
+        let _: Snapshotting<View, String> = .recursiveDescription
+        let _: Snapshotting<ViewController<Int>, NSImage> = .image
+        let _: Snapshotting<ViewController<Int>, String> = .recursiveDescription
+        #elseif os(iOS) || os(tvOS)
+        final class View: UIView {}
+        final class ViewController<Root>: UIViewController {}
+
+        let _: Snapshotting<View, UIImage> = .image
+        let _: Snapshotting<View, String> = .recursiveDescription
+        let _: Snapshotting<ViewController<Int>, UIImage> = .image
+        let _: Snapshotting<ViewController<Int>, String> = .recursiveDescription
+        #endif
+    }
+
     func testAny() {
         struct User { let id: Int, name: String, bio: String }
         let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")

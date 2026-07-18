@@ -2,7 +2,7 @@
 import AppKit
 import Cocoa
 
-public extension Snapshotting where Value == NSViewController, Format == NSImage {
+public extension Snapshotting where Value: NSViewController, Format == NSImage {
     /// A snapshot strategy for comparing view controller views based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -26,7 +26,7 @@ public extension Snapshotting where Value == NSViewController, Format == NSImage
     }
 }
 
-public extension Snapshotting where Value == NSViewController, Format == String {
+public extension Snapshotting where Value: NSViewController, Format == String {
     /// A snapshot strategy for comparing view controller views based on a recursive description of
     /// their properties and hierarchies.
     static var recursiveDescription: Snapshotting {

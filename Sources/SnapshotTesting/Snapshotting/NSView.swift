@@ -2,7 +2,7 @@
 import AppKit
 import Cocoa
 
-public extension Snapshotting where Value == NSView, Format == NSImage {
+public extension Snapshotting where Value: NSView, Format == NSImage {
     /// A snapshot strategy for comparing views based on pixel equality.
     static var image: Snapshotting {
         .image()
@@ -45,7 +45,7 @@ public extension Snapshotting where Value == NSView, Format == NSImage {
     }
 }
 
-public extension Snapshotting where Value == NSView, Format == String {
+public extension Snapshotting where Value: NSView, Format == String {
     /// A snapshot strategy for comparing views based on a recursive description of their properties
     /// and hierarchies.
     ///
@@ -60,7 +60,7 @@ public extension Snapshotting where Value == NSView, Format == String {
     ///   [   A       LU ] h=--- v=--- NSButtonBezelView f=(0,0,77,32) b=(-)
     ///   [   AF      LU ] h=--- v=--- NSButtonTextField "Push Me" f=(10,6,57,16) b=(-)
     /// ```
-    static var recursiveDescription: Snapshotting<NSView, String> {
+    static var recursiveDescription: Snapshotting {
         SimplySnapshotting.lines.pullback { view in
             let description = view.perform(Selector(("_subtreeDescription"))).retain().takeUnretainedValue()
             guard let description = description as? String else {
