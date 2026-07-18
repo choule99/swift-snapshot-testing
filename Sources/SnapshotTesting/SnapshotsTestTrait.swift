@@ -18,14 +18,17 @@ public extension Trait where Self == _SnapshotsTestTrait {
     /// - Parameters:
     ///   - record: The record mode of the test.
     ///   - diffTool: The diff tool to use in failure messages.
+    ///   - snapshotNaming: The naming strategy for unnamed snapshots.
     static func snapshots(
         record: SnapshotTestingConfiguration.Record? = nil,
-        diffTool: SnapshotTestingConfiguration.DiffTool? = nil
+        diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
+        snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil
     ) -> Self {
         _SnapshotsTestTrait(
             configuration: SnapshotTestingConfiguration(
                 record: record,
-                diffTool: diffTool
+                diffTool: diffTool,
+                snapshotNaming: snapshotNaming
             )
         )
     }
@@ -49,7 +52,8 @@ extension _SnapshotsTestTrait: TestScoping {
     ) async throws {
         try await withSnapshotTesting(
             record: configuration.record,
-            diffTool: configuration.diffTool
+            diffTool: configuration.diffTool,
+            snapshotNaming: configuration.snapshotNaming
         ) {
             try await File.$counter.withValue(File.Counter()) {
                 try await function()

@@ -5,7 +5,7 @@
 /// subclass so that the configuration applies to every test method.
 ///
 /// > Note: To customize tests when using Swift's native Testing library, use the
-/// > ``Testing/Trait/snapshots(diffTool:record:)`` trait.
+/// > ``Testing/Trait/snapshots(record:diffTool:snapshotNaming:)`` trait.
 ///
 /// For example, to specify to put an entire test class in record mode you do the following:
 ///
@@ -22,17 +22,21 @@
 /// - Parameters:
 ///   - record: The record mode to use while asserting snapshots.
 ///   - diffTool: The diff tool to use while asserting snapshots.
+///   - snapshotNaming: The naming strategy for unnamed snapshots.
 ///   - operation: The operation to perform.
 public func withSnapshotTesting<R>(
     record: SnapshotTestingConfiguration.Record? = nil,
     diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
+    snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil,
     operation: () throws -> R
 ) rethrows -> R {
     try SnapshotTestingConfiguration.$current.withValue(
         SnapshotTestingConfiguration(
             record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
             diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool
-                ?? SnapshotTesting._diffTool
+                ?? SnapshotTesting._diffTool,
+            snapshotNaming: snapshotNaming
+                ?? SnapshotTestingConfiguration.current?.snapshotNaming
         )
     ) {
         try operation()
@@ -41,16 +45,19 @@ public func withSnapshotTesting<R>(
 
 /// Customizes `assertSnapshot` for the duration of an asynchronous operation.
 ///
-/// See ``withSnapshotTesting(record:diffTool:operation:)-2kuyr`` for more information.
+/// See ``withSnapshotTesting`` for more information.
 public func withSnapshotTesting<R>(
     record: SnapshotTestingConfiguration.Record? = nil,
     diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
+    snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil,
     operation: () async throws -> R
 ) async rethrows -> R {
     try await SnapshotTestingConfiguration.$current.withValue(
         SnapshotTestingConfiguration(
             record: record ?? SnapshotTestingConfiguration.current?.record ?? _record,
-            diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool
+            diffTool: diffTool ?? SnapshotTestingConfiguration.current?.diffTool ?? _diffTool,
+            snapshotNaming: snapshotNaming
+                ?? SnapshotTestingConfiguration.current?.snapshotNaming
         )
     ) {
         try await operation()
@@ -72,12 +79,26 @@ public struct SnapshotTestingConfiguration: Sendable {
     /// See ``Record-swift.struct`` for more information.
     public var record: Record?
 
+    /// The naming strategy for unnamed snapshots.
+    public var snapshotNaming: SnapshotNaming?
+
     public init(
         record: Record?,
-        diffTool: DiffTool?
+        diffTool: DiffTool?,
+        snapshotNaming: SnapshotNaming? = nil
     ) {
         self.diffTool = diffTool
         self.record = record
+        self.snapshotNaming = snapshotNaming
+    }
+
+    /// The filename strategy for unnamed snapshots.
+    public enum SnapshotNaming: Equatable, Sendable {
+        /// Appends an incrementing number to each unnamed snapshot filename.
+        case numbered
+
+        /// Uses only the test name. A test may take at most one unnamed snapshot per file format.
+        case testName
     }
 
     /// The record mode of the snapshot test.

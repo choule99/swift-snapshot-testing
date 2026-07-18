@@ -4,6 +4,10 @@ import Testing
 
 extension BaseSuite {
     struct SnapshotsTraitTests {
+        @Test(.snapshots(snapshotNaming: .testName)) func testSnapshotNaming() {
+            #expect(SnapshotTestingConfiguration.current?.snapshotNaming == .testName)
+        }
+
         @Test(.snapshots(diffTool: "ksdiff")) func testDiffTool() {
             #expect(
                 _diffTool(currentFilePath: "old.png", failedFilePath: "new.png")

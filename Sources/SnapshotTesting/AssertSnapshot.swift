@@ -361,20 +361,29 @@ public func resetAccessedSnapshotPaths() {
                 snapshotDirectory.map { URL(fileURLWithPath: $0, isDirectory: true) }
                     ?? snapshotsBaseUrl.appendingPathComponent("__Snapshots__").appendingPathComponent(fileName)
 
-            let identifier: String = if let name {
-                sanitizePathComponent(name)
+            let testName = sanitizePathComponent(testName)
+            let snapshotNaming = SnapshotTestingConfiguration.current?.snapshotNaming ?? .numbered
+            let pathComponent: String
+            if let name {
+                pathComponent = "\(testName).\(sanitizePathComponent(name))"
             } else {
-                String(
-                    counter.next(for: snapshotDirectoryUrl.appendingPathComponent(testName).absoluteString)
-                )
+                let identifier = snapshotNaming == .numbered
+                    ? ".\(counter.next(for: snapshotDirectoryUrl.appendingPathComponent(testName).absoluteString))"
+                    : ""
+                pathComponent = "\(testName)\(identifier)"
             }
 
-            let testName = sanitizePathComponent(testName)
-            var snapshotFileUrl =
-                snapshotDirectoryUrl
-                    .appendingPathComponent("\(testName).\(identifier)")
+            var snapshotFileUrl = snapshotDirectoryUrl.appendingPathComponent(pathComponent)
             if let ext = snapshotting.pathExtension {
                 snapshotFileUrl = snapshotFileUrl.appendingPathExtension(ext)
+            }
+            if name == nil,
+               snapshotNaming == .testName,
+               counter.next(for: "unnumbered:\(snapshotFileUrl.absoluteString)") > 1 {
+                return """
+                Multiple unnamed snapshots would use the same reference: \(snapshotFileUrl.path)
+                Name additional snapshots with 'named:' or use snapshot naming '.numbered'.
+                """
             }
             let fileManager = FileManager.default
             if !fileManager.fileExists(atPath: snapshotDirectoryUrl.path) {

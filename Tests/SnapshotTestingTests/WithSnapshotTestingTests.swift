@@ -6,6 +6,54 @@ import XCTest
 // swiftformat:disable redundantAsync
 
 @MainActor class WithSnapshotTestingTests: XCTestCase {
+    func testSnapshotNaming() async throws {
+        let snapshotDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: snapshotDirectory) }
+
+        func verify(_ value: Int, testName: String) -> String? {
+            verifySnapshot(
+                of: value,
+                as: .json,
+                record: .all,
+                snapshotDirectory: snapshotDirectory.path,
+                testName: testName
+            )
+        }
+
+        _ = verify(1, testName: "numbered")
+        _ = verify(2, testName: "numbered")
+        let numberedURL = snapshotDirectory.appendingPathComponent("numbered")
+        XCTAssertEqual(
+            try String(contentsOf: numberedURL.appendingPathExtension("1.json"), encoding: .utf8),
+            "1"
+        )
+        XCTAssertEqual(
+            try String(contentsOf: numberedURL.appendingPathExtension("2.json"), encoding: .utf8),
+            "2"
+        )
+
+        let collision = withSnapshotTesting(snapshotNaming: .testName) {
+            _ = verify(42, testName: "counterless")
+            return verify(999, testName: "counterless")
+        }
+
+        let counterlessURL = snapshotDirectory.appendingPathComponent("counterless.json")
+        XCTAssertEqual(
+            collision,
+            """
+            Multiple unnamed snapshots would use the same reference: \(counterlessURL.path)
+            Name additional snapshots with 'named:' or use snapshot naming '.numbered'.
+            """
+        )
+        XCTAssertEqual(try String(contentsOf: counterlessURL, encoding: .utf8), "42")
+        XCTAssertFalse(
+            FileManager.default.fileExists(
+                atPath: snapshotDirectory.appendingPathComponent("counterless.1.json").path
+            )
+        )
+    }
+
     func testSnapshotArtifactsDirectory() async {
         let temporaryDirectory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
 
