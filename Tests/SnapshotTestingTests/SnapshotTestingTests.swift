@@ -1943,6 +1943,26 @@ final class SnapshotTestingTests: BaseTestCase {
             named: "device"
         )
     }
+
+    @available(iOS 13.0, *) func testSwiftUIViewSizeThatFits_iOS() async {
+        let traits = UITraitCollection(userInterfaceStyle: .light)
+
+        assertSnapshot(
+            of: Text("Hello, World!").padding(),
+            as: .image(layout: .sizeThatFits, traits: traits),
+            named: "text"
+        )
+        assertSnapshot(
+            of: HStack {
+                Text("Left")
+                Spacer()
+                Text("Right")
+            }
+            .padding(),
+            as: .image(layout: .sizeThatFits, traits: traits),
+            named: "hstack"
+        )
+    }
     #endif
 
     #if os(tvOS)

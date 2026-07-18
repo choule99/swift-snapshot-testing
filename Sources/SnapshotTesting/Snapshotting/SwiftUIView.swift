@@ -69,7 +69,7 @@ public enum SwiftUISnapshotLayout {
                     rootView: view
                 )
             } else {
-                let hostingController = UIHostingController(rootView: view)
+                let hostingController = UIHostingController(rootView: view.fixedSize())
 
                 if config.safeArea == .zero {
                     if #available(iOS 16.4, tvOS 16.4, *) {

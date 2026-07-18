@@ -26,3 +26,4 @@
 - Enable Swift 6 language mode; snapshot operations now require `@MainActor` and `@Sendable`
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1109/changes
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1106/changes
+- Fix SwiftUI `.sizeThatFits` snapshots to use their ideal content size
