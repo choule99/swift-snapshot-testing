@@ -4,6 +4,8 @@ import SwiftUI
 
 #if os(watchOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
 #endif
 
 /// The size constraint for a snapshot (similar to `PreviewLayout`).
@@ -96,6 +98,62 @@ public enum SwiftUISnapshotLayout {
                 view: controller.view,
                 viewController: controller
             )
+        }
+    }
+}
+#endif
+
+#if os(macOS)
+@available(macOS 13.0, *) @MainActor public extension Snapshotting where Value: SwiftUI.View, Format == NSImage {
+    /// A snapshot strategy for comparing SwiftUI views rendered with `ImageRenderer`.
+    ///
+    /// Views render at a deterministic 2x scale. Compare snapshots on the same OS version to avoid
+    /// differences in system rendering.
+    static var image: Snapshotting {
+        .image()
+    }
+
+    /// A snapshot strategy for comparing SwiftUI views rendered with `ImageRenderer`.
+    ///
+    /// Views render at a deterministic 2x scale. Compare snapshots on the same OS version to avoid
+    /// differences in system rendering.
+    ///
+    /// - Parameters:
+    ///   - precision: The percentage of pixels that must match.
+    ///   - perceptualPrecision: The percentage a pixel must match the source pixel to be considered a
+    ///     match.
+    ///   - layout: A view layout override. `sizeThatFits` uses the view's ideal size, while `fixed`
+    ///     centers the view in the requested point size.
+    static func image(
+        precision: Float = 1,
+        perceptualPrecision: Float = 1,
+        layout: SwiftUISnapshotLayout = .sizeThatFits
+    ) -> Snapshotting {
+        SimplySnapshotting.image(
+            precision: precision, perceptualPrecision: perceptualPrecision
+        ).pullback { view in
+            let renderer = ImageRenderer(
+                content: MacSnapshottingView(layout: layout, content: view)
+            )
+            renderer.scale = 2
+            guard let image = renderer.nsImage else {
+                preconditionFailure("Could not render SwiftUI view as an image.")
+            }
+            return image
+        }
+    }
+}
+
+@available(macOS 13.0, *) private struct MacSnapshottingView<Content: SwiftUI.View>: SwiftUI.View {
+    let layout: SwiftUISnapshotLayout
+    let content: Content
+
+    var body: some SwiftUI.View {
+        switch layout {
+            case let .fixed(width, height):
+                content.frame(width: width, height: height)
+            case .sizeThatFits:
+                content
         }
     }
 }

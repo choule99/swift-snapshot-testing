@@ -167,6 +167,10 @@ On watchOS, image snapshots support `UIImage` values and SwiftUI views rendered 
 Pixel precision is supported, but perceptual precision is not. `ImageRenderer` may use placeholders
 for views backed by native platform frameworks.
 
+On macOS 13 and later, SwiftUI views support `.image` snapshots rendered at a fixed 2x scale.
+The default `sizeThatFits` layout uses the view's ideal size, while `fixed` centers it in the
+requested point size. Compare snapshots on the same OS version to avoid system-rendering differences.
+
 ## Installation
 
 ### Xcode

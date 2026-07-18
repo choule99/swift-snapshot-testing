@@ -1909,6 +1909,31 @@ final class SnapshotTestingTests: BaseTestCase {
     }
     #endif
 
+    #if os(macOS)
+    @available(macOS 13.0, *) func testSwiftUIView_macOS() async {
+        struct MyView: SwiftUI.View {
+            var body: some SwiftUI.View {
+                HStack(spacing: 0) {
+                    Color.red.frame(width: 8, height: 12)
+                    Color.blue.frame(width: 8, height: 12)
+                }
+                .padding(2)
+                .background(Color.white)
+            }
+        }
+
+        let view = MyView()
+        let _: Snapshotting<MyView, NSImage> = .image
+
+        assertSnapshot(of: view, as: .image)
+        assertSnapshot(
+            of: view,
+            as: .image(layout: .fixed(width: 40, height: 30)),
+            named: "fixed"
+        )
+    }
+    #endif
+
     #if os(iOS)
     @available(iOS 13.0, *) func testSwiftUIView_iOS() async {
         struct MyView: SwiftUI.View {
