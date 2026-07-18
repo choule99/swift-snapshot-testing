@@ -11,3 +11,4 @@
 - Integrate Swiftlint & Swift Format
   - Fix Swiftlint & SwiftFormat warnings
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/934/changes
+- Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/944/changes

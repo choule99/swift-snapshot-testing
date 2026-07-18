@@ -853,6 +853,10 @@ extension View {
             #if os(macOS)
             return withScaledWindow(self, perform: perform)
             #else
+            #if os(iOS)
+            let window = UIWindow()
+            window.addSubview(self)
+            #endif
             return perform()
             #endif
         }
@@ -909,10 +913,10 @@ extension View {
                 if wkWebView.isLoading {
                     var subscription: NSKeyValueObservation?
                     subscription = wkWebView.observe(\.isLoading, options: [.initial, .new]) { _, change in
-                        subscription?.invalidate()
-                        subscription = nil
                         if change.newValue == false {
                             work()
+                            subscription?.invalidate()
+                            subscription = nil
                         }
                     }
                 } else {
