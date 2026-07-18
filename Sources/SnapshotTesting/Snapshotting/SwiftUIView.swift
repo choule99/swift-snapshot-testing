@@ -2,6 +2,10 @@
 import Foundation
 import SwiftUI
 
+#if os(watchOS)
+import UIKit
+#endif
+
 /// The size constraint for a snapshot (similar to `PreviewLayout`).
 public enum SwiftUISnapshotLayout {
     #if os(iOS) || os(tvOS)
@@ -92,6 +96,54 @@ public enum SwiftUISnapshotLayout {
                 view: controller.view,
                 viewController: controller
             )
+        }
+    }
+}
+#endif
+
+#if os(watchOS)
+@available(watchOS 10.0, *) @MainActor public extension Snapshotting where Value: SwiftUI.View, Format == UIImage {
+    /// A snapshot strategy for comparing SwiftUI views rendered with `ImageRenderer`.
+    ///
+    /// `ImageRenderer` renders SwiftUI-native content. Views backed by native platform frameworks
+    /// may render placeholders. Perceptual precision is unavailable on watchOS.
+    static var image: Snapshotting {
+        .image()
+    }
+
+    /// A snapshot strategy for comparing SwiftUI views rendered with `ImageRenderer`.
+    ///
+    /// `ImageRenderer` renders SwiftUI-native content. Views backed by native platform frameworks
+    /// may render placeholders. Perceptual precision is unavailable on watchOS.
+    ///
+    /// - Parameters:
+    ///   - precision: The percentage of image bytes that must match.
+    ///   - layout: A view layout override.
+    static func image(
+        precision: Float = 1,
+        layout: SwiftUISnapshotLayout = .sizeThatFits
+    ) -> Snapshotting {
+        SimplySnapshotting.image(precision: precision, scale: 1).pullback { view in
+            let renderer = ImageRenderer(content: WatchSnapshottingView(layout: layout, content: view))
+            renderer.scale = 1
+            guard let image = renderer.uiImage else {
+                preconditionFailure("Could not render SwiftUI view as an image.")
+            }
+            return image
+        }
+    }
+}
+
+@available(watchOS 10.0, *) private struct WatchSnapshottingView<Content: SwiftUI.View>: SwiftUI.View {
+    let layout: SwiftUISnapshotLayout
+    let content: Content
+
+    var body: some SwiftUI.View {
+        switch layout {
+            case let .fixed(width, height):
+                content.frame(width: width, height: height)
+            case .sizeThatFits:
+                content
         }
     }
 }

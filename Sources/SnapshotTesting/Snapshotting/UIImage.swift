@@ -1,10 +1,20 @@
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(watchOS)
 import UIKit
 
 @MainActor public extension Diffing where Value == UIImage {
     /// A pixel-diffing strategy for UIImage's which requires a 100% match.
     static let image = Diffing.image()
 
+    #if os(watchOS)
+    /// A pixel-diffing strategy for `UIImage` that allows customizing how precise matching must be.
+    ///
+    /// - Parameters:
+    ///   - precision: The percentage of pixels that must match.
+    ///   - scale: The scale used when loading the reference image from disk. Defaults to `1`.
+    static func image(precision: Float = 1, scale: CGFloat? = nil) -> Diffing {
+        imageDiffing(precision: precision, perceptualPrecision: 1, scale: scale)
+    }
+    #else
     /// A pixel-diffing strategy for UIImage that allows customizing how precise the matching must be.
     ///
     /// - Parameters:
@@ -19,10 +29,27 @@ import UIKit
     static func image(
         precision: Float = 1, perceptualPrecision: Float = 1, scale: CGFloat? = nil
     ) -> Diffing {
+        imageDiffing(
+            precision: precision,
+            perceptualPrecision: perceptualPrecision,
+            scale: scale
+        )
+    }
+    #endif
+
+    private static func imageDiffing(
+        precision: Float,
+        perceptualPrecision: Float,
+        scale: CGFloat?
+    ) -> Diffing {
         let imageScale: CGFloat = if let scale, scale != 0.0 {
             scale
         } else {
+            #if os(watchOS)
+            1
+            #else
             UIScreen.main.scale
+            #endif
         }
         let toData: @MainActor @Sendable (UIImage) -> Data = {
             guard let data = $0.pngData() ?? emptyImage().pngData() else {
@@ -54,6 +81,21 @@ import UIKit
 
     /// Used when the image size has no width or no height to generated the default empty image
     private static func emptyImage() -> UIImage {
+        #if os(watchOS)
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        guard let context = CGContext(
+            data: nil,
+            width: 1,
+            height: 1,
+            bitsPerComponent: 8,
+            bytesPerRow: 4,
+            space: colorSpace,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ), let image = context.makeImage() else {
+            preconditionFailure("Could not create an empty image placeholder.")
+        }
+        return UIImage(cgImage: image)
+        #else
         let label = UILabel(frame: CGRect(x: 0, y: 0, width: 400, height: 80))
         label.backgroundColor = .red
         label.text =
@@ -61,6 +103,7 @@ import UIKit
         label.textAlignment = .center
         label.numberOfLines = 3
         return label.asImage()
+        #endif
     }
 }
 
@@ -70,6 +113,19 @@ import UIKit
         .image()
     }
 
+    #if os(watchOS)
+    /// A snapshot strategy for comparing images based on pixel equality.
+    ///
+    /// - Parameters:
+    ///   - precision: The percentage of pixels that must match.
+    ///   - scale: The scale of the reference image stored on disk. Defaults to `1`.
+    static func image(precision: Float = 1, scale: CGFloat? = nil) -> Snapshotting {
+        .init(
+            pathExtension: "png",
+            diffing: .image(precision: precision, scale: scale)
+        )
+    }
+    #else
     /// A snapshot strategy for comparing images based on pixel equality.
     ///
     /// - Parameters:
@@ -89,6 +145,7 @@ import UIKit
             )
         )
     }
+    #endif
 }
 
 // remap snapshot & reference to same colorspace
@@ -134,6 +191,7 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
     if precision >= 1, perceptualPrecision >= 1 {
         return "Newly-taken snapshot does not match reference."
     }
+    #if !os(watchOS)
     if perceptualPrecision < 1, #available(iOS 11.0, tvOS 11.0, *) {
         return perceptuallyCompare(
             CIImage(cgImage: oldCgImage),
@@ -141,24 +199,24 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
             pixelPrecision: precision,
             perceptualPrecision: perceptualPrecision
         )
-    } else {
-        let byteCountThreshold = Int((1 - precision) * Float(byteCount))
-        var differentByteCount = 0
-        // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
-        //     compiler doesn't have optimizations enabled, like in test targets, a `while` loop is
-        //     significantly faster than a `for` loop for iterating through the elements of a memory
-        //     buffer. Details can be found in [SR-6983](https://github.com/apple/swift/issues/49531)
-        var index = 0
-        while index < byteCount {
-            defer { index += 1 }
-            if oldBytes[index] != newerBytes[index] {
-                differentByteCount += 1
-            }
+    }
+    #endif
+    let byteCountThreshold = Int((1 - precision) * Float(byteCount))
+    var differentByteCount = 0
+    // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
+    //     compiler doesn't have optimizations enabled, like in test targets, a `while` loop is
+    //     significantly faster than a `for` loop for iterating through the elements of a memory
+    //     buffer. Details can be found in [SR-6983](https://github.com/apple/swift/issues/49531)
+    var index = 0
+    while index < byteCount {
+        defer { index += 1 }
+        if oldBytes[index] != newerBytes[index] {
+            differentByteCount += 1
         }
-        if differentByteCount > byteCountThreshold {
-            let actualPrecision = 1 - Float(differentByteCount) / Float(byteCount)
-            return "Actual image precision \(actualPrecision) is less than required \(precision)"
-        }
+    }
+    if differentByteCount > byteCountThreshold {
+        let actualPrecision = 1 - Float(differentByteCount) / Float(byteCount)
+        return "Actual image precision \(actualPrecision) is less than required \(precision)"
     }
     return nil
 }
@@ -183,10 +241,16 @@ private func context(for cgImage: CGImage, data: UnsafeMutableRawPointer? = nil)
 }
 
 private func diff(_ old: UIImage, _ new: UIImage) -> UIImage {
+    #if os(watchOS)
+    // ponytail: Size mismatches attach the failure image; add a Core Graphics compositor if needed.
+    normalizedComponentDiff(old, new) ?? new
+    #else
     normalizedComponentDiff(old, new)
         ?? blendModeDiff(old, new)
+    #endif
 }
 
+#if !os(watchOS)
 private func blendModeDiff(_ old: UIImage, _ new: UIImage) -> UIImage {
     let width = max(old.size.width, new.size.width)
     let height = max(old.size.height, new.size.height)
@@ -200,6 +264,7 @@ private func blendModeDiff(_ old: UIImage, _ new: UIImage) -> UIImage {
     UIGraphicsEndImageContext()
     return differenceImage
 }
+#endif
 
 private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage? {
     guard let oldCgImage = old.cgImage,
@@ -296,8 +361,11 @@ private func normalizedComponentDiff(_ old: UIImage, _ new: UIImage) -> UIImage?
 }
 #endif
 
-#if os(iOS) || os(tvOS) || os(macOS)
+#if os(iOS) || os(tvOS) || os(watchOS) || os(macOS)
 import Accelerate.vImage
+#endif
+
+#if os(iOS) || os(tvOS) || os(macOS)
 import CoreImage.CIKernel
 import MetalPerformanceShaders
 

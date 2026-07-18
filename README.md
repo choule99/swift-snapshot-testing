@@ -163,6 +163,10 @@ and
 Swift 6.3. Apple platforms require iOS 17, macOS 13, tvOS 17, or watchOS 10 or later. CI also
 tests Linux and Android.
 
+On watchOS, image snapshots support `UIImage` values and SwiftUI views rendered by `ImageRenderer`.
+Pixel precision is supported, but perceptual precision is not. `ImageRenderer` may use placeholders
+for views backed by native platform frameworks.
+
 ## Installation
 
 ### Xcode

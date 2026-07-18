@@ -529,7 +529,7 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: user, as: .plist)
     }
 
-    #if os(Linux) || os(tvOS)
+    #if os(Linux) || os(tvOS) || os(watchOS)
     func testMixedViews() async {}
     #else
     func testMixedViews() {
@@ -1771,7 +1771,7 @@ final class SnapshotTestingTests: BaseTestCase {
         )
     }
 
-    #if os(Linux) || os(tvOS)
+    #if os(Linux) || os(tvOS) || os(watchOS)
     func testWebView() async {}
     #else
     func testWebView() throws {
@@ -1989,7 +1989,7 @@ final class SnapshotTestingTests: BaseTestCase {
     }
     #endif
 
-    #if canImport(AppKit) || canImport(UIKit)
+    #if os(macOS) || os(iOS) || os(tvOS)
     func testReferenceLoadFailure() async {
         let snapshotUrl = URL(fileURLWithPath: String(#filePath), isDirectory: false)
             .deletingLastPathComponent()

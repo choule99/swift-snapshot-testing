@@ -45,4 +45,10 @@ test-tvos:
 		-scheme swift-snapshot-testing-Package \
 		-destination platform="tvOS Simulator,name=Apple TV 4K (3rd generation),OS=26.5" | mint run --no-install cpisciotta/xcbeautify -q
 
-test-all: test-swift test-macos test-ios test-tvos test-linux
+test-watchos:
+	set -o pipefail && \
+	xcodebuild test \
+		-scheme swift-snapshot-testing-Package \
+		-destination platform="watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.5" | mint run --no-install cpisciotta/xcbeautify -q
+
+test-all: test-swift test-macos test-ios test-tvos test-watchos test-linux
