@@ -674,6 +674,62 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testMacOSImageColorSpacesAreNormalized() async throws {
+        #if os(macOS)
+        func image(
+            in colorSpace: CGColorSpace,
+            filledWith color: CGColor,
+            differingPixelColor: CGColor? = nil
+        ) throws -> NSImage {
+            let size = CGSize(width: 16, height: 16)
+            let context = try XCTUnwrap(
+                CGContext(
+                    data: nil,
+                    width: Int(size.width),
+                    height: Int(size.height),
+                    bitsPerComponent: 8,
+                    bytesPerRow: Int(size.width) * 4,
+                    space: colorSpace,
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                )
+            )
+            context.setFillColor(color)
+            context.fill(CGRect(origin: .zero, size: size))
+            if let differingPixelColor {
+                context.setFillColor(differingPixelColor)
+                context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+            }
+            return NSImage(cgImage: try XCTUnwrap(context.makeImage()), size: size)
+        }
+
+        let sRGB = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+        let displayP3 = try XCTUnwrap(CGColorSpace(name: CGColorSpace.displayP3))
+        let color = try XCTUnwrap(
+            CGColor(colorSpace: sRGB, components: [1, 0, 0, 1])
+        )
+        let similarColor = try XCTUnwrap(
+            CGColor(colorSpace: sRGB, components: [0.995, 0, 0, 1])
+        )
+        let sRGBImage = try image(in: sRGB, filledWith: color)
+        let displayP3Image = try image(in: displayP3, filledWith: color)
+        let similarDisplayP3Image = try image(in: displayP3, filledWith: similarColor)
+        let oneDifferentPixelImage = try image(
+            in: displayP3,
+            filledWith: color,
+            differingPixelColor: similarColor
+        )
+
+        XCTAssertNil(Diffing<NSImage>.image.diffV2(sRGBImage, displayP3Image))
+        XCTAssertNil(
+            Diffing<NSImage>.image(perceptualPrecision: 0.99)
+                .diffV2(sRGBImage, similarDisplayP3Image)
+        )
+        XCTAssertNil(
+            Diffing<NSImage>.image(precision: 0.99).diffV2(sRGBImage, oneDifferentPixelImage)
+        )
+        #endif
+    }
+
     func testImageDiffWithDifferentPixelFormats() async throws {
         #if os(iOS) || os(tvOS)
         let width = 256

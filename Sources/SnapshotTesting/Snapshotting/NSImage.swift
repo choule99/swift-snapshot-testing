@@ -173,17 +173,19 @@ private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptua
         return "Newly-taken snapshot does not match reference."
     }
     if perceptualPrecision < 1, #available(macOS 10.13, *) {
+        guard let normalizedOldImage = oldContext.makeImage(),
+              let normalizedNewImage = newerContext.makeImage() else {
+            return "Image data could not be normalized."
+        }
         return perceptuallyCompare(
-            CIImage(cgImage: oldCgImage),
-            CIImage(cgImage: newCgImage),
+            CIImage(cgImage: normalizedOldImage),
+            CIImage(cgImage: normalizedNewImage),
             pixelPrecision: precision,
             perceptualPrecision: perceptualPrecision
         )
     } else {
-        guard let oldRep = NSBitmapImageRep(cgImage: oldCgImage).bitmapData,
-              let newRep = NSBitmapImageRep(cgImage: newerCgImage).bitmapData else {
-            fatalError("Could not access image bitmap data.")
-        }
+        let oldBytes = oldData.assumingMemoryBound(to: UInt8.self)
+        let newBytes = newerData.assumingMemoryBound(to: UInt8.self)
         let byteCountThreshold = Int((1 - precision) * Float(byteCount))
         var differentByteCount = 0
         // NB: We are purposely using a verbose 'while' loop instead of a 'for in' loop.  When the
@@ -193,7 +195,7 @@ private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptua
         var index = 0
         while index < byteCount {
             defer { index += 1 }
-            if oldRep[index] != newRep[index] {
+            if oldBytes[index] != newBytes[index] {
                 differentByteCount += 1
             }
         }
@@ -206,7 +208,7 @@ private func compare(_ old: NSImage, _ new: NSImage, precision: Float, perceptua
 }
 
 private func context(for cgImage: CGImage) -> CGContext? {
-    guard let space = cgImage.colorSpace,
+    guard let space = CGColorSpace(name: CGColorSpace.sRGB) ?? cgImage.colorSpace,
           let context = CGContext(
               data: nil,
               width: cgImage.width,
