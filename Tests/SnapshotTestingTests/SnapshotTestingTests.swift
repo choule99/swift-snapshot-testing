@@ -838,6 +838,68 @@ final class SnapshotTestingTests: BaseTestCase {
         #endif
     }
 
+    func testUIImageColorSpacesAreNormalized() async throws {
+        #if os(iOS) || os(tvOS)
+        func image(
+            in colorSpace: CGColorSpace,
+            filledWith color: CGColor,
+            differingPixelColor: CGColor? = nil
+        ) throws -> UIImage {
+            let size = CGSize(width: 16, height: 16)
+            let context = try XCTUnwrap(
+                CGContext(
+                    data: nil,
+                    width: Int(size.width),
+                    height: Int(size.height),
+                    bitsPerComponent: 8,
+                    bytesPerRow: Int(size.width) * 4,
+                    space: colorSpace,
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                )
+            )
+            context.setFillColor(color)
+            context.fill(CGRect(origin: .zero, size: size))
+            if let differingPixelColor {
+                context.setFillColor(differingPixelColor)
+                context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+            }
+            return UIImage(cgImage: try XCTUnwrap(context.makeImage()))
+        }
+
+        let sRGB = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+        let displayP3 = try XCTUnwrap(CGColorSpace(name: CGColorSpace.displayP3))
+        let red = try XCTUnwrap(CGColor(colorSpace: sRGB, components: [1, 0, 0, 1]))
+        let similarRed = try XCTUnwrap(
+            CGColor(colorSpace: sRGB, components: [0.995, 0, 0, 1])
+        )
+        let sRGBImage = try image(in: sRGB, filledWith: red)
+        let displayP3Image = try image(in: displayP3, filledWith: red)
+        let similarDisplayP3Image = try image(
+            in: displayP3,
+            filledWith: red,
+            differingPixelColor: similarRed
+        )
+
+        XCTAssertNil(Diffing<UIImage>.image(scale: 1).diffV2(sRGBImage, displayP3Image))
+        XCTAssertNil(
+            Diffing<UIImage>.image(
+                precision: 0.99,
+                perceptualPrecision: 0.99,
+                scale: 1
+            ).diffV2(sRGBImage, similarDisplayP3Image)
+        )
+
+        let renderedImage = renderer(
+            bounds: CGRect(origin: .zero, size: CGSize(width: 1, height: 1)),
+            for: UITraitCollection(displayGamut: .P3)
+        ).image { context in
+            context.cgContext.setFillColor(red)
+            context.cgContext.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        }
+        XCTAssertEqual(renderedImage.cgImage?.colorSpace?.name, CGColorSpace.sRGB as CFString)
+        #endif
+    }
+
     func testOpaqueImageSnapshots() async throws {
         #if os(iOS) || os(macOS) || os(tvOS)
         func hasAlpha(_ image: CGImage) -> Bool {

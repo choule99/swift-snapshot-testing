@@ -225,7 +225,8 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
     let pixelCount = oldCgImage.width * oldCgImage.height
     let byteCount = imageContextBytesPerPixel * pixelCount
     var oldBytes = [UInt8](repeating: 0, count: byteCount)
-    guard let oldData = context(for: oldCgImage, data: &oldBytes)?.data else {
+    guard let oldContext = context(for: oldCgImage, data: &oldBytes),
+          let oldData = oldContext.data else {
         return "Reference image's data could not be loaded."
     }
     if let newContext = context(for: newCgImage), let newData = newContext.data {
@@ -248,9 +249,13 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
     }
     #if !os(watchOS)
     if perceptualPrecision < 1, #available(iOS 11.0, tvOS 11.0, *) {
+        guard let normalizedOldImage = oldContext.makeImage(),
+              let normalizedNewImage = newerContext.makeImage() else {
+            return "Image data could not be normalized."
+        }
         return perceptuallyCompare(
-            CIImage(cgImage: oldCgImage),
-            CIImage(cgImage: newCgImage),
+            CIImage(cgImage: normalizedOldImage),
+            CIImage(cgImage: normalizedNewImage),
             pixelPrecision: precision,
             perceptualPrecision: perceptualPrecision
         )

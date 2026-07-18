@@ -1446,9 +1446,13 @@ private let offscreen: CGFloat = 10000
 
 @MainActor func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageRenderer {
     if #available(iOS 11.0, tvOS 11.0, *) {
-        UIGraphicsImageRenderer(bounds: bounds, format: .init(for: traits))
+        let format = UIGraphicsImageRendererFormat(
+            for: .merging([traits, .init(displayGamut: .SRGB)])
+        )
+        format.preferredRange = .standard
+        return UIGraphicsImageRenderer(bounds: bounds, format: format)
     } else {
-        UIGraphicsImageRenderer(bounds: bounds)
+        return UIGraphicsImageRenderer(bounds: bounds)
     }
 }
 
