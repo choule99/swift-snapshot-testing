@@ -16,3 +16,6 @@
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1007/changes
 - Fix nested iOS WebView and SpriteKit snapshots
 - Fix iOS trait overrides on Xcode 26.6
+- Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1010/changes
+- Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1046/changes
+- Add all iPhone 14, 15, and 16 snapshot configurations

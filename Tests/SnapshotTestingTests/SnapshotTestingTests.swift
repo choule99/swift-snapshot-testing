@@ -20,6 +20,193 @@ import UIKit.UIView
 #endif
 
 final class SnapshotTestingTests: BaseTestCase {
+    func testModernIPhoneConfigs() {
+        #if os(iOS)
+        func assertDevice(
+            _ name: String,
+            portrait: ViewImageConfig,
+            landscape: ViewImageConfig,
+            portraitSize: CGSize,
+            portraitSafeArea: UIEdgeInsets,
+            landscapeSafeArea: UIEdgeInsets,
+            landscapeHorizontalSizeClass: UIUserInterfaceSizeClass
+        ) {
+            XCTAssertEqual(portrait.size, portraitSize, name)
+            XCTAssertEqual(portrait.safeArea, portraitSafeArea, name)
+            XCTAssertEqual(portrait.traits.horizontalSizeClass, .compact, name)
+            XCTAssertEqual(portrait.traits.verticalSizeClass, .regular, name)
+            XCTAssertEqual(portrait.traits.forceTouchCapability, .unavailable, name)
+            XCTAssertEqual(
+                landscape.size,
+                .init(width: portraitSize.height, height: portraitSize.width),
+                name
+            )
+            XCTAssertEqual(landscape.safeArea, landscapeSafeArea, name)
+            XCTAssertEqual(
+                landscape.traits.horizontalSizeClass,
+                landscapeHorizontalSizeClass,
+                name
+            )
+            XCTAssertEqual(landscape.traits.verticalSizeClass, .compact, name)
+            XCTAssertEqual(landscape.traits.forceTouchCapability, .unavailable, name)
+        }
+
+        assertDevice(
+            "iPhone 14",
+            portrait: .iPhone14,
+            landscape: .iPhone14(.landscape),
+            portraitSize: .init(width: 390, height: 844),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 14 Plus",
+            portrait: .iPhone14Plus,
+            landscape: .iPhone14Plus(.landscape),
+            portraitSize: .init(width: 428, height: 926),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .regular
+        )
+        assertDevice(
+            "iPhone 14 Pro",
+            portrait: .iPhone14Pro,
+            landscape: .iPhone14Pro(.landscape),
+            portraitSize: .init(width: 393, height: 852),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 14 Pro Max",
+            portrait: .iPhone14ProMax,
+            landscape: .iPhone14ProMax(.landscape),
+            portraitSize: .init(width: 430, height: 932),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .regular
+        )
+        assertDevice(
+            "iPhone 15",
+            portrait: .iPhone15,
+            landscape: .iPhone15(.landscape),
+            portraitSize: .init(width: 393, height: 852),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 15 Plus",
+            portrait: .iPhone15Plus,
+            landscape: .iPhone15Plus(.landscape),
+            portraitSize: .init(width: 430, height: 932),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .regular
+        )
+        assertDevice(
+            "iPhone 15 Pro",
+            portrait: .iPhone15Pro,
+            landscape: .iPhone15Pro(.landscape),
+            portraitSize: .init(width: 393, height: 852),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 15 Pro Max",
+            portrait: .iPhone15ProMax,
+            landscape: .iPhone15ProMax(.landscape),
+            portraitSize: .init(width: 430, height: 932),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .regular
+        )
+        assertDevice(
+            "iPhone 16",
+            portrait: .iPhone16,
+            landscape: .iPhone16(.landscape),
+            portraitSize: .init(width: 393, height: 852),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 16 Plus",
+            portrait: .iPhone16Plus,
+            landscape: .iPhone16Plus(.landscape),
+            portraitSize: .init(width: 430, height: 932),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .regular
+        )
+        assertDevice(
+            "iPhone 16 Pro",
+            portrait: .iPhone16Pro,
+            landscape: .iPhone16Pro(.landscape),
+            portraitSize: .init(width: 402, height: 874),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 62, bottom: 21, right: 62),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 16 Pro Max",
+            portrait: .iPhone16ProMax,
+            landscape: .iPhone16ProMax(.landscape),
+            portraitSize: .init(width: 440, height: 956),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 62, bottom: 21, right: 62),
+            landscapeHorizontalSizeClass: .regular
+        )
+        assertDevice(
+            "iPhone 16e",
+            portrait: .iPhone16e,
+            landscape: .iPhone16e(.landscape),
+            portraitSize: .init(width: 390, height: 844),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 17",
+            portrait: .iPhone17,
+            landscape: .iPhone17(.landscape),
+            portraitSize: .init(width: 402, height: 874),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 20, left: 62, bottom: 20, right: 62),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 17 Pro",
+            portrait: .iPhone17Pro,
+            landscape: .iPhone17Pro(.landscape),
+            portraitSize: .init(width: 402, height: 874),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 20, left: 62, bottom: 20, right: 62),
+            landscapeHorizontalSizeClass: .compact
+        )
+        assertDevice(
+            "iPhone 17 Pro Max",
+            portrait: .iPhone17ProMax,
+            landscape: .iPhone17ProMax(.landscape),
+            portraitSize: .init(width: 440, height: 956),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 20, left: 62, bottom: 20, right: 62),
+            landscapeHorizontalSizeClass: .regular
+        )
+        assertDevice(
+            "iPhone Air",
+            portrait: .iPhoneAir,
+            landscape: .iPhoneAir(.landscape),
+            portraitSize: .init(width: 420, height: 912),
+            portraitSafeArea: .init(top: 68, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 20, left: 68, bottom: 29, right: 68),
+            landscapeHorizontalSizeClass: .regular
+        )
+        #endif
+    }
+
     func testSubclassSnapshottingStrategies() {
         #if os(macOS)
         final class View: NSView {}

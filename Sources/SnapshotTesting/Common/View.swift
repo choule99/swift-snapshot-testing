@@ -244,6 +244,199 @@ public struct ViewImageConfig: Sendable {
         return .init(safeArea: safeArea, size: size, traits: .iPhone13ProMax(orientation))
     }
 
+    public static let iPhone14 = ViewImageConfig.iPhone14(.portrait)
+
+    public static func iPhone14(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 390, height: 844),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .compact
+        )
+    }
+
+    public static let iPhone14Plus = ViewImageConfig.iPhone14Plus(.portrait)
+
+    public static func iPhone14Plus(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 428, height: 926),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .regular
+        )
+    }
+
+    public static let iPhone14Pro = ViewImageConfig.iPhone14Pro(.portrait)
+
+    public static func iPhone14Pro(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 393, height: 852),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .compact
+        )
+    }
+
+    public static let iPhone14ProMax = ViewImageConfig.iPhone14ProMax(.portrait)
+
+    public static func iPhone14ProMax(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 430, height: 932),
+            portraitSafeArea: .init(top: 59, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 59, bottom: 21, right: 59),
+            landscapeHorizontalSizeClass: .regular
+        )
+    }
+
+    public static let iPhone15 = ViewImageConfig.iPhone15(.portrait)
+
+    public static func iPhone15(_ orientation: Orientation) -> ViewImageConfig {
+        .iPhone14Pro(orientation)
+    }
+
+    public static let iPhone15Plus = ViewImageConfig.iPhone15Plus(.portrait)
+
+    public static func iPhone15Plus(_ orientation: Orientation) -> ViewImageConfig {
+        .iPhone14ProMax(orientation)
+    }
+
+    public static let iPhone15Pro = ViewImageConfig.iPhone15Pro(.portrait)
+
+    public static func iPhone15Pro(_ orientation: Orientation) -> ViewImageConfig {
+        .iPhone14Pro(orientation)
+    }
+
+    public static let iPhone15ProMax = ViewImageConfig.iPhone15ProMax(.portrait)
+
+    public static func iPhone15ProMax(_ orientation: Orientation) -> ViewImageConfig {
+        .iPhone14ProMax(orientation)
+    }
+
+    public static let iPhone16 = ViewImageConfig.iPhone16(.portrait)
+
+    public static func iPhone16(_ orientation: Orientation) -> ViewImageConfig {
+        .iPhone15(orientation)
+    }
+
+    public static let iPhone16Plus = ViewImageConfig.iPhone16Plus(.portrait)
+
+    public static func iPhone16Plus(_ orientation: Orientation) -> ViewImageConfig {
+        .iPhone15Plus(orientation)
+    }
+
+    public static let iPhone16Pro = ViewImageConfig.iPhone16Pro(.portrait)
+
+    public static func iPhone16Pro(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 402, height: 874),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 62, bottom: 21, right: 62),
+            landscapeHorizontalSizeClass: .compact
+        )
+    }
+
+    public static let iPhone16ProMax = ViewImageConfig.iPhone16ProMax(.portrait)
+
+    public static func iPhone16ProMax(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 440, height: 956),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 62, bottom: 21, right: 62),
+            landscapeHorizontalSizeClass: .regular
+        )
+    }
+
+    public static let iPhone16e = ViewImageConfig.iPhone16e(.portrait)
+
+    public static func iPhone16e(_ orientation: Orientation) -> ViewImageConfig {
+        .iPhone14(orientation)
+    }
+
+    public static let iPhone17 = ViewImageConfig.iPhone17(.portrait)
+
+    public static func iPhone17(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 402, height: 874),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 20, left: 62, bottom: 20, right: 62),
+            landscapeHorizontalSizeClass: .compact
+        )
+    }
+
+    public static let iPhone17Pro = ViewImageConfig.iPhone17Pro(.portrait)
+
+    public static func iPhone17Pro(_ orientation: Orientation) -> ViewImageConfig {
+        .iPhone17(orientation)
+    }
+
+    public static let iPhone17ProMax = ViewImageConfig.iPhone17ProMax(.portrait)
+
+    public static func iPhone17ProMax(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 440, height: 956),
+            portraitSafeArea: .init(top: 62, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 20, left: 62, bottom: 20, right: 62),
+            landscapeHorizontalSizeClass: .regular
+        )
+    }
+
+    public static let iPhoneAir = ViewImageConfig.iPhoneAir(.portrait)
+
+    public static func iPhoneAir(_ orientation: Orientation) -> ViewImageConfig {
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 420, height: 912),
+            portraitSafeArea: .init(top: 68, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 20, left: 68, bottom: 29, right: 68),
+            landscapeHorizontalSizeClass: .regular
+        )
+    }
+
+    private static func modernIPhone(
+        _ orientation: Orientation,
+        portraitSize: CGSize,
+        portraitSafeArea: UIEdgeInsets,
+        landscapeSafeArea: UIEdgeInsets,
+        landscapeHorizontalSizeClass: UIUserInterfaceSizeClass
+    ) -> ViewImageConfig {
+        let safeArea: UIEdgeInsets
+        let size: CGSize
+        let horizontalSizeClass: UIUserInterfaceSizeClass
+        let verticalSizeClass: UIUserInterfaceSizeClass
+        switch orientation {
+            case .landscape:
+                safeArea = landscapeSafeArea
+                size = .init(width: portraitSize.height, height: portraitSize.width)
+                horizontalSizeClass = landscapeHorizontalSizeClass
+                verticalSizeClass = .compact
+            case .portrait:
+                safeArea = portraitSafeArea
+                size = portraitSize
+                horizontalSizeClass = .compact
+                verticalSizeClass = .regular
+        }
+        return .init(
+            safeArea: safeArea,
+            size: size,
+            traits: .merging([
+                .init(forceTouchCapability: .unavailable),
+                .init(horizontalSizeClass: horizontalSizeClass),
+                .init(layoutDirection: .leftToRight),
+                .init(preferredContentSizeCategory: .medium),
+                .init(userInterfaceIdiom: .phone),
+                .init(verticalSizeClass: verticalSizeClass)
+            ])
+        )
+    }
+
     public static let iPadMini = ViewImageConfig.iPadMini(.landscape)
 
     public static func iPadMini(_ orientation: Orientation) -> ViewImageConfig {
