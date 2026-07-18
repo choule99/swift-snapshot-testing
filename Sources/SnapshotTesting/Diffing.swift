@@ -7,7 +7,13 @@ public struct Diffing<Value> {
     public var toData: (Value) -> Data
 
     /// Produces a value _from_ data.
-    public var fromData: (Data) -> Value
+    public var fromData: (Data) -> Value {
+        didSet {
+            fromDataOptional = fromData
+        }
+    }
+
+    var fromDataOptional: (Data) -> Value?
 
     /// Compares two values. If the values do not match, returns a failure message and artifacts
     /// describing the failure.
@@ -63,16 +69,23 @@ public struct Diffing<Value> {
     ) {
         self.toData = toData
         self.fromData = fromData
+        fromDataOptional = fromData
         self.diff = diff
     }
 
-    private init(
+    init(
         toData: @escaping (Value) -> Data,
-        fromData: @escaping (Data) -> Value,
+        fromDataOptional: @escaping (Data) -> Value?,
         diffV2: @escaping (Value, Value) -> (String, [DiffAttachment])?
     ) {
         self.toData = toData
-        self.fromData = fromData
+        self.fromData = {
+            guard let value = fromDataOptional($0) else {
+                preconditionFailure("Could not decode value from data.")
+            }
+            return value
+        }
+        self.fromDataOptional = fromDataOptional
         self.diffV2 = diffV2
     }
 
@@ -81,7 +94,7 @@ public struct Diffing<Value> {
         fromData: @escaping (_ data: Data) -> Value,
         diffV2: @escaping (_ lhs: Value, _ rhs: Value) -> (String, [DiffAttachment])?
     ) -> Self {
-        Diffing(toData: toData, fromData: fromData, diffV2: diffV2)
+        Diffing(toData: toData, fromDataOptional: fromData, diffV2: diffV2)
     }
 }
 

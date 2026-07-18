@@ -19,3 +19,4 @@
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1010/changes
 - Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1046/changes
 - Add all iPhone 14, 15, and 16 snapshot configurations
+- Integrate https://github.com/pointfreeco/swift-snapshot-testing/pull/1054/changes

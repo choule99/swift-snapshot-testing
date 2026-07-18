@@ -1682,6 +1682,35 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: view, as: .image(layout: .device(config: .tv)), named: "device")
     }
     #endif
+
+    #if canImport(AppKit) || canImport(UIKit)
+    func testReferenceLoadFailure() {
+        let snapshotUrl = URL(fileURLWithPath: String(#file), isDirectory: false)
+            .deletingLastPathComponent()
+            .appendingPathComponent(
+                "__Snapshots__/SnapshotTestingTests/testReferenceLoadFailure.1.png"
+            )
+
+        XCTExpectFailure {
+            withSnapshotTesting(record: .failed) {
+                #if canImport(UIKit)
+                assertSnapshot(
+                    of: UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10)),
+                    as: .image
+                )
+                #else
+                assertSnapshot(of: NSImage(size: .init(width: 10, height: 10)), as: .image)
+                #endif
+            }
+        } issueMatcher: {
+            #if canImport(UIKit)
+            $0.compactDescription.hasPrefix("failed - Failed to serialize \(snapshotUrl) as UIImage")
+            #else
+            $0.compactDescription.hasPrefix("failed - Failed to serialize \(snapshotUrl) as NSImage")
+            #endif
+        }
+    }
+    #endif
 }
 
 #if os(iOS)

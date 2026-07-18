@@ -30,14 +30,9 @@ public extension Diffing where Value == UIImage {
             }
             return data
         }
-        return .diff(
+        return .init(
             toData: toData,
-            fromData: { data in
-                guard let image = UIImage(data: data, scale: imageScale) else {
-                    fatalError("Could not decode image from PNG.")
-                }
-                return image
-            },
+            fromDataOptional: { UIImage(data: $0, scale: imageScale) },
             diffV2: { old, new in
                 let new = new.size == .zero ? emptyImage() : new
                 guard let message = compare(

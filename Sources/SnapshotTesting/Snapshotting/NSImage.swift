@@ -16,14 +16,9 @@ public extension Diffing where Value == NSImage {
     ///     human eye.
     /// - Returns: A new diffing strategy.
     static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Diffing {
-        .diff(
+        .init(
             toData: { requirePNGData($0) },
-            fromData: { data in
-                guard let image = NSImage(data: data) else {
-                    fatalError("Could not decode image from PNG.")
-                }
-                return image
-            },
+            fromDataOptional: { NSImage(data: $0) },
             diffV2: { old, new in
                 guard let message = compare(
                     old, new, precision: precision, perceptualPrecision: perceptualPrecision
