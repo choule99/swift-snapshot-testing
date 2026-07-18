@@ -33,6 +33,7 @@ import UIKit
     ///   - settlingDelay: The time to wait after the view appears and before rendering. Keep this
     ///     value shorter than the snapshot assertion's timeout.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    ///   - prepare: A closure to run after layout and before rendering.
     static func image(
         on config: ViewImageConfig,
         drawHierarchyInKeyWindow: Bool = false,
@@ -41,7 +42,8 @@ import UIKit
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
         settlingDelay: TimeInterval = 0,
-        isOpaque: Bool = false
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
     )
         -> Snapshotting {
 
@@ -58,7 +60,8 @@ import UIKit
                 traits: traits,
                 view: viewController.view,
                 viewController: viewController,
-                settlingDelay: settlingDelay
+                settlingDelay: settlingDelay,
+                prepare: prepare
             )
         }
     }
@@ -87,6 +90,7 @@ import UIKit
     ///   - settlingDelay: The time to wait after the view appears and before rendering. Keep this
     ///     value shorter than the snapshot assertion's timeout.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    ///   - prepare: A closure to run after layout and before rendering.
     static func image(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
@@ -94,7 +98,8 @@ import UIKit
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
         settlingDelay: TimeInterval = 0,
-        isOpaque: Bool = false
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
     )
         -> Snapshotting {
 
@@ -110,7 +115,8 @@ import UIKit
                 traits: traits,
                 view: viewController.view,
                 viewController: viewController,
-                settlingDelay: settlingDelay
+                settlingDelay: settlingDelay,
+                prepare: prepare
             )
         }
     }

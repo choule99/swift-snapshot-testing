@@ -18,17 +18,20 @@ import Cocoa
     ///     human eye.
     ///   - size: A view size override.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    ///   - prepare: A closure to run after layout and before rendering.
     static func image(
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
-        isOpaque: Bool = false
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
     ) -> Snapshotting {
         Snapshotting<NSView, NSImage>.image(
             precision: precision,
             perceptualPrecision: perceptualPrecision,
             size: size,
-            isOpaque: isOpaque
+            isOpaque: isOpaque,
+            prepare: prepare
         ).pullback { $0.view }
     }
 }

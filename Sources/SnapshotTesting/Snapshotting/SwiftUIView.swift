@@ -52,6 +52,7 @@ public enum SwiftUISnapshotLayout {
     ///   - settlingDelay: The time to wait after the hosting view appears and before rendering. Keep
     ///     this value shorter than the snapshot assertion's timeout.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    ///   - prepare: A closure to run after layout and before rendering.
     static func image(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
@@ -59,7 +60,8 @@ public enum SwiftUISnapshotLayout {
         layout: SwiftUISnapshotLayout = .sizeThatFits,
         traits: UITraitCollection = .init(),
         settlingDelay: TimeInterval = 0,
-        isOpaque: Bool = false
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
     )
         -> Snapshotting {
         let config: ViewImageConfig
@@ -115,7 +117,8 @@ public enum SwiftUISnapshotLayout {
                     traits: traits,
                     view: controller.view,
                     viewController: controller,
-                    settlingDelay: settlingDelay
+                    settlingDelay: settlingDelay,
+                    prepare: prepare
                 )
             }
             guard let snapshot else {
@@ -149,11 +152,13 @@ public enum SwiftUISnapshotLayout {
     ///   - layout: A view layout override. `sizeThatFits` uses the view's ideal size, while `fixed`
     ///     centers the view in the requested point size.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    ///   - prepare: A closure to run after layout and before rendering.
     static func image(
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         layout: SwiftUISnapshotLayout = .sizeThatFits,
-        isOpaque: Bool = false
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
     ) -> Snapshotting {
         SimplySnapshotting.image(
             precision: precision,
@@ -164,6 +169,11 @@ public enum SwiftUISnapshotLayout {
                 content: MacSnapshottingView(layout: layout, content: view)
             )
             renderer.scale = 2
+            if let prepare {
+                renderer.render { _, _ in
+                    prepare()
+                }
+            }
             guard let image = renderer.nsImage else {
                 preconditionFailure("Could not render SwiftUI view as an image.")
             }

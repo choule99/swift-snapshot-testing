@@ -1394,7 +1394,8 @@ public extension UITraitCollection {
     traits: UITraitCollection,
     view: UIView,
     viewController: UIViewController,
-    settlingDelay: TimeInterval = 0
+    settlingDelay: TimeInterval = 0,
+    prepare: (@MainActor @Sendable () -> Void)? = nil
 )
     -> Async<UIImage> {
     let initialFrame = view.frame
@@ -1414,6 +1415,7 @@ public extension UITraitCollection {
 
     return Async { callback in
         let takeSnapshot: @MainActor @Sendable () -> Void = {
+            prepare?()
             if let snapshot = view.snapshot {
                 snapshot.run(callback)
             } else {

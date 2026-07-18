@@ -29,13 +29,15 @@ import UIKit
     ///   - size: A view size override.
     ///   - traits: A trait collection override.
     ///   - isOpaque: Whether to composite transparency onto white and omit the alpha channel.
+    ///   - prepare: A closure to run after layout and before rendering.
     static func image(
         drawHierarchyInKeyWindow: Bool = false,
         precision: Float = 1,
         perceptualPrecision: Float = 1,
         size: CGSize? = nil,
         traits: UITraitCollection = .init(),
-        isOpaque: Bool = false
+        isOpaque: Bool = false,
+        prepare: (@MainActor @Sendable () -> Void)? = nil
     )
         -> Snapshotting {
 
@@ -50,7 +52,8 @@ import UIKit
                 drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
                 traits: traits,
                 view: view,
-                viewController: .init()
+                viewController: .init(),
+                prepare: prepare
             )
         }
     }
