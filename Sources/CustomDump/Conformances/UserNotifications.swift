@@ -103,8 +103,7 @@ public import UserNotifications
     }
 }
 
-// NB: Xcode 13 does not include macOS 12 SDK
-#if compiler(>=5.5) && !os(macOS) && !targetEnvironment(macCatalyst)
+#if !os(macOS) && !targetEnvironment(macCatalyst)
 @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) extension UNNotificationInterruptionLevel: CustomDumpStringConvertible {
     public var customDumpDescription: String {
         switch self {
@@ -134,10 +133,10 @@ public import UserNotifications
                 if self.rawValue == .badge {
                     return "UNNotificationPresentationOptions.badge"
                 }
-                if #available(iOS 14, macOS 11, tvOS 14, watchOS 7, *), self.rawValue == .banner {
+                if self.rawValue == .banner {
                     return "UNNotificationPresentationOptions.banner"
                 }
-                if #available(iOS 14, macOS 11, tvOS 14, watchOS 7, *), self.rawValue == .list {
+                if self.rawValue == .list {
                     return "UNNotificationPresentationOptions.list"
                 }
                 if self.rawValue == .sound {
@@ -149,10 +148,7 @@ public import UserNotifications
 
         var options = self
         var children: [Option] = []
-        var allCases: [UNNotificationPresentationOptions] = [.alert, .badge]
-        if #available(iOS 14, macOS 11, tvOS 14, watchOS 7, *) {
-            allCases.append(contentsOf: [.banner, .list])
-        }
+        var allCases: [UNNotificationPresentationOptions] = [.alert, .badge, .banner, .list]
         allCases.append(.sound)
         for option in allCases where options.contains(option) {
             children.append(.init(rawValue: option))

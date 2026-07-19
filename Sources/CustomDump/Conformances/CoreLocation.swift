@@ -6,14 +6,6 @@ public import CoreLocation
 
 @available(iOS 13.4, macOS 10.15.4, tvOS 13.4, watchOS 6.2, *) extension CLLocation: CustomDumpReflectable {
     public var customDumpMirror: Mirror {
-        var ellipsoidalAltitude: Any?
-        var sourceInformation: Any?
-
-        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
-            ellipsoidalAltitude = self.ellipsoidalAltitude
-            sourceInformation = self.sourceInformation
-        }
-
         let children: KeyValuePairs<String, Any?> = [
             "coordinate": coordinate,
             "altitude": altitude,
@@ -61,7 +53,6 @@ extension CLFloor: CustomDumpReflectable {
     }
 }
 
-#if compiler(>=5.4)
 extension CLAccuracyAuthorization: CustomDumpStringConvertible {
     public var customDumpDescription: String {
         switch self {
@@ -74,7 +65,6 @@ extension CLAccuracyAuthorization: CustomDumpStringConvertible {
         }
     }
 }
-#endif
 
 extension CLActivityType: CustomDumpStringConvertible {
     public var customDumpDescription: String {
@@ -137,7 +127,6 @@ extension CLDeviceOrientation: CustomDumpStringConvertible {
     }
 }
 
-#if compiler(>=5.9)
 @available(iOS 7, macOS 10.15, *)
 @available(tvOS, unavailable)
 @available(visionOS, unavailable)
@@ -158,28 +147,6 @@ extension CLDeviceOrientation: CustomDumpStringConvertible {
     }
 }
 
-#elseif compiler(>=5.3)
-@available(iOS 7, macOS 10.15, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable) extension CLProximity: CustomDumpStringConvertible {
-    public var customDumpDescription: String {
-        switch self {
-            case .far:
-                return "CLProximity.far"
-            case .immediate:
-                return "CLProximity.immediate"
-            case .near:
-                return "CLProximity.near"
-            case .unknown:
-                return "CLProximity.unknown"
-            @unknown default:
-                return "CLProximity.(@unknown default, rawValue: \(self.rawValue))"
-        }
-    }
-}
-#endif
-
-#if compiler(>=5.9)
 @available(iOS 7, macOS 10, *)
 @available(tvOS, unavailable)
 @available(visionOS, unavailable)
@@ -195,20 +162,4 @@ extension CLDeviceOrientation: CustomDumpStringConvertible {
         }
     }
 }
-#else
-@available(iOS 7, macOS 10, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable) extension CLRegionState: CustomDumpStringConvertible {
-    public var customDumpDescription: String {
-        switch self {
-            case .inside:
-                "CLRegionState.inside"
-            case .outside:
-                "CLRegionState.outside"
-            case .unknown:
-                "CLRegionState.unknown"
-        }
-    }
-}
-#endif
 #endif

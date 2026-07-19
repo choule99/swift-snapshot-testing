@@ -5,10 +5,6 @@ import XCTest
 
 final class CoreLocationTests: XCTestCase {
     func testCLLocation() {
-        guard #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) else {
-            return
-        }
-
         let date = Date(timeIntervalSinceReferenceDate: 0)
         let sourceInfo = CLLocationSourceInformation(
             softwareSimulationState: true,

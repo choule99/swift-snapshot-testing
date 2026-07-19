@@ -639,7 +639,7 @@ import SwiftUI
 
     func testKeyPath() {
         // NB: While this should run on >=5.9, it currently crashes CI on Xcode 15
-        #if swift(>=5.10) && (os(iOS) || os(macOS) || os(tvOS) || os(watchOS))
+        #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
         if #available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *) {
             expectNoDifference(
                 String(customDumping: \UserClass.name),
@@ -1041,10 +1041,6 @@ import SwiftUI
 
     #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
     func testDuration() {
-        guard #available(macOS 13, iOS 16, watchOS 9, tvOS 16, *) else {
-            return
-        }
-
         expectNoDifference(
             String(customDumping: Duration.seconds(5)),
             """

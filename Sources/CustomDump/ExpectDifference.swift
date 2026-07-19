@@ -84,7 +84,6 @@ public func expectDifference<T: Equatable>(
     }
 }
 
-#if compiler(>=6.2)
 /// Expects that a value has a set of changes.
 ///
 /// An async version of
@@ -120,39 +119,6 @@ public nonisolated(nonsending) func expectDifference<T: Equatable>(
         reportIssue(error, fileID: fileID, filePath: filePath, line: line, column: column)
     }
 }
-#else
-public func expectDifference<T: Equatable & Sendable>(
-    _ expression: @autoclosure @Sendable () throws -> T,
-    _ message: @autoclosure @Sendable () -> String? = nil,
-    operation: @Sendable () async throws -> Void,
-    changes updateExpectingResult: @Sendable (inout T) throws -> Void,
-    fileID: StaticString = #fileID,
-    filePath: StaticString = #filePath,
-    line: UInt = #line,
-    column: UInt = #column
-) async {
-    do {
-        let original = try expression()
-        try await operation()
-        var expected = original
-        try updateExpectingResult(&expected)
-        let actual = try expression()
-        expectDifferenceHelp(
-            original: original,
-            expected: expected,
-            actual: actual,
-            isExhaustive: true,
-            message: expected != actual ? message() : nil,
-            fileID: fileID,
-            filePath: filePath,
-            line: line,
-            column: column
-        )
-    } catch {
-        reportIssue(error, fileID: fileID, filePath: filePath, line: line, column: column)
-    }
-}
-#endif
 
 private func expectDifferenceHelp<T: Equatable>(
     original: T,

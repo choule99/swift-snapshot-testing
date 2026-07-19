@@ -4,9 +4,7 @@ public import Foundation
 public import FoundationNetworking
 #endif
 
-// NB: Xcode 13 does not include macOS 12 SDK
-// NB: Swift 5.5 does not include AttributedString on other platforms (yet)
-#if compiler(>=5.5) && !targetEnvironment(macCatalyst) && (os(iOS) || os(tvOS) || os(watchOS))
+#if !targetEnvironment(macCatalyst) && (os(iOS) || os(tvOS) || os(watchOS))
 @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) extension AttributedString: CustomDumpRepresentable {
     public var customDumpValue: Any {
         NSAttributedString(self).string

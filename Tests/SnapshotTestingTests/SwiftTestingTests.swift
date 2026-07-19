@@ -1,4 +1,4 @@
-#if compiler(>=6) && canImport(Testing)
+#if canImport(Testing)
 import SnapshotTesting
 import Testing
 

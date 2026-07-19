@@ -1231,50 +1231,36 @@ public extension UITraitCollection {
         if let scnView = self as? SCNView {
             return Async(value: inWindow { scnView.snapshot() })
         } else if let skView = self as? SKView {
-            if #available(macOS 10.11, *) {
-                let cgImage = inWindow {
-                    guard let scene = skView.scene, let texture = skView.texture(from: scene) else {
-                        fatalError("Unable to create SKView snapshot texture.")
-                    }
-                    return texture.cgImage()
+            let cgImage = inWindow {
+                guard let scene = skView.scene, let texture = skView.texture(from: scene) else {
+                    fatalError("Unable to create SKView snapshot texture.")
                 }
-                #if os(macOS)
-                let image = Image(cgImage: cgImage, size: skView.bounds.size)
-                #elseif os(iOS) || os(tvOS)
-                let image = Image(cgImage: cgImage)
-                #endif
-                return Async(value: image)
-            } else {
-                fatalError("Taking SKView snapshots requires macOS 10.11 or greater")
+                return texture.cgImage()
             }
+            #if os(macOS)
+            let image = Image(cgImage: cgImage, size: skView.bounds.size)
+            #elseif os(iOS) || os(tvOS)
+            let image = Image(cgImage: cgImage)
+            #endif
+            return Async(value: image)
         }
         #if os(iOS) || os(macOS)
         if let wkWebView = self as? WKWebView {
             return Async<Image> { callback in
                 let work: @MainActor @Sendable () -> Void = {
-                    if #available(iOS 11.0, macOS 10.13, *) {
-                        inWindow {
-                            guard wkWebView.frame.width != 0, wkWebView.frame.height != 0 else {
-                                callback(Image())
-                                return
-                            }
-                            let configuration = WKSnapshotConfiguration()
-                            if #available(iOS 13, macOS 10.15, *) {
-                                configuration.afterScreenUpdates = false
-                            }
-                            wkWebView.takeSnapshot(with: configuration) { image, _ in
-                                guard let image else {
-                                    fatalError("WKWebView snapshot did not return an image.")
-                                }
-                                callback(image)
-                            }
+                    inWindow {
+                        guard wkWebView.frame.width != 0, wkWebView.frame.height != 0 else {
+                            callback(Image())
+                            return
                         }
-                    } else {
-                        #if os(iOS)
-                        fatalError("Taking WKWebView snapshots requires iOS 11.0 or greater")
-                        #elseif os(macOS)
-                        fatalError("Taking WKWebView snapshots requires macOS 10.13 or greater")
-                        #endif
+                        let configuration = WKSnapshotConfiguration()
+                        configuration.afterScreenUpdates = false
+                        wkWebView.takeSnapshot(with: configuration) { image, _ in
+                            guard let image else {
+                                fatalError("WKWebView snapshot did not return an image.")
+                            }
+                            callback(image)
+                        }
                     }
                 }
 
@@ -1449,15 +1435,11 @@ public extension UITraitCollection {
 private let offscreen: CGFloat = 10000
 
 @MainActor func renderer(bounds: CGRect, for traits: UITraitCollection) -> UIGraphicsImageRenderer {
-    if #available(iOS 11.0, tvOS 11.0, *) {
-        let format = UIGraphicsImageRendererFormat(
-            for: .merging([traits, .init(displayGamut: .SRGB)])
-        )
-        format.preferredRange = .standard
-        return UIGraphicsImageRenderer(bounds: bounds, format: format)
-    } else {
-        return UIGraphicsImageRenderer(bounds: bounds)
-    }
+    let format = UIGraphicsImageRendererFormat(
+        for: .merging([traits, .init(displayGamut: .SRGB)])
+    )
+    format.preferredRange = .standard
+    return UIGraphicsImageRenderer(bounds: bounds, format: format)
 }
 
 @MainActor func addViewController(

@@ -730,7 +730,6 @@ import XCTest
 
     #if !os(WASI)
     func testNestedCustomMirror() {
-        #if compiler(>=5.4)
         expectNoDifference(
             diff(
                 NestedDate(date: Date(timeIntervalSince1970: 0)),
@@ -741,7 +740,6 @@ import XCTest
             + NestedDate(date: Date(1970-01-01T00:00:01.000Z))
             """
         )
-        #endif
     }
     #endif
 

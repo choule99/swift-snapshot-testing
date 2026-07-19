@@ -8,16 +8,14 @@ import FoundationNetworking
 
 final class FoundationTests: XCTestCase {
     func testAttributedString() {
-        #if compiler(>=5.5) && !targetEnvironment(macCatalyst) && (os(iOS) || os(tvOS) || os(watchOS))
-        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
-            let dump = String(customDumping: try? AttributedString(markdown: "Hello, **Blob**!"))
-            expectNoDifference(
-                dump,
-                """
-                "Hello, Blob!"
-                """
-            )
-        }
+        #if !targetEnvironment(macCatalyst) && (os(iOS) || os(tvOS) || os(watchOS))
+        let dump = String(customDumping: try? AttributedString(markdown: "Hello, **Blob**!"))
+        expectNoDifference(
+            dump,
+            """
+            "Hello, Blob!"
+            """
+        )
         #endif
     }
 
@@ -44,7 +42,6 @@ final class FoundationTests: XCTestCase {
             """
         )
 
-        #if compiler(>=5.4)
         let nestedDump = String(customDumping: NestedDate(date: Date(timeIntervalSince1970: 0)))
         expectNoDifference(
             nestedDump,
@@ -52,7 +49,6 @@ final class FoundationTests: XCTestCase {
             NestedDate(date: Date(1970-01-01T00:00:00.000Z))
             """
         )
-        #endif
     }
     #endif
 
@@ -232,7 +228,7 @@ final class FoundationTests: XCTestCase {
             FoundationTests.BridgedError.thisIsFine(94)
             """
         )
-        #elseif compiler(>=5.4)
+        #else
         // Can't unwrap bridged Errors on Linux: https://bugs.swift.org/browse/SR-15191
         expectNoDifference(
             bridgedDump.replacingOccurrences(

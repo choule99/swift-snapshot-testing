@@ -19,11 +19,7 @@ import UIKit
             options: options, scale: scale
         ).pullback { path in
             let bounds = path.bounds
-            let format = if #available(iOS 11.0, tvOS 11.0, *) {
-                UIGraphicsImageRendererFormat.preferred()
-            } else {
-                UIGraphicsImageRendererFormat.default()
-            }
+            let format = UIGraphicsImageRendererFormat.preferred()
             format.scale = scale
             return UIGraphicsImageRenderer(bounds: bounds, format: format).image { _ in
                 path.fill()

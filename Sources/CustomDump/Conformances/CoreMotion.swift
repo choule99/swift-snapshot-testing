@@ -18,7 +18,6 @@ public import CoreMotion
     }
 }
 
-#if compiler(>=5.4)
 extension CMDeviceMotion.SensorLocation: CustomDumpStringConvertible {
     public var customDumpDescription: String {
         switch self {
@@ -33,9 +32,7 @@ extension CMDeviceMotion.SensorLocation: CustomDumpStringConvertible {
         }
     }
 }
-#endif
 
-#if compiler(>=5.5)
 @available(iOS, unavailable)
 @available(macOS, unavailable)
 @available(tvOS, unavailable)
@@ -56,7 +53,6 @@ extension CMDeviceMotion.SensorLocation: CustomDumpStringConvertible {
         }
     }
 }
-#endif
 
 extension CMMotionActivityConfidence: CustomDumpStringConvertible {
     public var customDumpDescription: String {

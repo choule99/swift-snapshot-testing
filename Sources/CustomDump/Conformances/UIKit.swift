@@ -191,10 +191,8 @@ public import UIKit
                 return "UISplitViewController.Column.secondary"
             case .compact:
                 return "UISplitViewController.Column.compact"
-            #if compiler(>=6.2) // Xcode 26 / iOS 26 SDK
             case .inspector:
                 return "UISplitViewController.Column.inspector"
-            #endif
             @unknown default:
                 return "UISplitViewController.Column.(@unknown default, rawValue: \(self.rawValue))"
         }
@@ -247,7 +245,6 @@ public import UIKit
     }
 }
 
-#if compiler(>=6.2) // Check for Xcode 26
 @available(iOS 26.0, macCatalyst 26.0, tvOS 26.0, visionOS 26.0, *)
 @available(watchOS, unavailable) extension UISplitViewController.LayoutEnvironment: CustomDumpStringConvertible {
     public var customDumpDescription: String {
@@ -264,7 +261,6 @@ public import UIKit
         }
     }
 }
-#endif
 
 #endif
 #endif

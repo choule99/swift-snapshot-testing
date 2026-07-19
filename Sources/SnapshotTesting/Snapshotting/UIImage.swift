@@ -334,7 +334,7 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, perceptua
         return "Newly-taken snapshot does not match reference."
     }
     #if !os(watchOS)
-    if perceptualPrecision < 1, #available(iOS 11.0, tvOS 11.0, *) {
+    if perceptualPrecision < 1 {
         guard let normalizedOldImage = oldContext.makeImage(),
               let normalizedNewImage = newerContext.makeImage() else {
             return "Image data could not be normalized."
@@ -658,12 +658,6 @@ extension CIImage {
         guard let device else {
             return false
         }
-        #if targetEnvironment(simulator)
-        guard #available(iOS 14.0, tvOS 14.0, *) else {
-            // The MPSSupportsMTLDevice method throws an exception on iOS/tvOS simulators < 14.0
-            return false
-        }
-        #endif
         return MPSSupportsMTLDevice(device)
     }
 

@@ -93,11 +93,7 @@ public enum SwiftUISnapshotLayout {
                     let hostingController = UIHostingController(rootView: view.fixedSize())
 
                     if config.safeArea == .zero {
-                        if #available(iOS 16.4, tvOS 16.4, *) {
-                            hostingController.safeAreaRegions = []
-                        } else {
-                            hostingController._disableSafeArea = true
-                        }
+                        hostingController.safeAreaRegions = []
                     }
 
                     let maxSize = CGSize(width: 0.0, height: 0.0)

@@ -45,7 +45,6 @@ public struct InlineSnapshotAssertionOptions: Sendable {
     }
 }
 
-#if canImport(SwiftSyntax509)
 import SwiftParser
 import SwiftSyntax
 import SwiftSyntaxBuilder
@@ -257,41 +256,6 @@ import XCTest
         column: column
     )
 }
-#else
-@available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0") @MainActor public func assertInlineSnapshot<Value>(
-    of value: @autoclosure () throws -> Value?,
-    as snapshotting: Snapshotting<Value, String>,
-    message: @autoclosure () -> String = "",
-    options: InlineSnapshotAssertionOptions = .init(),
-    matches expected: (() -> String)? = nil,
-    fileID: StaticString = #fileID,
-    file filePath: StaticString = #filePath,
-    function: StaticString = #function,
-    line: UInt = #line,
-    column: UInt = #column
-) {
-    fatalError()
-}
-
-@available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0")
-@available(*, deprecated, message: "Use 'options: InlineSnapshotAssertionOptions'.")
-@MainActor @_disfavoredOverload public func assertInlineSnapshot<Value>(
-    of value: @autoclosure () throws -> Value?,
-    as snapshotting: Snapshotting<Value, String>,
-    message: @autoclosure () -> String = "",
-    record isRecording: Bool? = nil,
-    timeout: TimeInterval = 5,
-    syntaxDescriptor: InlineSnapshotSyntaxDescriptor = .init(),
-    matches expected: (() -> String)? = nil,
-    fileID: StaticString = #fileID,
-    file filePath: StaticString = #filePath,
-    function: StaticString = #function,
-    line: UInt = #line,
-    column: UInt = #column
-) {
-    fatalError()
-}
-#endif
 
 /// A structure that describes the location of an inline snapshot.
 ///
@@ -352,7 +316,6 @@ public struct InlineSnapshotSyntaxDescriptor: Hashable, Sendable {
         self.trailingClosureOffset = trailingClosureOffset
     }
 
-    #if canImport(SwiftSyntax509)
     /// Generates a test failure immediately and unconditionally at the described trailing closure.
     ///
     /// This method will attempt to locate the line of the trailing closure described by this type
@@ -399,22 +362,10 @@ public struct InlineSnapshotSyntaxDescriptor: Hashable, Sendable {
     fileprivate func contains(_ label: String) -> Bool {
         self.trailingClosureLabel == label || self.deprecatedTrailingClosureLabels.contains(label)
     }
-    #else
-    @available(*, unavailable, message: "'assertInlineSnapshot' requires 'swift-syntax' >= 509.0.0") public func fail(
-        _ message: @autoclosure () -> String = "",
-        fileID: StaticString,
-        file filePath: StaticString,
-        line: UInt,
-        column: UInt
-    ) {
-        fatalError()
-    }
-    #endif
 }
 
 // MARK: - Private
 
-#if canImport(SwiftSyntax509)
 private let installTestObserver: Void = {
     atexit {
         writeInlineSnapshots()
@@ -806,7 +757,7 @@ private final class SnapshotVisitor: SyntaxVisitor {
     }
 }
 
-fileprivate extension String {
+private extension String {
     func indenting(by count: Int) -> String {
         self.indenting(with: String(repeating: " ", count: count))
     }
@@ -835,7 +786,6 @@ fileprivate extension String {
         return hashCount
     }
 }
-#endif
 
 @_spi(Internals) public final class LockIsolated<Value>: @unchecked Sendable {
     private var _value: Value

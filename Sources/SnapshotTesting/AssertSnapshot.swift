@@ -546,7 +546,6 @@ public struct SnapshotAssertionOptions: Sendable {
                 }
 
                 if isSwiftTesting {
-                    #if compiler(>=6.2)
                     recordSwiftTestingAttachment(
                         writeToDisk ? try Data(contentsOf: snapshotFileUrl) : snapshotData,
                         named: snapshotFileUrl.lastPathComponent,
@@ -557,7 +556,6 @@ public struct SnapshotAssertionOptions: Sendable {
                             column: Int(column)
                         )
                     )
-                    #endif
                 } else {
                     #if !os(Android) && !os(Linux) && !os(Windows)
                     if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
@@ -770,7 +768,6 @@ private let _counter = File.Counter()
         return
     }
     if isSwiftTesting {
-        #if compiler(>=6.2)
         for attachment in attachments {
             switch attachment {
                 case .xcTest:
@@ -788,7 +785,6 @@ private let _counter = File.Counter()
                     )
             }
         }
-        #endif
     } else {
         #if !os(Linux) && !os(Android) && !os(Windows)
         guard ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") else {
@@ -880,7 +876,7 @@ enum File {
     }
 }
 
-#if canImport(Testing) && compiler(>=6.2)
+#if canImport(Testing)
 private func recordSwiftTestingAttachment(
     _ data: Data,
     named name: String,
