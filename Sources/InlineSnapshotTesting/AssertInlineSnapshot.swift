@@ -403,7 +403,7 @@ private struct TestSource {
 
 private func testSource(file: File) throws -> TestSource {
     let filePath = "\(file.path)"
-    let source = try String(contentsOfFile: filePath)
+    let source = try String(contentsOfFile: filePath, encoding: .utf8)
     let sourceFile = Parser.parse(source: source)
     return TestSource(
         source: source,
