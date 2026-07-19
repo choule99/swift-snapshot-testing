@@ -44,6 +44,7 @@ public extension Snapshotting where Value == URLRequest, Format == String {
             } else {
                 request.httpBody
             }
+            // swiftlint:disable:next optional_data_string_conversion
             let body = bodyData.map { ["\n\(String(decoding: $0, as: UTF8.self))"] } ?? []
 
             return ([method] + headers + body).joined(separator: "\n")

@@ -12,6 +12,7 @@ public extension Diffing where Value == String {
     /// equivalent.
     static let lines = Diffing.diff(
         toData: { Data($0.utf8) },
+        // swiftlint:disable:next optional_data_string_conversion
         fromData: { String(decoding: $0, as: UTF8.self) },
         diffV2: { old, new in
             let old = old.normalizedLineEndings
