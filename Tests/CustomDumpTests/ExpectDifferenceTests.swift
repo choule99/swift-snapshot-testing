@@ -6,12 +6,9 @@ import Testing
 struct ExpectDifferenceTests {
     @Test func basics() {
         var user = User(id: 42, name: "Blob")
-        func increment<Value>(_ root: inout Value, at keyPath: WritableKeyPath<Value, Int>) {
-            root[keyPath: keyPath] += 1
-        }
 
         expectDifference(user) {
-            increment(&user, at: \.id)
+            user.id += 1
         } changes: {
             $0.id = 43
         }
@@ -28,13 +25,10 @@ struct ExpectDifferenceTests {
 
     @Test func failure() {
         var user = User(id: 42, name: "Blob")
-        func increment<Value>(_ root: inout Value, at keyPath: WritableKeyPath<Value, Int>) {
-            root[keyPath: keyPath] += 1
-        }
 
         withKnownIssue {
             expectDifference(user) {
-                increment(&user, at: \.id)
+                user.id += 1
             } changes: {
                 $0.id = 44
             }
