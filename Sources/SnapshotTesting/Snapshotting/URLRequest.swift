@@ -34,16 +34,15 @@ public extension Snapshotting where Value == URLRequest, Format == String {
                 .map { key, value in "\(key): \(value)" }
                 .sorted()
 
-            let bodyData: Data?
-            if pretty,
-               let httpBody = request.httpBody,
-               let object = try? JSONSerialization.jsonObject(with: httpBody, options: []),
-               let prettyBody = try? JSONSerialization.data(
-                   withJSONObject: object, options: [.prettyPrinted, .sortedKeys]
-               ) {
-                bodyData = prettyBody
+            let bodyData: Data? = if pretty,
+                                     let httpBody = request.httpBody,
+                                     let object = try? JSONSerialization.jsonObject(with: httpBody, options: []),
+                                     let prettyBody = try? JSONSerialization.data(
+                                         withJSONObject: object, options: [.prettyPrinted, .sortedKeys]
+                                     ) {
+                prettyBody
             } else {
-                bodyData = request.httpBody
+                request.httpBody
             }
             let body = bodyData.map { ["\n\(String(decoding: $0, as: UTF8.self))"] } ?? []
 
