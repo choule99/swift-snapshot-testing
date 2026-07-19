@@ -1,5 +1,3 @@
-import Foundation
-
 extension String {
 
     /// Checks whether the string has escaped special character literals or not.
@@ -17,29 +15,15 @@ extension String {
     ///
     /// - Returns: True if the string has any special character literals, false otherwise.
     func hasEscapedSpecialCharactersLiteral() -> Bool {
-        let multilineLiteralAndNumberSign = ##"""
-        """#
-        """##
-        let patterns = [
-            // Matches \u{n} where n is a 1–8 digit hexadecimal number
-            try? NSRegularExpression(pattern: #"\\u\{[a-fA-f0-9]{1,8}\}"#, options: .init()),
-            try? NSRegularExpression(pattern: #"\0"#, options: .ignoreMetacharacters),
-            try? NSRegularExpression(pattern: #"\\"#, options: .ignoreMetacharacters),
-            try? NSRegularExpression(pattern: #"\t"#, options: .ignoreMetacharacters),
-            try? NSRegularExpression(pattern: #"\n"#, options: .ignoreMetacharacters),
-            try? NSRegularExpression(pattern: #"\r"#, options: .ignoreMetacharacters),
-            try? NSRegularExpression(pattern: #"\""#, options: .ignoreMetacharacters),
-            try? NSRegularExpression(pattern: #"\'"#, options: .ignoreMetacharacters),
-            try? NSRegularExpression(
-                pattern: multilineLiteralAndNumberSign, options: .ignoreMetacharacters
-            )
-        ]
-        let matches = patterns.compactMap {
-            $0?.firstMatch(
-                in: self, options: .init(), range: NSRange(location: 0, length: self.count)
-            )
-        }
-        return !matches.isEmpty
+        contains(/\\u\{[a-fA-F0-9]{1,8}\}/)
+            || contains(#"\0"#)
+            || contains(#"\\"#)
+            || contains(#"\t"#)
+            || contains(#"\n"#)
+            || contains(#"\r"#)
+            || contains(#"\""#)
+            || contains(#"\'"#)
+            || contains("\"\"\"#")
     }
 
     /// This method calculates how many number signs (#) we need to add around a string
@@ -50,17 +34,9 @@ extension String {
     /// - Returns: The number of "number signs(#)" needed around a string literal.
     ///            When there is no "#, ... return 1
     func numberOfNumberSignsNeeded() -> Int {
-        guard let pattern = try? NSRegularExpression(pattern: ##""#{1,}"##, options: .init()) else {
-            preconditionFailure("Invalid number-sign regular expression")
-        }
-
-        let matches = pattern.matches(
-            in: self, options: .init(), range: NSRange(location: 0, length: self.count)
-        )
-
         // If we have "## then the length of the match is 3,
         // which is also the number of "number signs (#)" we need to add
         // before and after the string literal
-        return matches.map(\.range.length).max() ?? 1
+        return matches(of: /"#+/).map { $0.0.count }.max() ?? 1
     }
 }
