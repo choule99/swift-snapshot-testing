@@ -442,6 +442,15 @@ private func writeInlineSnapshots() {
     }
 }
 
+private func firstTrailingClosureOffset(in arguments: LabeledExprListSyntax) -> Int {
+    arguments
+        .enumerated()
+        .reversed()
+        .prefix { $0.element.expression.is(ClosureExprSyntax.self) }
+        .last?.offset
+        ?? arguments.count
+}
+
 private final class SnapshotRewriter: SyntaxRewriter {
     let file: File
     var function: String?
@@ -532,17 +541,8 @@ private final class SnapshotRewriter: SyntaxRewriter {
             }
 
             let arguments = functionCallExpr.arguments
-            let firstTrailingClosureOffset =
-                arguments
-                    .enumerated()
-                    .reversed()
-                    .prefix(while: { $0.element.expression.is(ClosureExprSyntax.self) })
-                    .last?
-                    .offset
-                    ?? arguments.count
-
             let trailingClosureOffset =
-                firstTrailingClosureOffset
+                firstTrailingClosureOffset(in: arguments)
                     + snapshot.syntaxDescriptor.trailingClosureOffset
 
             let centeredTrailingClosureOffset = trailingClosureOffset - arguments.count
@@ -708,17 +708,8 @@ private final class SnapshotVisitor: SyntaxVisitor {
         }
 
         let arguments = functionCallExpr.arguments
-        let firstTrailingClosureOffset =
-            arguments
-                .enumerated()
-                .reversed()
-                .prefix(while: { $0.element.expression.is(ClosureExprSyntax.self) })
-                .last?
-                .offset
-                ?? arguments.count
-
         let trailingClosureOffset =
-            firstTrailingClosureOffset
+            firstTrailingClosureOffset(in: arguments)
                 + self.syntaxDescriptor.trailingClosureOffset
 
         let centeredTrailingClosureOffset = trailingClosureOffset - arguments.count
