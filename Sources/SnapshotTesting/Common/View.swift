@@ -54,113 +54,91 @@ public struct ViewImageConfig: Sendable {
     public static let iPhoneSe = ViewImageConfig.iPhoneSe(.portrait)
 
     public static func iPhoneSe(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .zero
-                size = .init(width: 568, height: 320)
-            case .portrait:
-                safeArea = .init(top: 20, left: 0, bottom: 0, right: 0)
-                size = .init(width: 320, height: 568)
-        }
-        return .init(safeArea: safeArea, size: size, traits: .iPhoneSe(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 320, height: 568),
+            portraitSafeArea: .init(top: 20, left: 0, bottom: 0, right: 0),
+            landscapeSafeArea: .zero,
+            landscapeHorizontalSizeClass: .compact,
+            forceTouchCapability: .available
+        )
     }
 
     public static let iPhone8 = ViewImageConfig.iPhone8(.portrait)
 
     public static func iPhone8(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .zero
-                size = .init(width: 667, height: 375)
-            case .portrait:
-                safeArea = .init(top: 20, left: 0, bottom: 0, right: 0)
-                size = .init(width: 375, height: 667)
-        }
-        return .init(safeArea: safeArea, size: size, traits: .iPhone8(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 375, height: 667),
+            portraitSafeArea: .init(top: 20, left: 0, bottom: 0, right: 0),
+            landscapeSafeArea: .zero,
+            landscapeHorizontalSizeClass: .compact,
+            forceTouchCapability: .available
+        )
     }
 
     public static let iPhone8Plus = ViewImageConfig.iPhone8Plus(.portrait)
 
     public static func iPhone8Plus(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .zero
-                size = .init(width: 736, height: 414)
-            case .portrait:
-                safeArea = .init(top: 20, left: 0, bottom: 0, right: 0)
-                size = .init(width: 414, height: 736)
-        }
-        return .init(safeArea: safeArea, size: size, traits: .iPhone8Plus(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 414, height: 736),
+            portraitSafeArea: .init(top: 20, left: 0, bottom: 0, right: 0),
+            landscapeSafeArea: .zero,
+            landscapeHorizontalSizeClass: .regular,
+            forceTouchCapability: .available
+        )
     }
 
     public static let iPhoneX = ViewImageConfig.iPhoneX(.portrait)
 
     public static func iPhoneX(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .init(top: 0, left: 44, bottom: 24, right: 44)
-                size = .init(width: 812, height: 375)
-            case .portrait:
-                safeArea = .init(top: 44, left: 0, bottom: 34, right: 0)
-                size = .init(width: 375, height: 812)
-        }
-        return .init(safeArea: safeArea, size: size, traits: .iPhoneX(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 375, height: 812),
+            portraitSafeArea: .init(top: 44, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 44, bottom: 24, right: 44),
+            landscapeHorizontalSizeClass: .compact,
+            forceTouchCapability: .available
+        )
     }
 
     public static let iPhoneXsMax = ViewImageConfig.iPhoneXsMax(.portrait)
 
     public static func iPhoneXsMax(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .init(top: 0, left: 44, bottom: 24, right: 44)
-                size = .init(width: 896, height: 414)
-            case .portrait:
-                safeArea = .init(top: 44, left: 0, bottom: 34, right: 0)
-                size = .init(width: 414, height: 896)
-        }
-        return .init(safeArea: safeArea, size: size, traits: .iPhoneXsMax(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 414, height: 896),
+            portraitSafeArea: .init(top: 44, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 44, bottom: 24, right: 44),
+            landscapeHorizontalSizeClass: .regular,
+            forceTouchCapability: .available
+        )
     }
 
     @available(iOS 11.0, *) public static let iPhoneXr = ViewImageConfig.iPhoneXr(.portrait)
 
     @available(iOS 11.0, *) public static func iPhoneXr(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .init(top: 0, left: 44, bottom: 24, right: 44)
-                size = .init(width: 896, height: 414)
-            case .portrait:
-                safeArea = .init(top: 44, left: 0, bottom: 34, right: 0)
-                size = .init(width: 414, height: 896)
-        }
-        return .init(safeArea: safeArea, size: size, traits: .iPhoneXr(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 414, height: 896),
+            portraitSafeArea: .init(top: 44, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 44, bottom: 24, right: 44),
+            landscapeHorizontalSizeClass: .regular
+        )
     }
 
     public static let iPhone12 = ViewImageConfig.iPhone12(.portrait)
 
     public static func iPhone12(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .init(top: 0, left: 47, bottom: 21, right: 47)
-                size = .init(width: 844, height: 390)
-            case .portrait:
-                safeArea = .init(top: 47, left: 0, bottom: 34, right: 0)
-                size = .init(width: 390, height: 844)
-        }
-        return .init(safeArea: safeArea, size: size, traits: .iPhone12(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 390, height: 844),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .compact,
+            forceTouchCapability: .available
+        )
     }
 
     public static let iPhone12Pro = ViewImageConfig.iPhone12Pro(.portrait)
@@ -172,53 +150,40 @@ public struct ViewImageConfig: Sendable {
     public static let iPhone12ProMax = ViewImageConfig.iPhone12ProMax(.portrait)
 
     public static func iPhone12ProMax(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .init(top: 0, left: 47, bottom: 21, right: 47)
-                size = .init(width: 926, height: 428)
-            case .portrait:
-                safeArea = .init(top: 47, left: 0, bottom: 34, right: 0)
-                size = .init(width: 428, height: 926)
-        }
-        return .init(safeArea: safeArea, size: size, traits: .iPhone12ProMax(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 428, height: 926),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .regular,
+            forceTouchCapability: .available
+        )
     }
 
     public static let iPhone13 = ViewImageConfig.iPhone13(.portrait)
 
     public static func iPhone13(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .init(top: 0, left: 47, bottom: 21, right: 47)
-                size = .init(width: 844, height: 390)
-            case .portrait:
-                safeArea = .init(top: 47, left: 0, bottom: 34, right: 0)
-                size = .init(width: 390, height: 844)
-        }
-
-        return .init(
-            safeArea: safeArea, size: size, traits: UITraitCollection.iPhone13(orientation)
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 390, height: 844),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .compact,
+            forceTouchCapability: .available
         )
     }
 
     public static let iPhone13Mini = ViewImageConfig.iPhone13Mini(.portrait)
 
     public static func iPhone13Mini(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .init(top: 0, left: 50, bottom: 21, right: 50)
-                size = .init(width: 812, height: 375)
-            case .portrait:
-                safeArea = .init(top: 50, left: 0, bottom: 34, right: 0)
-                size = .init(width: 375, height: 812)
-        }
-
-        return .init(safeArea: safeArea, size: size, traits: .iPhone13(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 375, height: 812),
+            portraitSafeArea: .init(top: 50, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 50, bottom: 21, right: 50),
+            landscapeHorizontalSizeClass: .compact,
+            forceTouchCapability: .available
+        )
     }
 
     public static let iPhone13Pro = ViewImageConfig.iPhone13Pro(.portrait)
@@ -230,18 +195,14 @@ public struct ViewImageConfig: Sendable {
     public static let iPhone13ProMax = ViewImageConfig.iPhone13ProMax(.portrait)
 
     public static func iPhone13ProMax(_ orientation: Orientation) -> ViewImageConfig {
-        let safeArea: UIEdgeInsets
-        let size: CGSize
-        switch orientation {
-            case .landscape:
-                safeArea = .init(top: 0, left: 47, bottom: 21, right: 47)
-                size = .init(width: 926, height: 428)
-            case .portrait:
-                safeArea = .init(top: 47, left: 0, bottom: 34, right: 0)
-                size = .init(width: 428, height: 926)
-        }
-
-        return .init(safeArea: safeArea, size: size, traits: .iPhone13ProMax(orientation))
+        modernIPhone(
+            orientation,
+            portraitSize: .init(width: 428, height: 926),
+            portraitSafeArea: .init(top: 47, left: 0, bottom: 34, right: 0),
+            landscapeSafeArea: .init(top: 0, left: 47, bottom: 21, right: 47),
+            landscapeHorizontalSizeClass: .regular,
+            forceTouchCapability: .available
+        )
     }
 
     public static let iPhone14 = ViewImageConfig.iPhone14(.portrait)
@@ -405,7 +366,8 @@ public struct ViewImageConfig: Sendable {
         portraitSize: CGSize,
         portraitSafeArea: UIEdgeInsets,
         landscapeSafeArea: UIEdgeInsets,
-        landscapeHorizontalSizeClass: UIUserInterfaceSizeClass
+        landscapeHorizontalSizeClass: UIUserInterfaceSizeClass,
+        forceTouchCapability: UIForceTouchCapability = .unavailable
     ) -> ViewImageConfig {
         let safeArea: UIEdgeInsets
         let size: CGSize
@@ -427,7 +389,7 @@ public struct ViewImageConfig: Sendable {
             safeArea: safeArea,
             size: size,
             traits: .merging([
-                .init(forceTouchCapability: .unavailable),
+                .init(forceTouchCapability: forceTouchCapability),
                 .init(horizontalSizeClass: horizontalSizeClass),
                 .init(layoutDirection: .leftToRight),
                 .init(preferredContentSizeCategory: .medium),
