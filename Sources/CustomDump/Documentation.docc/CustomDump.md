@@ -454,5 +454,3 @@ customDump(ID(rawValue: "deadbeef")
 - ``CustomDumpStringConvertible``
 - ``CustomDumpRepresentable``
 - ``CustomDumpReflectable``
-
-### Deprecations
