@@ -428,10 +428,6 @@ private extension Substring {
         self = Substring(newString)
     }
 
-    func hasOpeningMultilineStringDelimiter() -> Bool {
-        range(of: extendedOpeningStringDelimitersPattern, options: .regularExpression) != nil
-    }
-
     func hasClosingMultilineStringDelimiter() -> Bool {
         range(of: extendedClosingStringDelimitersPattern, options: .regularExpression) != nil
     }
