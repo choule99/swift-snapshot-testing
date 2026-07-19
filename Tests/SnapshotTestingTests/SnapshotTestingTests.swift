@@ -1855,7 +1855,7 @@ final class SnapshotTestingTests: BaseTestCase {
 
     func testUIBezierPath() async {
         #if os(iOS) || os(tvOS)
-        let path = UIBezierPath.heart
+        let path = UIBezierPath(cgPath: .heart)
 
         let osName: String
         #if os(iOS)

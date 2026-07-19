@@ -57,15 +57,6 @@ extension CGPath {
 }
 #endif
 
-#if os(iOS) || os(tvOS)
-extension UIBezierPath {
-    /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
-    static var heart: UIBezierPath {
-        UIBezierPath(cgPath: .heart)
-    }
-}
-#endif
-
 #if os(macOS)
 extension NSBezierPath {
     /// Creates an approximation of a heart at a 45º angle with a circle above, using all available element types:
