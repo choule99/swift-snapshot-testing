@@ -160,30 +160,19 @@ import UIKit
     }
     #endif
 
-    #if os(iOS) || os(tvOS)
-    private func snapshot<Value>(
+    private func snapshot<Value, Format>(
         _ value: Value,
-        as strategy: Snapshotting<Value, UIImage>
-    ) async -> UIImage {
+        as strategy: Snapshotting<Value, Format>
+    ) async -> Format {
+        var result: Format!
         await withCheckedContinuation { continuation in
             strategy.snapshot(value).run {
-                continuation.resume(returning: $0)
+                result = $0
+                continuation.resume()
             }
         }
+        return result
     }
-
-    #elseif os(macOS)
-    private func snapshot<Value>(
-        _ value: Value,
-        as strategy: Snapshotting<Value, NSImage>
-    ) async -> NSImage {
-        await withCheckedContinuation { continuation in
-            strategy.snapshot(value).run {
-                continuation.resume(returning: $0)
-            }
-        }
-    }
-    #endif
 }
 
 @MainActor private final class PrepareState {
