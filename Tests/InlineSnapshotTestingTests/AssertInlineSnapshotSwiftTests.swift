@@ -132,9 +132,11 @@ extension BaseSuite {
                 assertInlineSnapshot(
                     of: "Hello",
                     as: .customDump,
-                    syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
-                        trailingClosureLabel: "is",
-                        trailingClosureOffset: 1
+                    options: .init(
+                        syntaxDescriptor: .init(
+                            trailingClosureLabel: "is",
+                            trailingClosureOffset: 1
+                        )
                     ),
                     matches: expected,
                     fileID: fileID,
@@ -170,9 +172,11 @@ extension BaseSuite {
                     """,
                     as: .lines,
                     message: "Head did not match",
-                    syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
-                        trailingClosureLabel: "head",
-                        trailingClosureOffset: 1
+                    options: .init(
+                        syntaxDescriptor: .init(
+                            trailingClosureLabel: "head",
+                            trailingClosureOffset: 1
+                        )
                     ),
                     matches: head,
                     fileID: fileID,
@@ -197,9 +201,11 @@ extension BaseSuite {
                     """,
                     as: .lines,
                     message: "Body did not match",
-                    syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
-                        trailingClosureLabel: "body",
-                        trailingClosureOffset: 2
+                    options: .init(
+                        syntaxDescriptor: .init(
+                            trailingClosureLabel: "body",
+                            trailingClosureOffset: 2
+                        )
                     ),
                     matches: body,
                     fileID: fileID,
@@ -249,9 +255,11 @@ extension BaseSuite {
                 assertInlineSnapshot(
                     of: value(),
                     as: .customDump,
-                    syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
-                        trailingClosureLabel: "is",
-                        trailingClosureOffset: 1
+                    options: .init(
+                        syntaxDescriptor: .init(
+                            trailingClosureLabel: "is",
+                            trailingClosureOffset: 1
+                        )
                     ),
                     matches: expected,
                     fileID: fileID,
@@ -339,9 +347,11 @@ extension BaseSuite {
     assertInlineSnapshot(
         of: value(),
         as: .customDump,
-        syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
-            trailingClosureLabel: "is",
-            trailingClosureOffset: 1
+        options: .init(
+            syntaxDescriptor: .init(
+                trailingClosureLabel: "is",
+                trailingClosureOffset: 1
+            )
         ),
         matches: expected,
         fileID: fileID,

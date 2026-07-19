@@ -75,7 +75,7 @@ extension BaseSuite {
             #expect(!Diffing<UIImage>.image.toData(UIImage()).isEmpty)
 
             let strategy: Snapshotting<Text, UIImage> = .image(
-                precision: 0.99,
+                options: .init(precision: 0.99),
                 layout: .fixed(width: 10, height: 10)
             )
             await confirmation { confirmation in

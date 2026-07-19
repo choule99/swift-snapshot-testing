@@ -910,8 +910,7 @@ final class SnapshotTestingTests: BaseTestCase {
         XCTAssertNil(Diffing<UIImage>.image(scale: 1).diffV2(sRGBImage, displayP3Image))
         XCTAssertNil(
             Diffing<UIImage>.image(
-                precision: 0.99,
-                perceptualPrecision: 0.99,
+                options: .init(precision: 0.99, perceptualPrecision: 0.99),
                 scale: 1
             ).diffV2(sRGBImage, similarDisplayP3Image)
         )
@@ -2301,7 +2300,10 @@ final class SnapshotTestingTests: BaseTestCase {
         view.backgroundColor = .blue
 
         let failure = verifySnapshot(
-            of: view, as: .image, named: "notEmptyImage", record: .never
+            of: view,
+            as: .image,
+            named: "notEmptyImage",
+            options: .init(record: .never)
         )
         XCTAssertNotNil(failure)
         #endif

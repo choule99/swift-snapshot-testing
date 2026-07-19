@@ -169,8 +169,10 @@ class RecordTests: BaseTestCase {
             assertSnapshot(
                 of: 42,
                 as: .json,
-                record: .failed,
-                artifactsDirectory: artifactsDirectory.path
+                options: .init(
+                    record: .failed,
+                    artifactsDirectory: artifactsDirectory.path
+                )
             )
         } issueMatcher: {
             $0.compactDescription.hasPrefix("failed - Snapshot does not match reference.\n")
@@ -215,15 +217,21 @@ class RecordTests: BaseTestCase {
         defer { resetAccessedSnapshotPaths() }
 
         try Data("42".utf8).write(to: snapshotURL)
-        XCTAssertNil(verifySnapshot(of: 42, as: .json, named: "1", record: .never))
+        XCTAssertNil(
+            verifySnapshot(of: 42, as: .json, named: "1", options: .init(record: .never))
+        )
         XCTAssertEqual(accessedSnapshotPaths, [snapshotURL])
 
         resetAccessedSnapshotPaths()
         try Data([0xFF]).write(to: snapshotURL)
-        XCTAssertNotNil(verifySnapshot(of: 42, as: .json, named: "1", record: .never))
+        XCTAssertNotNil(
+            verifySnapshot(of: 42, as: .json, named: "1", options: .init(record: .never))
+        )
         XCTAssertEqual(accessedSnapshotPaths, [snapshotURL])
 
-        XCTAssertNotNil(verifySnapshot(of: 42, as: .json, named: "1", record: .never))
+        XCTAssertNotNil(
+            verifySnapshot(of: 42, as: .json, named: "1", options: .init(record: .never))
+        )
         XCTAssertEqual(accessedSnapshotPaths, [snapshotURL])
 
         resetAccessedSnapshotPaths()
@@ -265,8 +273,10 @@ class RecordTests: BaseTestCase {
         let failure = verifySnapshot(
             of: 42,
             as: .json,
-            record: .failed,
-            artifactsDirectory: artifactsDirectory.path
+            options: .init(
+                record: .failed,
+                artifactsDirectory: artifactsDirectory.path
+            )
         )
 
         XCTAssertEqual(
@@ -292,8 +302,10 @@ class RecordTests: BaseTestCase {
         let failure = verifySnapshot(
             of: 42,
             as: .json,
-            record: .never,
-            artifactsDirectory: artifactsDirectory.path
+            options: .init(
+                record: .never,
+                artifactsDirectory: artifactsDirectory.path
+            )
         )
 
         XCTAssertEqual(
