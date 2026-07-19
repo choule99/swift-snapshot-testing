@@ -45,7 +45,7 @@ public extension Snapshotting where Value == URLRequest, Format == String {
             } else {
                 bodyData = request.httpBody
             }
-            let body = bodyData.map { ["\n\(String(lossyUTF8: $0))"] } ?? []
+            let body = bodyData.map { ["\n\(String(decoding: $0, as: UTF8.self))"] } ?? []
 
             return ([method] + headers + body).joined(separator: "\n")
         }

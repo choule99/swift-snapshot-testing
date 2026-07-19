@@ -7,18 +7,12 @@ public extension Snapshotting where Value == String, Format == String {
     static let lines = Snapshotting(pathExtension: "txt", diffing: .lines)
 }
 
-extension String {
-    init(lossyUTF8 bytes: some Collection<UInt8>) {
-        self.init(decoding: bytes, as: UTF8.self)
-    }
-}
-
 public extension Diffing where Value == String {
     /// A line-diffing strategy for UTF-8 text that treats LF, CRLF, and CR line endings as
     /// equivalent.
     static let lines = Diffing.diff(
         toData: { Data($0.utf8) },
-        fromData: { String(lossyUTF8: $0) },
+        fromData: { String(decoding: $0, as: UTF8.self) },
         diffV2: { old, new in
             let old = old.normalizedLineEndings
             let new = new.normalizedLineEndings
