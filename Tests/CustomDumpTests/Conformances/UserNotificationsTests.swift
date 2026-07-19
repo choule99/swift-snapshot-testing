@@ -5,10 +5,8 @@ import XCTest
 
 class UserNotificationsTests: XCTestCase {
     func testUNAuthorizationOptions() {
-        var dump = ""
-        customDump([.badge, .alert] as UNAuthorizationOptions, to: &dump)
         XCTAssertEqual(
-            dump,
+            String(customDumping: [.badge, .alert] as UNAuthorizationOptions),
             """
             Set([
               UNAuthorizationOptions.alert,

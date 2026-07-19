@@ -5,10 +5,8 @@ import XCTest
 
 final class UIKitTests: XCTestCase {
     func testUIControlState() {
-        var dump = ""
-        customDump([.selected, .highlighted] as UIControl.State, to: &dump)
         XCTAssertEqual(
-            dump,
+            String(customDumping: [.selected, .highlighted] as UIControl.State),
             """
             Set([
               UIControl.State.highlighted,
@@ -18,10 +16,8 @@ final class UIKitTests: XCTestCase {
             """
         )
 
-        dump = ""
-        customDump(UIControl.State.normal, to: &dump)
         XCTAssertEqual(
-            dump,
+            String(customDumping: UIControl.State.normal),
             """
             Set([
               UIControl.State.normal

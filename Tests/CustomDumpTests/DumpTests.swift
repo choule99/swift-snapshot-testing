@@ -133,10 +133,8 @@ import SwiftUI
         let foo = RecursiveFoo()
         foo.foo = foo
 
-        dump = ""
-        customDump(foo, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: foo),
             """
             RecursiveFoo(
               foo: RecursiveFoo(↩︎)
@@ -161,10 +159,8 @@ import SwiftUI
             )
         ]
 
-        var dump = ""
-        customDump(users, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: users),
             """
             [
               [0]: User(
@@ -183,7 +179,7 @@ import SwiftUI
             """
         )
 
-        dump = ""
+        var dump = ""
         customDump(users, to: &dump, maxDepth: 1)
         expectNoDifference(
             dump,
@@ -207,22 +203,19 @@ import SwiftUI
     }
 
     func testDictionary() {
-        var dump = ""
-        customDump(
-            [
-                1: User(
-                    id: 1,
-                    name: "Blob"
-                ),
-                2: User(
-                    id: 2,
-                    name: "Blob, Jr."
-                )
-            ],
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(
+                customDumping: [
+                    1: User(
+                        id: 1,
+                        name: "Blob"
+                    ),
+                    2: User(
+                        id: 2,
+                        name: "Blob, Jr."
+                    )
+                ]
+            ),
             """
             [
               1: User(
@@ -237,22 +230,19 @@ import SwiftUI
             """
         )
 
-        dump = ""
-        customDump(
-            [
-                ID(rawValue: "deadbeef"): User(
-                    id: 1,
-                    name: "Blob"
-                ),
-                ID(rawValue: "beefdead"): User(
-                    id: 2,
-                    name: "Blob, Jr."
-                )
-            ],
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(
+                customDumping: [
+                    ID(rawValue: "deadbeef"): User(
+                        id: 1,
+                        name: "Blob"
+                    ),
+                    ID(rawValue: "beefdead"): User(
+                        id: 2,
+                        name: "Blob, Jr."
+                    )
+                ]
+            ),
             """
             [
               ID(rawValue: "beefdead"): User(
@@ -267,24 +257,21 @@ import SwiftUI
             """
         )
 
-        dump = ""
-        customDump(
-            OrderedDictionary(
-                pairs: [
-                    2: User(
-                        id: 2,
-                        name: "Blob, Jr."
-                    ),
-                    1: User(
-                        id: 1,
-                        name: "Blob"
-                    )
-                ] as KeyValuePairs
-            ),
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(
+                customDumping: OrderedDictionary(
+                    pairs: [
+                        2: User(
+                            id: 2,
+                            name: "Blob, Jr."
+                        ),
+                        1: User(
+                            id: 1,
+                            name: "Blob"
+                        )
+                    ] as KeyValuePairs
+                )
+            ),
             """
             [
               2: User(
@@ -326,37 +313,29 @@ import SwiftUI
     }
 
     func testEnum() {
-        var dump = ""
-        customDump(Enum.foo, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Enum.foo),
             """
             Enum.foo
             """
         )
 
-        dump = ""
-        customDump(Enum.bar(42), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Enum.bar(42)),
             """
             Enum.bar(42)
             """
         )
 
-        dump = ""
-        customDump(Enum.fu(bar: 42), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Enum.fu(bar: 42)),
             """
             Enum.fu(bar: 42)
             """
         )
 
-        dump = ""
-        customDump(Enum.baz(fizz: 0.9, buzz: "2"), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Enum.baz(fizz: 0.9, buzz: "2")),
             """
             Enum.baz(
               fizz: 0.9,
@@ -365,10 +344,8 @@ import SwiftUI
             """
         )
 
-        dump = ""
-        customDump(Enum.fizz(0.9, buzz: "2"), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Enum.fizz(0.9, buzz: "2")),
             """
             Enum.fizz(
               0.9,
@@ -377,10 +354,8 @@ import SwiftUI
             """
         )
 
-        dump = ""
-        customDump(Nested.nest(.fizz(0.9, buzz: "2")), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Nested.nest(.fizz(0.9, buzz: "2"))),
             """
             Nested.nest(
               .fizz(
@@ -393,10 +368,8 @@ import SwiftUI
     }
 
     func testOptional() {
-        var dump = ""
-        customDump(User?(.init(id: 42, name: "Blob")), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: User?(.init(id: 42, name: "Blob"))),
             """
             User(
               id: 42,
@@ -405,10 +378,8 @@ import SwiftUI
             """
         )
 
-        dump = ""
-        customDump(User?(nil), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: User?(nil)),
             """
             nil
             """
@@ -416,10 +387,8 @@ import SwiftUI
     }
 
     func testSet() {
-        var dump = ""
-        customDump(Set([1, 2, 3]), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Set([1, 2, 3])),
             """
             Set([
               1,
@@ -431,19 +400,15 @@ import SwiftUI
     }
 
     func testSingleValue() {
-        var dump = ""
-        customDump(1, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: 1),
             """
             1
             """
         )
 
-        dump = ""
-        customDump(true, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: true),
             """
             true
             """
@@ -456,10 +421,8 @@ import SwiftUI
             name: "Blob"
         )
 
-        var dump = ""
-        customDump(user, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: user),
             """
             User(
               id: 42,
@@ -468,7 +431,7 @@ import SwiftUI
             """
         )
 
-        dump = ""
+        var dump = ""
         customDump(user, to: &dump, maxDepth: 0)
         expectNoDifference(
             dump,
@@ -488,10 +451,8 @@ import SwiftUI
             )
         )
 
-        dump = ""
-        customDump(pair, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: pair),
             """
             Pair(
               driver: User(
@@ -520,10 +481,8 @@ import SwiftUI
     }
 
     func testTuple() {
-        var dump = ""
-        customDump((1, 2), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: (1, 2)),
             """
             (
               1,
@@ -532,10 +491,8 @@ import SwiftUI
             """
         )
 
-        dump = ""
-        customDump((x: 1, y: 2, ()), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: (x: 1, y: 2, ())),
             """
             (
               x: 1,
@@ -547,54 +504,40 @@ import SwiftUI
     }
 
     func testString() {
-        var dump = ""
-        customDump("Hello!", to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "Hello!"),
             #""Hello!""#
         )
 
-        dump = ""
-        customDump(#"Hello, "world!""#, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: #"Hello, "world!""#),
             ##"#"Hello, "world!""#"##
         )
 
-        dump = ""
-        customDump(####"This has a "### in it"####, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: ####"This has a "### in it"####),
             #####"####"This has a "### in it"####"#####
         )
 
-        dump = ""
-        customDump("This has a \\ in it", to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "This has a \\ in it"),
             ##"#"This has a \ in it"#"##
         )
 
-        dump = ""
-        customDump("This has no special characters in it", to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "This has no special characters in it"),
             "\"This has no special characters in it\""
         )
 
-        dump = ""
-        customDump("This has a \t in it", to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "This has a \t in it"),
             "\"This has a \\t in it\""
         )
     }
 
     func testMultilineString() {
-        var dump = ""
-        customDump("Hello,\nWorld!", to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "Hello,\nWorld!"),
             #"""
             """
             Hello,
@@ -603,10 +546,8 @@ import SwiftUI
             """#
         )
 
-        dump = ""
-        customDump("Hello,\nWorld!"[...], to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "Hello,\nWorld!"[...]),
             #"""
             """
             Hello,
@@ -615,23 +556,20 @@ import SwiftUI
             """#
         )
 
-        dump = ""
-        customDump(
-            Email(
-                subject: "RE: Upcoming Event",
-                body: """
-                To whom it may concern,
+        expectNoDifference(
+            String(
+                customDumping: Email(
+                    subject: "RE: Upcoming Event",
+                    body: """
+                    To whom it may concern,
 
-                Look forward to it!
+                    Look forward to it!
 
-                Yours,
-                Blob
-                """
+                    Yours,
+                    Blob
+                    """
+                )
             ),
-            to: &dump
-        )
-        expectNoDifference(
-            dump,
             """
             Email(
               subject: "RE: Upcoming Event",
@@ -647,19 +585,16 @@ import SwiftUI
             """
         )
 
-        dump = ""
-        customDump(
-            ##"""
-            print(
-              #"""
-              Hello, world!
-              """#
-            )
-            """##,
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(
+                customDumping: ##"""
+                print(
+                  #"""
+                  Hello, world!
+                  """#
+                )
+                """##
+            ),
             ###"""
             ##"""
             print(
@@ -673,25 +608,20 @@ import SwiftUI
     }
 
     func testAnyHashable() {
-        var dump = ""
-        customDump(AnyHashable(42), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: AnyHashable(42)),
             """
             42
             """
         )
 
-        dump = ""
-        customDump(
-            [
-                AnyHashable(1): User(id: 1, name: "Blob"),
-                AnyHashable("Blob, Jr."): User(id: 2, name: "Blob, Jr.")
-            ],
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(
+                customDumping: [
+                    AnyHashable(1): User(id: 1, name: "Blob"),
+                    AnyHashable("Blob, Jr."): User(id: 2, name: "Blob, Jr.")
+                ]
+            ),
             """
             [
               "Blob, Jr.": User(
@@ -710,58 +640,45 @@ import SwiftUI
     func testKeyPath() {
         // NB: While this should run on >=5.9, it currently crashes CI on Xcode 15
         #if swift(>=5.10) && (os(iOS) || os(macOS) || os(tvOS) || os(watchOS))
-        var dump = ""
         if #available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *) {
-            dump = ""
-            customDump(\UserClass.name, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \UserClass.name),
                 #"""
                 \UserClass.name
                 """#
             )
 
-            dump = ""
-            customDump(\Pair.driver.name, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \Pair.driver.name),
                 #"""
                 \Pair.driver.name
                 """#
             )
 
-            dump = ""
-            customDump(\(x: Double, y: Double).x, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \(x: Double, y: Double).x),
                 #"""
                 \(x: Double, y: Double).x
                 """#
             )
 
             #if DEBUG
-            dump = ""
-            customDump(\User.name.count, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \User.name.count),
                 #"""
                 \User.name.count
                 """#
             )
 
-            dump = ""
-            customDump(\Item.$isInStock, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \Item.$isInStock),
                 #"""
                 \Item.$isInStock
                 """#
             )
 
-            dump = ""
-            customDump(\Wrapped<String>.count, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \Wrapped<String>.count),
                 #"""
                 \Wrapped<String>.subscript(dynamicMember: <unknown>)
                 """#
@@ -770,55 +687,43 @@ import SwiftUI
 
             return
         } else {
-            dump = ""
-            customDump(\UserClass.name, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \UserClass.name),
                 #"""
                 \UserClass.name
                 """#
             )
 
-            dump = ""
-            customDump(\Pair.driver.name, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \Pair.driver.name),
                 #"""
                 \Pair.driver.name
                 """#
             )
 
-            dump = ""
-            customDump(\User.name.count, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \User.name.count),
                 #"""
                 KeyPath<User, Int>
                 """#
             )
 
-            dump = ""
-            customDump(\(x: Double, y: Double).x, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \(x: Double, y: Double).x),
                 #"""
                 WritableKeyPath<(x: Double, y: Double), Double>
                 """#
             )
 
-            dump = ""
-            customDump(\Item.$isInStock, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \Item.$isInStock),
                 #"""
                 KeyPath<Item, Wrapped<Bool>>
                 """#
             )
 
-            dump = ""
-            customDump(\Wrapped<String>.count, to: &dump)
             expectNoDifference(
-                dump,
+                String(customDumping: \Wrapped<String>.count),
                 #"""
                 KeyPath<Wrapped<String>, Int>
                 """#
@@ -828,37 +733,22 @@ import SwiftUI
     }
 
     func testNamespacedTypes() {
-        var dump = ""
-        customDump(
-            Namespaced.Class(x: 0),
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(customDumping: Namespaced.Class(x: 0)),
             """
             Namespaced.Class(x: 0)
             """
         )
 
-        dump = ""
-        customDump(
-            Namespaced.Enum.x(0),
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(customDumping: Namespaced.Enum.x(0)),
             """
             Namespaced.Enum.x(0)
             """
         )
 
-        dump = ""
-        customDump(
-            Namespaced.Struct(x: 0),
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(customDumping: Namespaced.Struct(x: 0)),
             """
             Namespaced.Struct(x: 0)
             """
@@ -866,13 +756,8 @@ import SwiftUI
     }
 
     func testGenerics() {
-        var dump = ""
-        customDump(
-            Result<Result<Int, Error>, Error>.success(.success(42)),
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(customDumping: Result<Result<Int, Error>, Error>.success(.success(42))),
             """
             Result.success(
               .success(42)
@@ -884,25 +769,15 @@ import SwiftUI
     func testUnknownContexts() {
         struct Inline {}
 
-        var dump = ""
-        customDump(
-            Inline.self,
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(customDumping: Inline.self),
             """
             DumpTests.Inline.self
             """
         )
 
-        dump = ""
-        customDump(
-            Inline(),
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(customDumping: Inline()),
             """
             DumpTests.Inline()
             """
@@ -910,10 +785,8 @@ import SwiftUI
     }
 
     func testCustomMirror() {
-        var dump = ""
-        customDump(Button(), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Button()),
             """
             Button.cancel(
               action: nil,
@@ -922,17 +795,14 @@ import SwiftUI
             """
         )
 
-        dump = ""
-        customDump(
-            LoginState(
-                email: "blob@pointfree.co",
-                password: "bl0bisawesome!",
-                token: "secret"
-            ),
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(
+                customDumping: LoginState(
+                    email: "blob@pointfree.co",
+                    password: "bl0bisawesome!",
+                    token: "secret"
+                )
+            ),
             """
             LoginState(
               email: "blob@pointfree.co",
@@ -943,10 +813,8 @@ import SwiftUI
     }
 
     func testCustomOverride() {
-        var dump = ""
-        customDump(Wrapper(rawValue: 42), to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: Wrapper(rawValue: 42)),
             """
             42
             """
@@ -954,28 +822,22 @@ import SwiftUI
     }
 
     func testStandardLibrary() {
-        var dump = ""
-        customDump("©" as Character, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "©" as Character),
             """
             "©"
             """
         )
 
-        dump = ""
-        customDump("Blob" as StaticString, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "Blob" as StaticString),
             """
             "Blob"
             """
         )
 
-        dump = ""
-        customDump("©" as UnicodeScalar, to: &dump)
         expectNoDifference(
-            dump,
+            String(customDumping: "©" as UnicodeScalar),
             """
             "©"
             """
@@ -983,7 +845,6 @@ import SwiftUI
     }
 
     func testSuperclass() {
-        var dump = ""
         class Human {
             let name = "John"
             let email = "john@me.com"
@@ -994,10 +855,8 @@ import SwiftUI
             let field = "Podiatry"
         }
 
-        customDump(Doctor(), to: &dump)
-
         expectNoDifference(
-            dump,
+            String(customDumping: Doctor()),
             """
             DumpTests.Doctor(
               name: "John",
@@ -1010,7 +869,6 @@ import SwiftUI
     }
 
     func testLayersOfInheritance() {
-        var dump = ""
         class Human {
             let name = "John"
             let email = "john@me.com"
@@ -1025,10 +883,8 @@ import SwiftUI
             let skillLevel = "Expert"
         }
 
-        customDump(Surgeon(), to: &dump)
-
         expectNoDifference(
-            dump,
+            String(customDumping: Surgeon()),
             """
             DumpTests.Surgeon(
               name: "John",
@@ -1079,11 +935,8 @@ import SwiftUI
             ]
         )
 
-        var dump = ""
-        customDump(subject, to: &dump)
-
         expectNoDifference(
-            dump,
+            String(customDumping: subject),
             """
             DumpTests.Parent(
               name: "Arthur",
@@ -1140,26 +993,23 @@ import SwiftUI
         let user = User(human: human)
         let user2 = User(human: human2)
 
-        var dump = ""
-        customDump(
-            [
-                human,
-                human,
-                human,
-                human2,
-                human2,
-                human2,
-                user,
-                user,
-                user,
-                user2,
-                user2,
-                user2
-            ], to: &dump
-        )
-
         expectNoDifference(
-            dump,
+            String(
+                customDumping: [
+                    human,
+                    human,
+                    human,
+                    human2,
+                    human2,
+                    human2,
+                    user,
+                    user,
+                    user,
+                    user2,
+                    user2,
+                    user2
+                ]
+            ),
             """
             [
               [0]: DumpTests.Human(name: "John"),
@@ -1213,13 +1063,8 @@ import SwiftUI
 
     #if canImport(CoreGraphics)
     func testCoreGraphics() {
-        var dump = ""
-        customDump(
-            CGRect(x: 0.5, y: 0.5, width: 1.5, height: 1.5),
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(customDumping: CGRect(x: 0.5, y: 0.5, width: 1.5, height: 1.5)),
             """
             CGRect(
               origin: CGPoint(
@@ -1238,13 +1083,8 @@ import SwiftUI
 
     #if canImport(SwiftUI)
     func testSwiftUI() {
-        var dump = ""
-        customDump(
-            Animation.easeInOut,
-            to: &dump
-        )
         expectNoDifference(
-            dump,
+            String(customDumping: Animation.easeInOut),
             """
             Animation.easeInOut
             """

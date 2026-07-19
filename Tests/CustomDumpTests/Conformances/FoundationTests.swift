@@ -10,11 +10,7 @@ final class FoundationTests: XCTestCase {
     func testAttributedString() {
         #if compiler(>=5.5) && !targetEnvironment(macCatalyst) && (os(iOS) || os(tvOS) || os(watchOS))
         if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
-            var dump = ""
-            customDump(
-                try? AttributedString(markdown: "Hello, **Blob**!"),
-                to: &dump
-            )
+            let dump = String(customDumping: try? AttributedString(markdown: "Hello, **Blob**!"))
             expectNoDifference(
                 dump,
                 """
@@ -28,11 +24,7 @@ final class FoundationTests: XCTestCase {
     func testCFNumber() {
         // NB: `CFNumber` is unavailable on Linux
         #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
-        var dump = ""
-        customDump(
-            42 as CFNumber,
-            to: &dump
-        )
+        let dump = String(customDumping: 42 as CFNumber)
         expectNoDifference(
             dump,
             """
@@ -44,11 +36,7 @@ final class FoundationTests: XCTestCase {
 
     #if !os(WASI)
     func testDate() {
-        var dump = ""
-        customDump(
-            Date(timeIntervalSince1970: 0),
-            to: &dump
-        )
+        let dump = String(customDumping: Date(timeIntervalSince1970: 0))
         expectNoDifference(
             dump,
             """
@@ -57,13 +45,9 @@ final class FoundationTests: XCTestCase {
         )
 
         #if compiler(>=5.4)
-        dump = ""
-        customDump(
-            NestedDate(date: Date(timeIntervalSince1970: 0)),
-            to: &dump
-        )
+        let nestedDump = String(customDumping: NestedDate(date: Date(timeIntervalSince1970: 0)))
         expectNoDifference(
-            dump,
+            nestedDump,
             """
             NestedDate(date: Date(1970-01-01T00:00:00.000Z))
             """
@@ -73,11 +57,7 @@ final class FoundationTests: XCTestCase {
     #endif
 
     func testDecimal() {
-        var dump = ""
-        customDump(
-            Decimal(string: "1.23"),
-            to: &dump
-        )
+        let dump = String(customDumping: Decimal(string: "1.23"))
         expectNoDifference(
             dump,
             """
@@ -87,11 +67,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSArray() {
-        var dump = ""
-        customDump(
-            [1, 2, 3] as NSArray,
-            to: &dump
-        )
+        let dump = String(customDumping: [1, 2, 3] as NSArray)
         expectNoDifference(
             dump,
             """
@@ -111,11 +87,7 @@ final class FoundationTests: XCTestCase {
             NSAttributedString(string: "Blob", attributes: [.init(rawValue: "name"): true])
         )
         attributedString.append(NSAttributedString(string: "!"))
-        var dump = ""
-        customDump(
-            attributedString,
-            to: &dump
-        )
+        let dump = String(customDumping: attributedString)
         expectNoDifference(
             dump,
             """
@@ -127,11 +99,7 @@ final class FoundationTests: XCTestCase {
     func testNSCalendar() throws {
         let calendar = try XCTUnwrap(NSCalendar(calendarIdentifier: .gregorian))
         calendar.timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: 0))
-        var dump = ""
-        customDump(
-            calendar,
-            to: &dump
-        )
+        let dump = String(customDumping: calendar)
         expectNoDifference(
             dump,
             """
@@ -152,11 +120,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSCountedSet() {
-        var dump = ""
-        customDump(
-            NSCountedSet(array: [1, 2, 2, 3, 3, 3]),
-            to: &dump
-        )
+        let dump = String(customDumping: NSCountedSet(array: [1, 2, 2, 3, 3, 3]))
         expectNoDifference(
             dump,
             """
@@ -171,11 +135,7 @@ final class FoundationTests: XCTestCase {
 
     #if !os(WASI)
     func testNSData() {
-        var dump = ""
-        customDump(
-            NSData(data: .init(repeating: 0, count: 4)),
-            to: &dump
-        )
+        let dump = String(customDumping: NSData(data: .init(repeating: 0, count: 4)))
         expectNoDifference(
             dump,
             """
@@ -187,11 +147,7 @@ final class FoundationTests: XCTestCase {
 
     #if !os(WASI)
     func testNSDate() {
-        var dump = ""
-        customDump(
-            NSDate(timeIntervalSince1970: 0),
-            to: &dump
-        )
+        let dump = String(customDumping: NSDate(timeIntervalSince1970: 0))
         expectNoDifference(
             dump,
             """
@@ -202,11 +158,7 @@ final class FoundationTests: XCTestCase {
     #endif
 
     func testNSDictionary() {
-        var dump = ""
-        customDump(
-            [1: "1", 2: "2", 3: "3"] as NSDictionary,
-            to: &dump
-        )
+        let dump = String(customDumping: [1: "1", 2: "2", 3: "3"] as NSDictionary)
         expectNoDifference(
             dump,
             """
@@ -220,16 +172,14 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSError() {
-        var dump = ""
-        customDump(
-            NSError(
+        let dump = String(
+            customDumping: NSError(
                 domain: "co.pointfree",
                 code: 42,
                 userInfo: [
                     NSLocalizedDescriptionKey: "An error occurred" as NSString
                 ]
-            ),
-            to: &dump
+            )
         )
         expectNoDifference(
             dump,
@@ -247,19 +197,17 @@ final class FoundationTests: XCTestCase {
         #if !os(Windows) && !os(WASI)
         class SubclassedError: NSError, @unchecked Sendable {}
 
-        dump = ""
-        customDump(
-            SubclassedError(
+        let subclassedDump = String(
+            customDumping: SubclassedError(
                 domain: "co.pointfree",
                 code: 43,
                 userInfo: [
                     NSLocalizedDescriptionKey: "An error occurred" as NSString
                 ]
-            ),
-            to: &dump
+            )
         )
         expectNoDifference(
-            dump,
+            subclassedDump,
             """
             NSError(
               domain: "co.pointfree",
@@ -276,11 +224,10 @@ final class FoundationTests: XCTestCase {
             case thisIsFine(Int)
         }
 
-        dump = ""
-        customDump(BridgedError.thisIsFine(94) as NSError, to: &dump)
+        let bridgedDump = String(customDumping: BridgedError.thisIsFine(94) as NSError)
         #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
         expectNoDifference(
-            dump,
+            bridgedDump,
             """
             FoundationTests.BridgedError.thisIsFine(94)
             """
@@ -288,7 +235,7 @@ final class FoundationTests: XCTestCase {
         #elseif compiler(>=5.4)
         // Can't unwrap bridged Errors on Linux: https://bugs.swift.org/browse/SR-15191
         expectNoDifference(
-            dump.replacingOccurrences(
+            bridgedDump.replacingOccurrences(
                 of: #"\(unknown context at \$[[:xdigit:]]+\)\."#,
                 with: "",
                 options: .regularExpression
@@ -307,10 +254,8 @@ final class FoundationTests: XCTestCase {
     func testNSException() {
         // NB: `NSException` is unavailable on Linux
         #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
-        var dump = ""
-        customDump(
-            NSException(name: .genericException, reason: "Oops!", userInfo: nil),
-            to: &dump
+        let dump = String(
+            customDumping: NSException(name: .genericException, reason: "Oops!", userInfo: nil)
         )
         expectNoDifference(
             dump,
@@ -328,11 +273,7 @@ final class FoundationTests: XCTestCase {
     func testNSExpression() {
         // NB: `NSExpression` is unavailable on Linux
         #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
-        var dump = ""
-        customDump(
-            NSExpression(format: "1 + 1"),
-            to: &dump
-        )
+        let dump = String(customDumping: NSExpression(format: "1 + 1"))
         expectNoDifference(
             dump,
             """
@@ -343,11 +284,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSIndexPath() {
-        var dump = ""
-        customDump(
-            NSIndexPath(),
-            to: &dump
-        )
+        let dump = String(customDumping: NSIndexPath())
         expectNoDifference(
             dump,
             """
@@ -357,11 +294,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSIndexSet() {
-        var dump = ""
-        customDump(
-            NSIndexSet(indexSet: [1, 2, 3, 5, 7]),
-            to: &dump
-        )
+        let dump = String(customDumping: NSIndexSet(indexSet: [1, 2, 3, 5, 7]))
         expectNoDifference(
             dump,
             """
@@ -377,11 +310,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSLocale() {
-        var dump = ""
-        customDump(
-            NSLocale(localeIdentifier: "en_US"),
-            to: &dump
-        )
+        let dump = String(customDumping: NSLocale(localeIdentifier: "en_US"))
         expectNoDifference(
             dump,
             """
@@ -391,11 +320,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSMeasurement() {
-        var dump = ""
-        customDump(
-            NSMeasurement(doubleValue: 42, unit: Unit(symbol: "kg")),
-            to: &dump
-        )
+        let dump = String(customDumping: NSMeasurement(doubleValue: 42, unit: Unit(symbol: "kg")))
         expectNoDifference(
             dump,
             """
@@ -409,10 +334,10 @@ final class FoundationTests: XCTestCase {
 
     #if !os(WASI)
     func testNSNotification() {
-        var dump = ""
-        customDump(
-            NSNotification(name: .init(rawValue: "co.pointfree"), object: nil, userInfo: nil),
-            to: &dump
+        let dump = String(
+            customDumping: NSNotification(
+                name: .init(rawValue: "co.pointfree"), object: nil, userInfo: nil
+            )
         )
         expectNoDifference(
             dump,
@@ -424,11 +349,7 @@ final class FoundationTests: XCTestCase {
     #endif
 
     func testNSNull() {
-        var dump = ""
-        customDump(
-            NSNull(),
-            to: &dump
-        )
+        let dump = String(customDumping: NSNull())
         expectNoDifference(
             dump,
             """
@@ -438,11 +359,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSNumber() {
-        var dump = ""
-        customDump(
-            1 as NSNumber,
-            to: &dump
-        )
+        let dump = String(customDumping: 1 as NSNumber)
         expectNoDifference(
             dump,
             """
@@ -451,13 +368,9 @@ final class FoundationTests: XCTestCase {
         )
 
         #if canImport(ObjectiveC)
-        dump = ""
-        customDump(
-            NSNumber(),
-            to: &dump
-        )
+        let nullDump = String(customDumping: NSNumber())
         expectNoDifference(
-            dump,
+            nullDump,
             """
             (null pointer)
             """
@@ -466,11 +379,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSOrderedSet() {
-        var dump = ""
-        customDump(
-            [1, 2, 3] as NSOrderedSet,
-            to: &dump
-        )
+        let dump = String(customDumping: [1, 2, 3] as NSOrderedSet)
         expectNoDifference(
             dump,
             """
@@ -484,11 +393,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSRange() {
-        var dump = ""
-        customDump(
-            NSRange(0 ..< 1),
-            to: &dump
-        )
+        let dump = String(customDumping: NSRange(0 ..< 1))
         expectNoDifference(
             dump,
             """
@@ -498,11 +403,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSSet() {
-        var dump = ""
-        customDump(
-            NSSet(array: [1, 2, 3]),
-            to: &dump
-        )
+        let dump = String(customDumping: NSSet(array: [1, 2, 3]))
         expectNoDifference(
             dump,
             """
@@ -517,11 +418,7 @@ final class FoundationTests: XCTestCase {
 
     #if !os(WASI)
     func testNSTimeZone() {
-        var dump = ""
-        customDump(
-            NSTimeZone(forSecondsFromGMT: 0),
-            to: &dump
-        )
+        let dump = String(customDumping: NSTimeZone(forSecondsFromGMT: 0))
         expectNoDifference(
             dump,
             """
@@ -537,11 +434,7 @@ final class FoundationTests: XCTestCase {
     #endif
 
     func testNSURL() {
-        var dump = ""
-        customDump(
-            NSURL(fileURLWithPath: "/tmp"),
-            to: &dump
-        )
+        let dump = String(customDumping: NSURL(fileURLWithPath: "/tmp"))
         #if os(Windows) || os(WASI)
         expectNoDifference(
             dump,
@@ -560,10 +453,8 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSURLComponents() {
-        var dump = ""
-        customDump(
-            NSURLComponents(string: "https://www.pointfree.co/login?redirect=episodes"),
-            to: &dump
+        let dump = String(
+            customDumping: NSURLComponents(string: "https://www.pointfree.co/login?redirect=episodes")
         )
         expectNoDifference(
             dump,
@@ -584,11 +475,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSURLQueryItem() {
-        var dump = ""
-        customDump(
-            NSURLQueryItem(name: "search", value: "composable architecture"),
-            to: &dump
-        )
+        let dump = String(customDumping: NSURLQueryItem(name: "search", value: "composable architecture"))
         expectNoDifference(
             dump,
             """
@@ -601,11 +488,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testNSUUID() {
-        var dump = ""
-        customDump(
-            NSUUID(uuidString: "deadbeef-dead-beef-dead-beefdeadbeef"),
-            to: &dump
-        )
+        let dump = String(customDumping: NSUUID(uuidString: "deadbeef-dead-beef-dead-beefdeadbeef"))
         expectNoDifference(
             dump,
             """
@@ -615,11 +498,7 @@ final class FoundationTests: XCTestCase {
     }
 
     func testURL() {
-        var dump = ""
-        customDump(
-            URL(string: "https://www.pointfree.co/"),
-            to: &dump
-        )
+        let dump = String(customDumping: URL(string: "https://www.pointfree.co/"))
         expectNoDifference(
             dump,
             """

@@ -5,14 +5,11 @@ import XCTest
 
 final class CoreImageTests: XCTestCase {
     func testCIQRCodeDescriptor() {
-        var dump = ""
-        customDump(
-            [.levelH, .levelL, .levelM, .levelQ] as [CIQRCodeDescriptor.ErrorCorrectionLevel],
-            to: &dump
-        )
-
         XCTAssertEqual(
-            dump,
+            String(
+                customDumping: [.levelH, .levelL, .levelM, .levelQ]
+                    as [CIQRCodeDescriptor.ErrorCorrectionLevel]
+            ),
             """
             [
               [0]: CIQRCodeDescriptor.ErrorCorrectionLevel.levelH,
@@ -23,13 +20,8 @@ final class CoreImageTests: XCTestCase {
             """
         )
 
-        dump = ""
-        customDump(
-            CIQRCodeDescriptor.ErrorCorrectionLevel.levelH,
-            to: &dump
-        )
         XCTAssertEqual(
-            dump,
+            String(customDumping: CIQRCodeDescriptor.ErrorCorrectionLevel.levelH),
             """
             CIQRCodeDescriptor.ErrorCorrectionLevel.levelH
             """

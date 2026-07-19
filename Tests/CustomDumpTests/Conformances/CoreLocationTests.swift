@@ -23,11 +23,8 @@ final class CoreLocationTests: XCTestCase {
             timestamp: date, sourceInfo: sourceInfo
         )
 
-        var dump = ""
-        customDump(item, to: &dump)
-
         expectNoDifference(
-            dump,
+            String(customDumping: item),
             """
             CLLocation(
               coordinate: CLLocationCoordinate2D(
@@ -72,10 +69,7 @@ final class CoreLocationTests: XCTestCase {
     func testCLFloor() {
         let floor = FakeFloor(level: 10)
 
-        var dump = ""
-        customDump(floor, to: &dump)
-
-        XCTAssertEqual(dump, "CLFloor(level: 10)")
+        XCTAssertEqual(String(customDumping: floor), "CLFloor(level: 10)")
     }
 }
 #endif
