@@ -54,9 +54,7 @@ class RecordTests: BaseTestCase {
             false
         )
     }
-    #endif
 
-    #if canImport(Darwin)
     func testRecordMissing() async {
         XCTExpectFailure {
             withSnapshotTesting(record: .missing) {
@@ -75,9 +73,7 @@ class RecordTests: BaseTestCase {
             "42"
         )
     }
-    #endif
 
-    #if canImport(Darwin)
     func testRecordMissing_ExistingFile() async throws {
         try Data("999".utf8).write(to: snapshotURL)
 
@@ -98,9 +94,7 @@ class RecordTests: BaseTestCase {
             "999"
         )
     }
-    #endif
 
-    #if canImport(Darwin)
     func testRecordAll_Fresh() async throws {
         XCTExpectFailure {
             withSnapshotTesting(record: .all) {
@@ -119,9 +113,7 @@ class RecordTests: BaseTestCase {
             "42"
         )
     }
-    #endif
 
-    #if canImport(Darwin)
     func testRecordAll_Overwrite() async throws {
         try Data("999".utf8).write(to: snapshotURL)
 
@@ -142,9 +134,7 @@ class RecordTests: BaseTestCase {
             "42"
         )
     }
-    #endif
 
-    #if canImport(Darwin)
     func testRecordFailed_WhenFailure() async throws {
         try Data("999".utf8).write(to: snapshotURL)
 
@@ -165,9 +155,7 @@ class RecordTests: BaseTestCase {
             "42"
         )
     }
-    #endif
 
-    #if canImport(Darwin)
     func testRecordFailed_WithArtifactsDirectory() async throws {
         let artifactsDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
