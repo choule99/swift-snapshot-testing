@@ -757,7 +757,7 @@ import SwiftUI
 
     func testGenerics() {
         expectNoDifference(
-            String(customDumping: Result<Result<Int, Error>, Error>.success(.success(42))),
+            String(customDumping: Result<Result<Int, any Error>, any Error>.success(.success(42))),
             """
             Result.success(
               .success(42)
