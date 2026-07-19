@@ -1,5 +1,8 @@
 import Foundation
 
+public typealias PropertyListEncoder = Foundation.PropertyListEncoder
+public typealias PropertyListDecoder = Foundation.PropertyListDecoder
+
 @MainActor public extension Snapshotting where Value: Encodable, Format == String {
     /// A snapshot strategy for comparing encodable structures based on their JSON representation.
     ///

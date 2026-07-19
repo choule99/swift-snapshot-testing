@@ -544,6 +544,11 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: user, as: .plist)
     }
 
+    func testPropertyListCodersAreFoundationTypes() {
+        XCTAssertTrue(SnapshotTesting.PropertyListEncoder.self == Foundation.PropertyListEncoder.self)
+        XCTAssertTrue(SnapshotTesting.PropertyListDecoder.self == Foundation.PropertyListDecoder.self)
+    }
+
     #if os(Linux) || os(tvOS) || os(watchOS)
     func testMixedViews() async {}
     #else
