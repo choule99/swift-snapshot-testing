@@ -1,4 +1,4 @@
---exclude pods,.build,Pods
+--exclude .build
 --swiftversion 6.0
 --allman false
 --binarygrouping 4,8
@@ -22,7 +22,6 @@
 --indent 4
 --indentcase true
 --linebreaks lf
---maxwidth none
 --modifierorder
 --nospaceoperators
 --nowrapoperators

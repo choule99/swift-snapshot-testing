@@ -16,12 +16,6 @@ disabled_rules:
   - non_optional_string_data_conversion
   - function_body_length
 
-analyzer_rules:
-  - capture_variable
-  - unused_declaration
-  - unused_import
-  - typesafe_array_init
-
 opt_in_rules:
   - contains_over_range_nil_comparison
   - contains_over_first_not_nil
@@ -82,11 +76,3 @@ for_where:
   severity: error
 trailing_semicolon:
   severity: error
-unused_import:
-  require_explicit_imports: false
-  always_keep_imports:
-    - Foundation
-    - UIKit
-    - SwiftUI
-    - Collections
-    - SafariServices
