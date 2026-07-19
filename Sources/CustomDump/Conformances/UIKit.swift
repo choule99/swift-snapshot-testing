@@ -1,10 +1,9 @@
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 public import UIKit
 
 // Availability guards preserve upstream platform compatibility.
 // swiftlint:disable deployment_target
 
-#if !os(watchOS)
 @available(iOS 3.2, macCatalyst 13, tvOS 9, *)
 @available(watchOS, unavailable) extension UIGestureRecognizer.State: CustomDumpStringConvertible {
     public var customDumpDescription: String {
@@ -262,5 +261,4 @@ public import UIKit
     }
 }
 
-#endif
 #endif

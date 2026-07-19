@@ -1,6 +1,11 @@
 #if canImport(UserNotifications)
 public import UserNotifications
 
+#if os(iOS) || os(watchOS)
+private let legacyAnnouncement = UNAuthorizationOptions(rawValue: 1 << 7)
+#endif
+private let legacyAlert = UNNotificationPresentationOptions(rawValue: 1 << 2)
+
 @available(iOS 10, macOS 10.14, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable) extension UNAlertStyle: CustomDumpStringConvertible {
@@ -30,7 +35,7 @@ public import UserNotifications
                     case .alert:
                         return "UNAuthorizationOptions.alert"
                     #if os(iOS) || os(watchOS)
-                    case .announcement:
+                    case legacyAnnouncement:
                         return "UNAuthorizationOptions.announcement"
                     #endif
                 case .badge:
@@ -58,7 +63,7 @@ public import UserNotifications
             .alert
         ]
         #if os(iOS) || os(watchOS)
-        allCases.append(.announcement)
+        allCases.append(legacyAnnouncement)
         #endif
         allCases.append(contentsOf: [
             .badge,
@@ -127,7 +132,7 @@ public import UserNotifications
         struct Option: CustomDumpStringConvertible {
             var rawValue: UNNotificationPresentationOptions
             var customDumpDescription: String {
-                if self.rawValue == .alert {
+                if self.rawValue == legacyAlert {
                     return "UNNotificationPresentationOptions.alert"
                 }
                 if self.rawValue == .badge {
@@ -148,7 +153,7 @@ public import UserNotifications
 
         var options = self
         var children: [Option] = []
-        var allCases: [UNNotificationPresentationOptions] = [.alert, .badge, .banner, .list]
+        var allCases: [UNNotificationPresentationOptions] = [legacyAlert, .badge, .banner, .list]
         allCases.append(.sound)
         for option in allCases where options.contains(option) {
             children.append(.init(rawValue: option))
