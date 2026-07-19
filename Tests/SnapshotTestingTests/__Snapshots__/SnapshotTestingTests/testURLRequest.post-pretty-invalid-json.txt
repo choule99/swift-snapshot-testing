@@ -1,0 +1,5 @@
+POST https://www.pointfree.co/subscribe
+Accept: application/json
+Cookie: pf_session={"user_id":"0"}
+
+not JSON

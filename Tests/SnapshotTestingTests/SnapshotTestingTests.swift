@@ -2268,6 +2268,9 @@ final class SnapshotTestingTests: BaseTestCase {
             {"pricing": {"lane": "individual","billing": "monthly"}}
             """.utf8
         )
+        assertSnapshot(of: post, as: .raw(pretty: true), named: "post-pretty")
+        post.httpBody = Data("not JSON".utf8)
+        assertSnapshot(of: post, as: .raw(pretty: true), named: "post-pretty-invalid-json")
     }
 
     #if os(Linux) || os(tvOS) || os(watchOS)

@@ -34,34 +34,19 @@ public extension Snapshotting where Value == URLRequest, Format == String {
                 .map { key, value in "\(key): \(value)" }
                 .sorted()
 
-            let body: [String]
-            do {
-                if pretty, #available(iOS 11.0, macOS 10.13, tvOS 11.0, watchOS 4.0, *) {
-                    body =
-                        try request.httpBody
-                            .map { try JSONSerialization.jsonObject(with: $0, options: []) }
-                            .map {
-                                try JSONSerialization.data(
-                                    withJSONObject: $0, options: [.prettyPrinted, .sortedKeys]
-                                )
-                            }
-                            .map { data in
-                                let body = String(lossyUTF8: data)
-                                return ["\n\(body)"]
-                            }
-                            ?? []
-                } else {
-                    throw NSError(domain: "co.pointfree.Never", code: 1, userInfo: nil)
-                }
-            } catch {
-                body =
-                    request.httpBody
-                        .map { data in
-                            let body = String(lossyUTF8: data)
-                            return ["\n\(body)"]
-                        }
-                        ?? []
+            let bodyData: Data?
+            if pretty,
+               #available(iOS 11.0, macOS 10.13, tvOS 11.0, watchOS 4.0, *),
+               let httpBody = request.httpBody,
+               let object = try? JSONSerialization.jsonObject(with: httpBody, options: []),
+               let prettyBody = try? JSONSerialization.data(
+                   withJSONObject: object, options: [.prettyPrinted, .sortedKeys]
+               ) {
+                bodyData = prettyBody
+            } else {
+                bodyData = request.httpBody
             }
+            let body = bodyData.map { ["\n\(String(lossyUTF8: $0))"] } ?? []
 
             return ([method] + headers + body).joined(separator: "\n")
         }
