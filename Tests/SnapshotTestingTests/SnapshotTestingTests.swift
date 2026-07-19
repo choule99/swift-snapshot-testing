@@ -1,5 +1,6 @@
 import Foundation
 @testable import SnapshotTesting
+import SnapshotTestingCustomDump
 import XCTest
 
 // SwiftPM's Linux XCTest discovery requires async wrappers for @MainActor test methods.
@@ -414,7 +415,7 @@ final class SnapshotTestingTests: BaseTestCase {
     func testAny() async {
         struct User { let id: Int, name: String, bio: String }
         let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
-        assertSnapshot(of: user, as: .dump)
+        assertSnapshot(of: user, as: .customDump)
     }
 
     func testRecursion() async {
@@ -434,8 +435,8 @@ final class SnapshotTestingTests: BaseTestCase {
             }
             let father = Father()
             let child = Child(father)
-            assertSnapshot(of: father, as: .dump)
-            assertSnapshot(of: child, as: .dump)
+            assertSnapshot(of: father, as: .customDump)
+            assertSnapshot(of: child, as: .customDump)
         }
     }
 
@@ -447,16 +448,6 @@ final class SnapshotTestingTests: BaseTestCase {
         let any = try JSONSerialization.jsonObject(with: data, options: [])
 
         assertSnapshot(of: any, as: .json)
-    }
-
-    func testAnySnapshotStringConvertible() async throws {
-        assertSnapshot(of: "a" as Character, as: .dump, named: "character")
-        assertSnapshot(of: Data("Hello, world!".utf8), as: .dump, named: "data")
-        assertSnapshot(of: Date(timeIntervalSinceReferenceDate: 0), as: .dump, named: "date")
-        assertSnapshot(of: NSObject(), as: .dump, named: "nsobject")
-        assertSnapshot(of: "Hello, world!", as: .dump, named: "string")
-        assertSnapshot(of: "Hello, world!".dropLast(8), as: .dump, named: "substring")
-        assertSnapshot(of: try XCTUnwrap(URL(string: "https://www.pointfree.co")), as: .dump, named: "url")
     }
 
     func testAutolayout() async {
@@ -483,7 +474,7 @@ final class SnapshotTestingTests: BaseTestCase {
             dict: ["c": 3, "a": 1, "b": 2],
             set: [.init(name: "Brandon"), .init(name: "Stephen")]
         )
-        assertSnapshot(of: set, as: .dump)
+        assertSnapshot(of: set, as: .customDump)
     }
 
     func testCaseIterable() async {
@@ -572,14 +563,14 @@ final class SnapshotTestingTests: BaseTestCase {
     #endif
 
     func testMultipleSnapshots() async {
-        assertSnapshot(of: [1], as: .dump)
-        assertSnapshot(of: [1, 2], as: .dump)
+        assertSnapshot(of: [1], as: .customDump)
+        assertSnapshot(of: [1, 2], as: .customDump)
     }
 
     func testNamedAssertion() async {
         struct User { let id: Int, name: String, bio: String }
         let user = User(id: 1, name: "Blobby", bio: "Blobbed around the world.")
-        assertSnapshot(of: user, as: .dump, named: "named")
+        assertSnapshot(of: user, as: .customDump, named: "named")
     }
 
     func testNSBezierPath() async {

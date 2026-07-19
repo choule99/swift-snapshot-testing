@@ -209,15 +209,17 @@ assertSnapshot(of: user, as: .plist)
 // </plist>
 ```
 
-In fact, _any_ value can be snapshot-tested by default using its
-[mirror](https://developer.apple.com/documentation/swift/mirror)!
+In fact, _any_ value can be snapshot-tested using `SnapshotTestingCustomDump`!
 
 ``` swift
-assertSnapshot(of: user, as: .dump)
-// ▿ User
-//   - bio: "Blobbed around the world."
-//   - id: 1
-//   - name: "Blobby"
+import SnapshotTestingCustomDump
+
+assertSnapshot(of: user, as: .customDump)
+// User(
+//   bio: "Blobbed around the world.",
+//   id: 1,
+//   name: "Blobby"
+// )
 ```
 
 If your data can be represented as an image, text, or data, you can write a snapshot test for it!

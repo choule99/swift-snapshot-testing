@@ -1,6 +1,7 @@
 import Foundation
 @_spi(Internals) import InlineSnapshotTesting
 import SnapshotTesting
+import SnapshotTestingCustomDump
 import XCTest
 
 final class InlineSnapshotTestingTests: BaseTestCase {
@@ -17,36 +18,36 @@ final class InlineSnapshotTestingTests: BaseTestCase {
         XCTAssertEqual(options.timeout, 1)
         XCTAssertEqual(options.syntaxDescriptor, descriptor)
 
-        assertInlineSnapshot(of: ["Hello", "World"], as: .dump, options: options) {
+        assertInlineSnapshot(of: ["Hello", "World"], as: .customDump, options: options) {
             """
-            ▿ 2 elements
-              - "Hello"
-              - "World"
-
+            [
+              [0]: "Hello",
+              [1]: "World"
+            ]
             """
         }
     }
 
     func testInlineSnapshot() {
-        assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
+        assertInlineSnapshot(of: ["Hello", "World"], as: .customDump) {
             """
-            ▿ 2 elements
-              - "Hello"
-              - "World"
-
+            [
+              [0]: "Hello",
+              [1]: "World"
+            ]
             """
         }
     }
 
     func testInlineSnapshot_NamedTrailingClosure() {
         assertInlineSnapshot(
-            of: ["Hello", "World"], as: .dump,
+            of: ["Hello", "World"], as: .customDump,
             matches: {
                 """
-                ▿ 2 elements
-                  - "Hello"
-                  - "World"
-
+                [
+                  [0]: "Hello",
+                  [1]: "World"
+                ]
                 """
             }
         )
@@ -65,8 +66,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
             "Hello"
         } is: {
             """
-            - "Hello"
-
+            "Hello"
             """
         }
     }
@@ -79,8 +79,10 @@ final class InlineSnapshotTestingTests: BaseTestCase {
             """
         } is: {
             #"""
-            - "\"Hello\"\n\"World\""
-
+            """
+            "Hello"
+            "World"
+            """
             """#
         }
     }
@@ -88,8 +90,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
     func testCustomInlineSnapshot_SingleTrailingClosure() {
         assertCustomInlineSnapshot(of: "Hello") {
             """
-            - "Hello"
-
+            "Hello"
             """
         }
     }
@@ -99,8 +100,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
             of: "Hello"
         ) {
             """
-            - "Hello"
-
+            "Hello"
             """
         }
     }
@@ -110,8 +110,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
             of: { "Hello" },
             is: {
                 """
-                - "Hello"
-
+                "Hello"
                 """
             }
         )
@@ -128,7 +127,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
         ) {
             assertInlineSnapshot(
                 of: "Hello",
-                as: .dump,
+                as: .customDump,
                 syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
                     trailingClosureLabel: "is",
                     trailingClosureOffset: 1
@@ -144,8 +143,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
 
         assertArgumentlessInlineSnapshot {
             """
-            - "Hello"
-
+            "Hello"
             """
         }
     }
@@ -246,7 +244,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
         ) async throws {
             assertInlineSnapshot(
                 of: value(),
-                as: .dump,
+                as: .customDump,
                 syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
                     trailingClosureLabel: "is",
                     trailingClosureOffset: 1
@@ -264,8 +262,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
             "Hello"
         } is: {
             """
-            - "Hello"
-
+            "Hello"
             """
         }
     }
@@ -276,10 +273,9 @@ final class InlineSnapshotTestingTests: BaseTestCase {
         }
 
         withDependencies {
-            assertInlineSnapshot(of: "Hello", as: .dump) {
+            assertInlineSnapshot(of: "Hello", as: .customDump) {
                 """
-                - "Hello"
-
+                "Hello"
                 """
             }
         }
@@ -399,7 +395,7 @@ final class InlineSnapshotTestingTests: BaseTestCase {
 ) {
     assertInlineSnapshot(
         of: value(),
-        as: .dump,
+        as: .customDump,
         syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
             trailingClosureLabel: "is",
             trailingClosureOffset: 1

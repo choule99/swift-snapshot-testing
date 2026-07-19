@@ -52,7 +52,8 @@ let package = Package(
         .testTarget(
             name: "SnapshotTestingTests",
             dependencies: [
-                "SnapshotTesting"
+                "SnapshotTesting",
+                "SnapshotTestingCustomDump"
             ],
             exclude: [
                 "__Fixtures__",

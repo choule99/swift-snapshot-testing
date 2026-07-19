@@ -2,28 +2,29 @@
 import Foundation
 import InlineSnapshotTesting
 import SnapshotTesting
+import SnapshotTestingCustomDump
 import Testing
 
 extension BaseSuite {
     @MainActor struct AssertInlineSnapshotTests {
         @Test func inlineSnapshot() {
-            assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
+            assertInlineSnapshot(of: ["Hello", "World"], as: .customDump) {
                 """
-                ▿ 2 elements
-                  - "Hello"
-                  - "World"
-
+                [
+                  [0]: "Hello",
+                  [1]: "World"
+                ]
                 """
             }
         }
 
         @Test(.snapshots(record: .missing)) func inlineSnapshotFailure() {
             withKnownIssue {
-                assertInlineSnapshot(of: ["Hello", "World"], as: .dump) {
+                assertInlineSnapshot(of: ["Hello", "World"], as: .customDump) {
                     """
-                    ▿ 2 elements
-                      - "Hello"
-
+                    [
+                      [0]: "Hello"
+                    ]
                     """
                 }
             } matching: { issue in
@@ -32,10 +33,11 @@ extension BaseSuite {
                     Snapshot did not match. Difference: …
 
                       @@ −1,3 +1,4 @@
-                       ▿ 2 elements
-                         - "Hello"
-                      +  - "World"
-                       
+                       [
+                      −  [0]: "Hello"
+                      +  [0]: "Hello",
+                      +  [1]: "World"
+                       ]
                     """
                 )
             }
@@ -43,13 +45,13 @@ extension BaseSuite {
 
         @Test func inlineSnapshot_NamedTrailingClosure() {
             assertInlineSnapshot(
-                of: ["Hello", "World"], as: .dump,
+                of: ["Hello", "World"], as: .customDump,
                 matches: {
                     """
-                    ▿ 2 elements
-                      - "Hello"
-                      - "World"
-
+                    [
+                      [0]: "Hello",
+                      [1]: "World"
+                    ]
                     """
                 }
             )
@@ -68,8 +70,7 @@ extension BaseSuite {
                 "Hello"
             } is: {
                 """
-                - "Hello"
-
+                "Hello"
                 """
             }
         }
@@ -82,8 +83,10 @@ extension BaseSuite {
                 """
             } is: {
                 #"""
-                - "\"Hello\"\n\"World\""
-
+                """
+                "Hello"
+                "World"
+                """
                 """#
             }
         }
@@ -91,8 +94,7 @@ extension BaseSuite {
         @Test func customInlineSnapshot_SingleTrailingClosure() {
             assertCustomInlineSnapshot(of: "Hello") {
                 """
-                - "Hello"
-
+                "Hello"
                 """
             }
         }
@@ -102,8 +104,7 @@ extension BaseSuite {
                 of: "Hello"
             ) {
                 """
-                - "Hello"
-
+                "Hello"
                 """
             }
         }
@@ -113,8 +114,7 @@ extension BaseSuite {
                 of: { "Hello" },
                 is: {
                     """
-                    - "Hello"
-
+                    "Hello"
                     """
                 }
             )
@@ -131,7 +131,7 @@ extension BaseSuite {
             ) {
                 assertInlineSnapshot(
                     of: "Hello",
-                    as: .dump,
+                    as: .customDump,
                     syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
                         trailingClosureLabel: "is",
                         trailingClosureOffset: 1
@@ -147,8 +147,7 @@ extension BaseSuite {
 
             assertArgumentlessInlineSnapshot {
                 """
-                - "Hello"
-
+                "Hello"
                 """
             }
         }
@@ -249,7 +248,7 @@ extension BaseSuite {
             ) async throws {
                 assertInlineSnapshot(
                     of: value(),
-                    as: .dump,
+                    as: .customDump,
                     syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
                         trailingClosureLabel: "is",
                         trailingClosureOffset: 1
@@ -267,8 +266,7 @@ extension BaseSuite {
                 "Hello"
             } is: {
                 """
-                - "Hello"
-
+                "Hello"
                 """
             }
         }
@@ -279,10 +277,9 @@ extension BaseSuite {
             }
 
             withDependencies {
-                assertInlineSnapshot(of: "Hello", as: .dump) {
+                assertInlineSnapshot(of: "Hello", as: .customDump) {
                     """
-                    - "Hello"
-
+                    "Hello"
                     """
                 }
             }
@@ -341,7 +338,7 @@ extension BaseSuite {
 ) {
     assertInlineSnapshot(
         of: value(),
-        as: .dump,
+        as: .customDump,
         syntaxDescriptor: InlineSnapshotSyntaxDescriptor(
             trailingClosureLabel: "is",
             trailingClosureOffset: 1

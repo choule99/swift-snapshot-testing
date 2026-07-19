@@ -1,4 +1,5 @@
-▿ Father
-  ▿ child: Optional<Child>
-    ▿ some: Child
-      ▿ father (circular reference detected)
+SnapshotTestingTests.Father(
+  child: SnapshotTestingTests.Child(
+    father: SnapshotTestingTests.Father(↩︎)
+  )
+)

@@ -1,5 +1,6 @@
 #if canImport(Testing)
 import SnapshotTesting
+import SnapshotTestingCustomDump
 import Testing
 
 #if canImport(AppKit)
@@ -17,17 +18,18 @@ import SwiftUI
 extension BaseSuite {
     @MainActor @Suite(.serialized, .snapshots(record: .missing)) struct SwiftTestingTests {
         @Test func snapshot() {
-            assertSnapshot(of: ["Hello", "World"], as: .dump, named: "snap")
+            assertSnapshot(of: ["Hello", "World"], as: .customDump, named: "snap")
             withKnownIssue {
-                assertSnapshot(of: ["Goodbye", "World"], as: .dump, named: "snap")
+                assertSnapshot(of: ["Goodbye", "World"], as: .customDump, named: "snap")
             } matching: { issue in
                 issue.description.hasSuffix(
                     """
                     @@ −1,4 +1,4 @@
-                     ▿ 2 elements
-                    −  - "Hello"
-                    +  - "Goodbye"
-                       - "World"
+                     [
+                    −  [0]: "Hello",
+                    +  [0]: "Goodbye",
+                       [1]: "World"
+                     ]
                     """
                 )
             }

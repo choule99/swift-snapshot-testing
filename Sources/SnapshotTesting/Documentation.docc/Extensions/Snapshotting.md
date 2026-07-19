@@ -7,7 +7,6 @@
 - ``curl``
 - ``data``
 - ``description``
-- ``dump``
 - ``elementsDescription-20h0f``
 - ``elementsDescription-90719``
 - ``elementsDescription(numberFormatter:)-1g0wq``
@@ -50,7 +49,6 @@
 
 ### Supporting types
 
-- ``AnySnapshotStringConvertible``
 - ``SimplySnapshotting``
 - ``ImageSnapshotOptions``
 - ``SwiftUISnapshotLayout``
