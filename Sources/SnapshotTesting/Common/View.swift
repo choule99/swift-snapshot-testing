@@ -887,263 +887,73 @@ extension UITraitCollection {
 
 public extension UITraitCollection {
     #if os(iOS)
-    static func iPhoneSe(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+    static func iPhoneSe(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(orientation)
     }
 
-    static func iPhone8(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+    static func iPhone8(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(orientation)
     }
 
-    static func iPhone8Plus(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .regular),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+    static func iPhone8Plus(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(orientation, landscapeHorizontalSizeClass: .regular)
     }
 
-    static func iPhoneX(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+    static func iPhoneX(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(orientation)
     }
 
-    static func iPhoneXr(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .unavailable),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .regular),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+    static func iPhoneXr(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(
+            orientation,
+            forceTouchCapability: .unavailable,
+            landscapeHorizontalSizeClass: .regular
+        )
     }
 
-    static func iPhoneXsMax(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .regular),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+    static func iPhoneXsMax(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(orientation, landscapeHorizontalSizeClass: .regular)
     }
 
-    static func iPhone12(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+    static func iPhone12(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(orientation)
     }
 
-    static func iPhone12ProMax(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .regular),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+    static func iPhone12ProMax(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(orientation, landscapeHorizontalSizeClass: .regular)
     }
 
     static func iPhone13(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
-        switch orientation {
-            case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
-            case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
-        }
+        legacyIPhone(orientation)
     }
 
-    static func iPhone13ProMax(_ orientation: ViewImageConfig.Orientation)
-        -> UITraitCollection {
-        let base: [UITraitCollection] = [
-            .init(forceTouchCapability: .available),
-            .init(layoutDirection: .leftToRight),
-            .init(preferredContentSizeCategory: .medium),
-            .init(userInterfaceIdiom: .phone)
-        ]
+    static func iPhone13ProMax(_ orientation: ViewImageConfig.Orientation) -> UITraitCollection {
+        legacyIPhone(orientation, landscapeHorizontalSizeClass: .regular)
+    }
+
+    private static func legacyIPhone(
+        _ orientation: ViewImageConfig.Orientation,
+        forceTouchCapability: UIForceTouchCapability = .available,
+        landscapeHorizontalSizeClass: UIUserInterfaceSizeClass = .compact
+    ) -> UITraitCollection {
+        let horizontalSizeClass: UIUserInterfaceSizeClass
+        let verticalSizeClass: UIUserInterfaceSizeClass
         switch orientation {
             case .landscape:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .regular),
-                        .init(verticalSizeClass: .compact)
-                    ]
-                )
+                horizontalSizeClass = landscapeHorizontalSizeClass
+                verticalSizeClass = .compact
             case .portrait:
-                return .merging(
-                    base + [
-                        .init(horizontalSizeClass: .compact),
-                        .init(verticalSizeClass: .regular)
-                    ]
-                )
+                horizontalSizeClass = .compact
+                verticalSizeClass = .regular
         }
+        return .merging([
+            .init(forceTouchCapability: forceTouchCapability),
+            .init(horizontalSizeClass: horizontalSizeClass),
+            .init(layoutDirection: .leftToRight),
+            .init(preferredContentSizeCategory: .medium),
+            .init(userInterfaceIdiom: .phone),
+            .init(verticalSizeClass: verticalSizeClass)
+        ])
     }
 
     static let iPadMini = iPad
