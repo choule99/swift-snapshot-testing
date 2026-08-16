@@ -73,14 +73,15 @@ public enum SwiftUISnapshotLayout {
             #endif
         }
 
+        let effectiveTraits = UITraitCollection.merging([config.traits, traits])
         return SimplySnapshotting.image(
             options: options,
-            scale: traits.displayScale,
+            scale: effectiveTraits.displayScale,
             isOpaque: isOpaque
         ).asyncPullback { view in
             var config = config
             var snapshot: Async<UIImage>?
-            let layoutTraits = UITraitCollection.merging([config.traits, traits])
+            let layoutTraits = effectiveTraits
             let view = view.snapshotTestingEnvironment()
 
             layoutTraits.performAsCurrent {
@@ -105,7 +106,7 @@ public enum SwiftUISnapshotLayout {
                 snapshot = snapshotView(
                     config: config,
                     drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-                    traits: traits,
+                    traits: effectiveTraits,
                     view: controller.view,
                     viewController: controller,
                     settlingDelay: settlingDelay,

@@ -1,4 +1,4 @@
-# ``SnapshotTesting/Testing/Trait/snapshots(record:diffTool:snapshotNaming:locale:timeZone:calendar:)``
+# ``SnapshotTesting/Testing/Trait/snapshots(record:diffTool:snapshotNaming:referenceStorage:locale:timeZone:calendar:)``
 
 ### Configuration
 

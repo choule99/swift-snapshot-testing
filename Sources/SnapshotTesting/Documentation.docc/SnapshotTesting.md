@@ -20,8 +20,8 @@ Powerfully flexible snapshot testing.
 
 ### Configuration
 
-- ``Testing/Trait/snapshots(record:diffTool:snapshotNaming:locale:timeZone:calendar:)``
-- ``withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-9ywgk``
+- ``Testing/Trait/snapshots(record:diffTool:snapshotNaming:referenceStorage:locale:timeZone:calendar:)``
+- ``withSnapshotTesting(record:diffTool:snapshotNaming:referenceStorage:locale:timeZone:calendar:operation:)``
 - ``withSnapshotTesting(_:operation:)``
 - ``SnapshotTestingConfiguration``
 - ``accessedSnapshotPaths``

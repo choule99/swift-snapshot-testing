@@ -11,6 +11,17 @@ extension BaseSuite {
 
         @Test(
             .snapshots(
+                referenceStorage: .directory("__Snapshots__", relativeTo: .testTarget)
+            )
+        ) func referenceStorage() {
+            #expect(
+                SnapshotTestingConfiguration.current?.referenceStorage
+                    == .directory("__Snapshots__", relativeTo: .testTarget)
+            )
+        }
+
+        @Test(
+            .snapshots(
                 locale: Locale(identifier: "fr_CA"),
                 timeZone: TimeZone(secondsFromGMT: 3600),
                 calendar: Calendar(identifier: .hebrew)

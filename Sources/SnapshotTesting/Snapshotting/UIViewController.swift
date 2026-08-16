@@ -41,17 +41,18 @@ import UIKit
         prepare: (@MainActor @Sendable () -> Void)? = nil
     )
         -> Snapshotting {
+        let effectiveTraits = UITraitCollection.merging([config.traits, traits])
 
-        SimplySnapshotting.image(
+        return SimplySnapshotting.image(
             options: options,
-            scale: traits.displayScale,
+            scale: effectiveTraits.displayScale,
             isOpaque: isOpaque
         ).asyncPullback { viewController in
             snapshotView(
                 config: size.map { .init(safeArea: config.safeArea, size: $0, traits: config.traits) }
                     ?? config,
                 drawHierarchyInKeyWindow: drawHierarchyInKeyWindow,
-                traits: traits,
+                traits: effectiveTraits,
                 view: viewController.view,
                 viewController: viewController,
                 settlingDelay: settlingDelay,

@@ -20,6 +20,7 @@ public extension Trait where Self == _SnapshotsTestTrait {
     ///   - record: The record mode of the test.
     ///   - diffTool: The diff tool to use in failure messages.
     ///   - snapshotNaming: The naming strategy for unnamed snapshots.
+    ///   - referenceStorage: The strategy for locating snapshot references.
     ///   - locale: The locale for SwiftUI snapshots. Defaults to `en_US_POSIX`.
     ///   - timeZone: The time zone for SwiftUI snapshots. Defaults to UTC.
     ///   - calendar: The calendar for SwiftUI snapshots. Defaults to Gregorian.
@@ -27,6 +28,7 @@ public extension Trait where Self == _SnapshotsTestTrait {
         record: SnapshotTestingConfiguration.Record? = nil,
         diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
         snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil,
+        referenceStorage: SnapshotTestingConfiguration.ReferenceStorage? = nil,
         locale: Locale? = nil,
         timeZone: TimeZone? = nil,
         calendar: Calendar? = nil
@@ -36,6 +38,7 @@ public extension Trait where Self == _SnapshotsTestTrait {
                 record: record,
                 diffTool: diffTool,
                 snapshotNaming: snapshotNaming,
+                referenceStorage: referenceStorage,
                 locale: locale,
                 timeZone: timeZone,
                 calendar: calendar
@@ -63,6 +66,7 @@ extension _SnapshotsTestTrait: TestScoping {
             record: configuration.record,
             diffTool: configuration.diffTool,
             snapshotNaming: configuration.snapshotNaming,
+            referenceStorage: configuration.referenceStorage,
             locale: configuration.locale,
             timeZone: configuration.timeZone,
             calendar: configuration.calendar

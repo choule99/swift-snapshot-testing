@@ -26,6 +26,10 @@ private let globalState: LockIsolated<GlobalState> = {
     )
 }()
 
+enum SegmentedSnapshotName {
+    @TaskLocal static var components: [String]?
+}
+
 /// The deduplicated reference file URLs read by snapshot assertions in this process.
 ///
 /// Call ``resetAccessedSnapshotPaths()`` before collecting paths for a new test run. Do not reset
@@ -461,19 +465,12 @@ public struct SnapshotAssertionOptions: Sendable {
             let fileUrl = URL(fileURLWithPath: "\(filePath)", isDirectory: false)
             let fileName = fileUrl.deletingPathExtension().lastPathComponent
 
-            #if os(Android)
-            // When running tests on Android, the CI script copies the Tests/SnapshotTestingTests/__Snapshots__ up to the temporary folder
-            let snapshotsBaseUrl = URL(
-                fileURLWithPath: "/data/local/tmp/android-xctest",
-                isDirectory: true
+            let snapshotDirectoryUrl = try snapshotDirectoryURL(
+                explicitPath: options.snapshotDirectory,
+                referenceStorage: SnapshotTestingConfiguration.current?.referenceStorage,
+                fileID: "\(fileID)",
+                filePath: fileUrl.path
             )
-            #else
-            let snapshotsBaseUrl = fileUrl.deletingLastPathComponent()
-            #endif
-
-            let snapshotDirectoryUrl =
-                options.snapshotDirectory.map { URL(fileURLWithPath: $0, isDirectory: true) }
-                    ?? snapshotsBaseUrl.appendingPathComponent("__Snapshots__").appendingPathComponent(fileName)
             let explicitArtifactsDirectory = options.artifactsDirectory.flatMap {
                 $0.allSatisfy(\.isWhitespace) ? nil : $0
             }
@@ -481,7 +478,9 @@ public struct SnapshotAssertionOptions: Sendable {
             let testName = sanitizePathComponent(testName)
             let snapshotNaming = SnapshotTestingConfiguration.current?.snapshotNaming ?? .numbered
             let pathComponent: String
-            if let name {
+            if let components = SegmentedSnapshotName.components {
+                pathComponent = ([testName] + components.map(sanitizePathComponent)).joined(separator: ".")
+            } else if let name {
                 pathComponent = "\(testName).\(sanitizePathComponent(name))"
             } else {
                 let identifier = snapshotNaming == .numbered
@@ -816,6 +815,103 @@ func sanitizePathComponent(_ string: String) -> String {
         .replacingOccurrences(of: "\\W+", with: "-", options: .regularExpression)
         .replacingOccurrences(of: "^-|-$", with: "", options: .regularExpression)
 }
+
+enum SnapshotReferenceStorageError: Error, Equatable, LocalizedError {
+    case invalidDirectory(String)
+    case testTargetNotFound(module: String, filePath: String)
+
+    var errorDescription: String? {
+        switch self {
+            case let .invalidDirectory(directory):
+                "Reference storage directory '\(directory)' must be a non-empty relative path without '.' or '..' components."
+            case let .testTargetNotFound(module, filePath):
+                "Could not locate test target directory '\(module)' in source path '\(filePath)'. Use an explicit snapshot directory for custom source layouts."
+        }
+    }
+}
+
+func snapshotDirectoryURL(
+    explicitPath: String?,
+    referenceStorage: SnapshotTestingConfiguration.ReferenceStorage?,
+    fileID: String,
+    filePath: String,
+    androidBaseURL: URL? = defaultAndroidSnapshotsBaseURL
+) throws -> URL {
+    if let explicitPath {
+        return URL(fileURLWithPath: explicitPath, isDirectory: true)
+    }
+
+    let fileURL = URL(fileURLWithPath: filePath, isDirectory: false)
+    let fileName = fileURL.deletingPathExtension().lastPathComponent
+    guard let referenceStorage else {
+        let baseURL = androidBaseURL ?? fileURL.deletingLastPathComponent()
+        return baseURL
+            .appendingPathComponent("__Snapshots__", isDirectory: true)
+            .appendingPathComponent(fileName, isDirectory: true)
+    }
+
+    switch referenceStorage {
+        case let .directory(directory, relativeTo: .testTarget):
+            let directoryComponents = try validatedRelativePathComponents(directory)
+            let module = fileID.split(separator: "/", maxSplits: 1).first.map(String.init) ?? ""
+            let sourceDirectory = fileURL.deletingLastPathComponent().standardizedFileURL
+            guard !module.isEmpty,
+                  let targetDirectory = nearestAncestor(named: module, from: sourceDirectory) else {
+                throw SnapshotReferenceStorageError.testTargetNotFound(
+                    module: module,
+                    filePath: filePath
+                )
+            }
+
+            let targetComponents = targetDirectory.pathComponents
+            let sourceComponents = sourceDirectory.pathComponents
+            let relativeSourceComponents = sourceComponents.dropFirst(targetComponents.count)
+            var storageURL = androidBaseURL ?? targetDirectory
+            for component in directoryComponents {
+                storageURL.appendPathComponent(component, isDirectory: true)
+            }
+            for component in relativeSourceComponents {
+                storageURL.appendPathComponent(component, isDirectory: true)
+            }
+            storageURL.appendPathComponent(fileName, isDirectory: true)
+            return storageURL
+    }
+}
+
+private func validatedRelativePathComponents(_ path: String) throws -> [String] {
+    let isAbsolute = (path as NSString).isAbsolutePath
+    let components = path.split(whereSeparator: { $0 == "/" || $0 == "\\" }).map(String.init)
+    guard !path.allSatisfy(\.isWhitespace),
+          !isAbsolute,
+          !components.isEmpty,
+          components.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." }) else {
+        throw SnapshotReferenceStorageError.invalidDirectory(path)
+    }
+    return components
+}
+
+private func nearestAncestor(named name: String, from directory: URL) -> URL? {
+    var candidate = directory
+    while true {
+        if candidate.lastPathComponent == name {
+            return candidate
+        }
+        let parent = candidate.deletingLastPathComponent()
+        guard parent.path != candidate.path else {
+            return nil
+        }
+        candidate = parent
+    }
+}
+
+private let defaultAndroidSnapshotsBaseURL: URL? = {
+    #if os(Android)
+    // Android CI copies snapshot references beneath this staging directory.
+    URL(fileURLWithPath: "/data/local/tmp/android-xctest", isDirectory: true)
+    #else
+    nil
+    #endif
+}()
 
 func snapshotArtifactsDirectory(
     _ explicitPath: String? = nil,

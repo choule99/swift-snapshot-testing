@@ -7,7 +7,8 @@ import Foundation
 /// subclass so that the configuration applies to every test method.
 ///
 /// > Note: To customize tests when using Swift's native Testing library, use the
-/// > ``Testing/Trait/snapshots(record:diffTool:snapshotNaming:locale:timeZone:calendar:)`` trait.
+/// > ``Testing/Trait/snapshots(record:diffTool:snapshotNaming:referenceStorage:locale:timeZone:calendar:)``
+/// > trait.
 ///
 /// For example, to specify to put an entire test class in record mode you do the following:
 ///
@@ -25,6 +26,7 @@ import Foundation
 ///   - record: The record mode to use while asserting snapshots.
 ///   - diffTool: The diff tool to use while asserting snapshots.
 ///   - snapshotNaming: The naming strategy for unnamed snapshots.
+///   - referenceStorage: The strategy for locating snapshot references.
 ///   - locale: The locale for SwiftUI snapshots. Defaults to `en_US_POSIX`.
 ///   - timeZone: The time zone for SwiftUI snapshots. Defaults to UTC.
 ///   - calendar: The calendar for SwiftUI snapshots. Defaults to Gregorian.
@@ -33,6 +35,7 @@ public func withSnapshotTesting<R>(
     record: SnapshotTestingConfiguration.Record? = nil,
     diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
     snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil,
+    referenceStorage: SnapshotTestingConfiguration.ReferenceStorage? = nil,
     locale: Locale? = nil,
     timeZone: TimeZone? = nil,
     calendar: Calendar? = nil,
@@ -43,6 +46,7 @@ public func withSnapshotTesting<R>(
             record: record,
             diffTool: diffTool,
             snapshotNaming: snapshotNaming,
+            referenceStorage: referenceStorage,
             locale: locale,
             timeZone: timeZone,
             calendar: calendar
@@ -53,12 +57,12 @@ public func withSnapshotTesting<R>(
 
 /// Customizes `assertSnapshot` for the duration of an asynchronous operation.
 ///
-/// See ``withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-9ywgk``
-/// for more information.
+/// See the synchronous overload for more information.
 public func withSnapshotTesting<R>(
     record: SnapshotTestingConfiguration.Record? = nil,
     diffTool: SnapshotTestingConfiguration.DiffTool? = nil,
     snapshotNaming: SnapshotTestingConfiguration.SnapshotNaming? = nil,
+    referenceStorage: SnapshotTestingConfiguration.ReferenceStorage? = nil,
     locale: Locale? = nil,
     timeZone: TimeZone? = nil,
     calendar: Calendar? = nil,
@@ -70,6 +74,7 @@ public func withSnapshotTesting<R>(
             record: record,
             diffTool: diffTool,
             snapshotNaming: snapshotNaming,
+            referenceStorage: referenceStorage,
             locale: locale,
             timeZone: timeZone,
             calendar: calendar
@@ -118,6 +123,9 @@ public struct SnapshotTestingConfiguration: Sendable {
     /// The naming strategy for unnamed snapshots.
     public var snapshotNaming: SnapshotNaming?
 
+    /// The strategy for locating snapshot references.
+    public var referenceStorage: ReferenceStorage?
+
     /// The locale for SwiftUI snapshots. Defaults to `en_US_POSIX` when unspecified.
     public var locale: Locale?
 
@@ -131,6 +139,7 @@ public struct SnapshotTestingConfiguration: Sendable {
         record: Record? = nil,
         diffTool: DiffTool? = nil,
         snapshotNaming: SnapshotNaming? = nil,
+        referenceStorage: ReferenceStorage? = nil,
         locale: Locale? = nil,
         timeZone: TimeZone? = nil,
         calendar: Calendar? = nil
@@ -139,6 +148,7 @@ public struct SnapshotTestingConfiguration: Sendable {
         self.diffTool = diffTool
         self.locale = locale
         self.record = record
+        self.referenceStorage = referenceStorage
         self.snapshotNaming = snapshotNaming
         self.timeZone = timeZone
     }
@@ -161,6 +171,13 @@ public struct SnapshotTestingConfiguration: Sendable {
     public func namingSnapshots(_ snapshotNaming: SnapshotNaming?) -> Self {
         var copy = self
         copy.snapshotNaming = snapshotNaming
+        return copy
+    }
+
+    /// Returns a copy configured with the given reference storage strategy.
+    public func usingReferenceStorage(_ referenceStorage: ReferenceStorage?) -> Self {
+        var copy = self
+        copy.referenceStorage = referenceStorage
         return copy
     }
 
@@ -190,6 +207,7 @@ public struct SnapshotTestingConfiguration: Sendable {
             record: record ?? Self.current?.record ?? _record,
             diffTool: diffTool ?? Self.current?.diffTool ?? _diffTool,
             snapshotNaming: snapshotNaming ?? Self.current?.snapshotNaming,
+            referenceStorage: referenceStorage ?? Self.current?.referenceStorage,
             locale: locale ?? Self.current?.locale,
             timeZone: timeZone ?? Self.current?.timeZone,
             calendar: calendar ?? Self.current?.calendar
@@ -221,6 +239,18 @@ public struct SnapshotTestingConfiguration: Sendable {
 
         /// Uses only the test name. A test may take at most one unnamed snapshot per file format.
         case testName
+    }
+
+    /// A strategy for locating snapshot references.
+    public enum ReferenceStorage: Equatable, Sendable {
+        /// A location against which a reference directory is resolved.
+        public enum RelativeLocation: Equatable, Sendable {
+            /// Resolve the directory relative to the test target.
+            case testTarget
+        }
+
+        /// Stores references in a directory resolved relative to a location.
+        case directory(String, relativeTo: RelativeLocation)
     }
 
     /// The record mode of the snapshot test.

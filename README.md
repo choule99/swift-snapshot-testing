@@ -12,6 +12,7 @@ Once [installed](#installation), _no additional configuration is required_. You 
 ``` swift
 import SnapshotTesting
 import Testing
+import UIKit
 
 @MainActor
 struct MyViewControllerTests {
@@ -82,6 +83,25 @@ withSnapshotTesting(configuration) {
 }
 ```
 
+References can also be centralized beneath a test target while preserving the source-file
+hierarchy:
+
+```swift
+let configuration = SnapshotTestingConfiguration(
+  referenceStorage: .directory("__Snapshots__", relativeTo: .testTarget)
+)
+
+withSnapshotTesting(configuration) {
+  assertSnapshot(of: view, as: .image)
+}
+```
+
+This opt-in policy places a test in `Flows/ChatViewTests.swift` under
+`__Snapshots__/Flows/ChatViewTests/`. Move existing references to the new hierarchy before enabling
+the policy, and exclude only the centralized `__Snapshots__` directory from the SwiftPM test
+target. The test-target directory must match the test module name; use
+`SnapshotAssertionOptions.savingSnapshots(in:)` for custom source layouts.
+
 Image comparison precision can be reused independently from assertion and environment options:
 
 ```swift
@@ -102,13 +122,15 @@ import SnapshotPreviews
 import SwiftUI
 
 struct MyView_Previews: PreviewProvider, SnapshotProvider {
+  static let defaultLayout: PreviewSnapshotLayout = .device
+
   @SnapshotBuilder
   static var snapshots: [PreviewSnapshot] {
     PreviewSnapshot("Default") {
       MyView()
     }
 
-    PreviewSnapshot("Device", layout: .device) {
+    PreviewSnapshot("Compact", layout: .fixed(width: 320, height: 480)) {
       MyView()
     }
   }
@@ -126,16 +148,39 @@ import Testing
 @MainActor
 struct MyViewTests {
   @Test func snapshots() {
-    assertSnapshots(of: MyView_Previews.self, on: .iPhone17Pro)
+    let compactLight = ViewImageConfig.iPhone17Pro
+    var compactDark = compactLight
+    compactDark.traits = UITraitCollection(userInterfaceStyle: .dark)
+
+    assertSnapshots(
+      of: MyView_Previews.self,
+      configurations: [
+        NamedViewImageConfig(name: "compact-light", device: compactLight),
+        NamedViewImageConfig(name: "compact-dark", device: compactDark)
+      ]
+    )
   }
 }
 ```
 
-`PreviewSnapshot` defaults to `.sizeThatFits` and also supports fixed sizes. A `.device` snapshot
-requires the `on: ViewImageConfig` assertion overload on iOS and tvOS. On macOS and watchOS, image
-snapshot assertions support the fixed and size-to-fit layouts. Snapshot names must be unique within
-a provider because they name the reference files. The public `snapshots` collection remains
-available for tests that need custom strategies or rendering behavior.
+`PreviewSnapshot` uses the provider's `defaultLayout` when no layout is supplied; providers default
+to `.sizeThatFits`. Use `resolvedSnapshots` when a custom assertion loop needs the effective
+layouts. A `.device` snapshot requires the single `on: ViewImageConfig` overload or a named
+configuration matrix on iOS and tvOS. Matrix references use stable names such as
+`snapshots.compact-light.Default.png`, and each device configuration's traits apply automatically.
+On macOS and watchOS, image snapshot assertions support fixed and size-to-fit layouts.
+
+Transform a snapshot or collection without reconstructing its metadata:
+
+```swift
+let snapshots = rawSnapshots.transformingViews {
+  $0.injectingPreviewEnvironment()
+}
+```
+
+Snapshot names must be unique within a provider because they name the reference files. The public
+raw `snapshots` and resolved `resolvedSnapshots` collections remain available for custom strategies
+or rendering behavior.
 
 ## Snapshot Anything
 

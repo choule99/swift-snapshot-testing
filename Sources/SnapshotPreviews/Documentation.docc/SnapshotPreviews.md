@@ -8,6 +8,8 @@ and a default `previews` implementation.
 
 ```swift
 struct MyView_Previews: PreviewProvider, SnapshotProvider {
+    static let defaultLayout: PreviewSnapshotLayout = .device
+
     @SnapshotBuilder
     static var snapshots: [PreviewSnapshot] {
         PreviewSnapshot("Default") {
@@ -18,7 +20,13 @@ struct MyView_Previews: PreviewProvider, SnapshotProvider {
 ```
 
 Import `SnapshotTesting` in a test target and pass the provider type to `assertSnapshots(of:)`, or
-iterate ``SnapshotProvider/snapshots`` to use custom strategies.
+iterate ``SnapshotProvider/resolvedSnapshots`` to use custom strategies with provider layout
+defaults applied. The raw ``SnapshotProvider/snapshots`` collection remains available when the
+declaration metadata is needed directly.
+
+Transform the views in one snapshot with ``PreviewSnapshot/mapView(_:)`` or in a collection with
+``Swift/Collection/transformingViews(_:)``. Transformations preserve snapshot metadata and affect
+both Xcode previews and snapshot assertions.
 
 ## Topics
 

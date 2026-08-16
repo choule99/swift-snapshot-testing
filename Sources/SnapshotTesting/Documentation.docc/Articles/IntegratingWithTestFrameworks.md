@@ -48,7 +48,7 @@ message that allows you to quickly open a diff of two files, such as
 assertion so that new snapshots are generated and saved to disk.
 
 These properties can be overridden for a scope of an operation using the
-``withSnapshotTesting(record:diffTool:snapshotNaming:locale:timeZone:calendar:operation:)-9ywgk``
+``withSnapshotTesting(record:diffTool:snapshotNaming:referenceStorage:locale:timeZone:calendar:operation:)``
 function. In a Swift Testing context
 you can apply the ``Testing/Trait/snapshots`` trait to either a single test or an entire suite: 
 

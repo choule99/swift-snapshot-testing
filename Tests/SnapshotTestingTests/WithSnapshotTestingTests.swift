@@ -85,7 +85,12 @@ import XCTest
     }
 
     func testNesting() async {
-        withSnapshotTesting(record: .all) {
+        let outerReferenceStorage: SnapshotTestingConfiguration.ReferenceStorage =
+            .directory("OuterSnapshots", relativeTo: .testTarget)
+        let innerReferenceStorage: SnapshotTestingConfiguration.ReferenceStorage =
+            .directory("InnerSnapshots", relativeTo: .testTarget)
+
+        withSnapshotTesting(record: .all, referenceStorage: outerReferenceStorage) {
             XCTAssertEqual(
                 SnapshotTestingConfiguration.current?
                     .diffTool?(currentFilePath: "old.png", failedFilePath: "new.png"),
@@ -103,6 +108,10 @@ import XCTest
                 """
             )
             XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
+            XCTAssertEqual(
+                SnapshotTestingConfiguration.current?.referenceStorage,
+                outerReferenceStorage
+            )
             withSnapshotTesting(diffTool: "ksdiff") {
                 XCTAssertEqual(
                     SnapshotTestingConfiguration.current?
@@ -110,7 +119,25 @@ import XCTest
                     "ksdiff old.png new.png"
                 )
                 XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
+                XCTAssertEqual(
+                    SnapshotTestingConfiguration.current?.referenceStorage,
+                    outerReferenceStorage
+                )
             }
+            withSnapshotTesting(referenceStorage: innerReferenceStorage) {
+                XCTAssertEqual(
+                    SnapshotTestingConfiguration.current?.referenceStorage,
+                    innerReferenceStorage
+                )
+            }
+        }
+
+        await withSnapshotTesting(referenceStorage: outerReferenceStorage) {
+            await Task.yield()
+            XCTAssertEqual(
+                SnapshotTestingConfiguration.current?.referenceStorage,
+                outerReferenceStorage
+            )
         }
     }
 
@@ -142,19 +169,26 @@ import XCTest
         let locale = Locale(identifier: "fr_CA")
         let timeZone = try XCTUnwrap(TimeZone(identifier: "America/Toronto"))
         let calendar = Calendar(identifier: .hebrew)
+        let referenceStorage: SnapshotTestingConfiguration.ReferenceStorage =
+            .directory("__Snapshots__", relativeTo: .testTarget)
+        let initializedConfiguration = SnapshotTestingConfiguration(referenceStorage: referenceStorage)
         let original = SnapshotTestingConfiguration()
         let configuration = original
             .recording(.all)
             .usingDiffTool("diff")
             .namingSnapshots(.testName)
+            .usingReferenceStorage(referenceStorage)
             .usingLocale(locale)
             .usingTimeZone(timeZone)
             .usingCalendar(calendar)
 
+        XCTAssertEqual(initializedConfiguration.referenceStorage, referenceStorage)
         XCTAssertNil(original.record)
+        XCTAssertNil(original.referenceStorage)
         XCTAssertNil(original.locale)
         withSnapshotTesting(configuration) {
             XCTAssertEqual(SnapshotTestingConfiguration.current?.record, .all)
+            XCTAssertEqual(SnapshotTestingConfiguration.current?.referenceStorage, referenceStorage)
             XCTAssertEqual(SnapshotTestingConfiguration.current?.snapshotNaming, .testName)
             XCTAssertEqual(SnapshotTestingConfiguration.resolvedLocale, locale)
             XCTAssertEqual(SnapshotTestingConfiguration.resolvedTimeZone, timeZone)
