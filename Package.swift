@@ -21,6 +21,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "SnapshotPreviews",
+            targets: ["SnapshotPreviews"]
+        ),
+        .library(
             name: "SnapshotTesting",
             targets: ["SnapshotTesting"]
         ),
@@ -47,7 +51,11 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "SnapshotTesting"
+            name: "SnapshotPreviews"
+        ),
+        .target(
+            name: "SnapshotTesting",
+            dependencies: ["SnapshotPreviews"]
         ),
         .testTarget(
             name: "SnapshotTestingTests",

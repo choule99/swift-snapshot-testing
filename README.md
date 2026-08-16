@@ -92,6 +92,51 @@ let imageOptions = ImageSnapshotOptions()
 assertSnapshot(of: view, as: .image(options: imageOptions))
 ```
 
+### Reuse SwiftUI previews in snapshot tests
+
+Add the lightweight `SnapshotPreviews` product to the target that owns your SwiftUI views. A
+concrete preview type must spell both conformances so that Xcode can discover `PreviewProvider`:
+
+```swift
+import SnapshotPreviews
+import SwiftUI
+
+struct MyView_Previews: PreviewProvider, SnapshotProvider {
+  @SnapshotBuilder
+  static var snapshots: [PreviewSnapshot] {
+    PreviewSnapshot("Default") {
+      MyView()
+    }
+
+    PreviewSnapshot("Device", layout: .device) {
+      MyView()
+    }
+  }
+}
+```
+
+`SnapshotProvider` supplies the `previews` implementation. The same named views can then be image
+snapshot-tested from a test target that imports `SnapshotTesting`:
+
+```swift
+@testable import MyFeature
+import SnapshotTesting
+import Testing
+
+@MainActor
+struct MyViewTests {
+  @Test func snapshots() {
+    assertSnapshots(of: MyView_Previews.self, on: .iPhone17Pro)
+  }
+}
+```
+
+`PreviewSnapshot` defaults to `.sizeThatFits` and also supports fixed sizes. A `.device` snapshot
+requires the `on: ViewImageConfig` assertion overload on iOS and tvOS. On macOS and watchOS, image
+snapshot assertions support the fixed and size-to-fit layouts. Snapshot names must be unique within
+a provider because they name the reference files. The public `snapshots` collection remains
+available for tests that need custom strategies or rendering behavior.
+
 ## Snapshot Anything
 
 While most snapshot testing libraries in the Swift community are limited to `UIImage`s of `UIView`s,
@@ -227,7 +272,8 @@ If your data can be represented as an image, text, or data, you can write a snap
 ## Documentation
 
 API documentation is included with the source for
-[SnapshotTesting](https://github.com/choule99/swift-snapshot-testing/tree/main/Sources/SnapshotTesting/Documentation.docc)
+[SnapshotTesting](https://github.com/choule99/swift-snapshot-testing/tree/main/Sources/SnapshotTesting/Documentation.docc),
+[SnapshotPreviews](https://github.com/choule99/swift-snapshot-testing/tree/main/Sources/SnapshotPreviews/Documentation.docc),
 and
 [InlineSnapshotTesting](https://github.com/choule99/swift-snapshot-testing/tree/main/Sources/InlineSnapshotTesting/Documentation.docc).
 
@@ -260,6 +306,10 @@ requested point size. Compare snapshots on the same OS version to avoid system-r
     will contain snapshot tests (if you have more than one test target, you can later add
     SnapshotTesting to them by manually linking the library in its build phase).
 
+If you reuse SwiftUI previews, add the package's `SnapshotPreviews` product to the application or
+framework target that owns those views. Keep the full `SnapshotTesting` product linked only to test
+targets.
+
 ### Swift Package Manager
 
 If you want to use SnapshotTesting in any other project that uses
@@ -286,6 +336,27 @@ targets: [
       .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
     ]
   )
+]
+```
+
+To share SwiftUI preview definitions with snapshot tests, add the lightweight `SnapshotPreviews`
+product to the source target as well:
+
+```swift
+targets: [
+  .target(
+    name: "MyApp",
+    dependencies: [
+      .product(name: "SnapshotPreviews", package: "swift-snapshot-testing"),
+    ]
+  ),
+  .testTarget(
+    name: "MyAppTests",
+    dependencies: [
+      "MyApp",
+      .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+    ]
+  ),
 ]
 ```
 
