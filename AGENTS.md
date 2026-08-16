@@ -12,11 +12,6 @@ These instructions apply to the entire repository.
 - Touch only files and functions directly required by the task.
 - State technical uncertainty before proceeding.
 - Break large work into small, granular tasks.
-- Use the `caveman`, `cavecrew`, and `ponytail` skills for agent work.
-- Delegate based on task size when useful:
-  - Large or complex work: GPT-5.6 Sol, medium reasoning.
-  - Medium work: GPT-5.6 Terra, medium reasoning.
-  - Small work: GPT-5.6 Luna, high reasoning.
 - Delete temporary files created under `/tmp` or `/private/tmp` before finishing.
 
 ## Project Layout
