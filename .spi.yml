@@ -1,7 +1,7 @@
-# This is manifest file for the Swift Package Index for it to auto-generate and
-# host DocC documentation.
+# This manifest configures the Swift Package Index to generate and host DocC
+# documentation.
 #
-# For reference see https://swiftpackageindex.com/swiftpackageindex/spimanifest/documentation/spimanifest/commonusecases#Host-DocC-documentation-in-the-Swift-Package-Index
+# See https://swiftpackageindex.com/swiftpackageindex/spimanifest/documentation/spimanifest/commonusecases
 
 version: 1
 builder:
@@ -9,6 +9,7 @@ builder:
     - documentation_targets:
       # First item in the list is the "landing" (default) target
       - SnapshotTesting
+      - SnapshotPreviews
       - InlineSnapshotTesting
     - platform: watchos
       scheme: InlineSnapshotTesting
