@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #17162c;
+  --color-muted: #68667d;
+  --color-paper: #fcfbff;
+  --color-line: #e9e5f5;
+  --color-indigo: #5146d9;
+  --color-violet: #7c3aed;
+  --font-sans: "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+html { scroll-behavior: smooth; }
+body { @apply bg-paper text-ink antialiased; }
+::selection { background: #ddd6fe; color: #312e81; }
+:focus-visible { outline: 3px solid #8b5cf6; outline-offset: 3px; }
+.shell { @apply mx-auto w-full max-w-6xl px-5 sm:px-8; }
+.eyebrow { @apply mb-4 font-mono text-xs font-bold tracking-[0.16em] text-violet uppercase; }
+.button { @apply inline-flex items-center justify-center rounded-xl bg-indigo px-5 py-3 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-violet focus-visible:outline-indigo; }
+.button-secondary { @apply inline-flex items-center justify-center rounded-xl border border-line bg-white px-5 py-3 font-semibold text-ink transition hover:-translate-y-0.5 hover:border-violet hover:text-violet; }
+.surface { @apply rounded-3xl border border-line bg-white shadow-[0_10px_35px_rgba(48,36,96,0.06)]; }
+.prose-copy { @apply max-w-3xl text-lg leading-8 text-muted; }
+code { font-family: var(--font-mono); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

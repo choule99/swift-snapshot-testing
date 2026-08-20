@@ -316,11 +316,13 @@ If your data can be represented as an image, text, or data, you can write a snap
 
 ## Documentation
 
-API documentation is included with the source for
-[SnapshotTesting](https://github.com/choule99/swift-snapshot-testing/tree/main/Sources/SnapshotTesting/Documentation.docc),
-[SnapshotPreviews](https://github.com/choule99/swift-snapshot-testing/tree/main/Sources/SnapshotPreviews/Documentation.docc),
+Read the [documentation site](https://modern-swift-dev.github.io/swift-snapshot-testing/) for
+guides, examples, release notes, and API documentation for
+[SnapshotTesting](https://modern-swift-dev.github.io/swift-snapshot-testing/api/snapshottesting/documentation/snapshottesting/),
+[SnapshotPreviews](https://modern-swift-dev.github.io/swift-snapshot-testing/api/snapshotpreviews/documentation/snapshotpreviews/),
+[InlineSnapshotTesting](https://modern-swift-dev.github.io/swift-snapshot-testing/api/inlinesnapshottesting/documentation/inlinesnapshottesting/),
 and
-[InlineSnapshotTesting](https://github.com/choule99/swift-snapshot-testing/tree/main/Sources/InlineSnapshotTesting/Documentation.docc).
+[CustomDump](https://modern-swift-dev.github.io/swift-snapshot-testing/api/customdump/documentation/customdump/).
 
 ## Requirements
 
@@ -345,7 +347,7 @@ requested point size. Compare snapshots on the same OS version to avoid system-r
 > instead, as documented in the last step, below.
 
  1. From the **File** menu, select **Add Package Dependencies…**.
- 2. Enter package repository URL: `https://github.com/choule99/swift-snapshot-testing`.
+ 2. Enter package repository URL: `https://github.com/modern-swift-dev/swift-snapshot-testing`.
  3. Confirm the version and let Xcode resolve the package.
  4. On the final dialog, update SnapshotTesting's **Add to Target** column to a test target that
     will contain snapshot tests (if you have more than one test target, you can later add
@@ -363,7 +365,7 @@ If you want to use SnapshotTesting in any other project that uses
 ```swift
 dependencies: [
   .package(
-    url: "https://github.com/choule99/swift-snapshot-testing",
+    url: "https://github.com/modern-swift-dev/swift-snapshot-testing",
     branch: "main"
   ),
 ]
@@ -452,8 +454,35 @@ Custom Dump was imported from
     }
     ```
 
-[available-strategies]: https://github.com/choule99/swift-snapshot-testing/blob/main/Sources/SnapshotTesting/Documentation.docc/Extensions/Snapshotting.md
-[defining-strategies]: https://github.com/choule99/swift-snapshot-testing/blob/main/Sources/SnapshotTesting/Documentation.docc/Articles/CustomStrategies.md
+[available-strategies]: https://github.com/modern-swift-dev/swift-snapshot-testing/blob/main/Sources/SnapshotTesting/Documentation.docc/Extensions/Snapshotting.md
+[defining-strategies]: https://github.com/modern-swift-dev/swift-snapshot-testing/blob/main/Sources/SnapshotTesting/Documentation.docc/Articles/CustomStrategies.md
+
+## Publishing the documentation site
+
+GitHub Pages publishes the committed `docs/` directory from `main`. Set this once in the
+repository's [Pages publishing settings](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+Choose **Deploy from a branch**, then select the `main` branch and `/docs` folder.
+
+After publishing a GitHub release, rebuild the site with:
+
+```sh
+make website-install
+make site-build
+make site-check
+```
+
+Review the generated release information and DocC output under `docs/`, then commit those changes
+with the release.
+
+Preview the assembled site with:
+
+```sh
+make site-preview
+```
+
+Open the exact URL printed by the command. Do not open `docs/index.html` directly or serve `docs/`
+at the URL root. The generated asset URLs include the `/swift-snapshot-testing/` prefix required by
+GitHub Pages.
 
 ## License
 

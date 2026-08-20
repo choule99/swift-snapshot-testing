@@ -46,6 +46,7 @@ let package = Package(
         .default(enabledTraits: ["FoundationNetworking"])
     ],
     dependencies: [
+        .package(url: "https://github.com/swiftlang/swift-docc-plugin", exact: "1.5.0"),
         .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", from: "1.2.2"),
         .package(url: "https://github.com/swiftlang/swift-syntax", "509.0.0" ..< "605.0.0")
     ],

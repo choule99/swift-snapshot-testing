@@ -1,0 +1,20 @@
+{
+  "name": "snapshot-testing-website",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "check": "astro check",
+    "check:links": "node scripts/check-links.mjs ../docs",
+    "build": "astro build",
+    "preview": "node scripts/preview.mjs ../docs"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@tailwindcss/vite": "^4.1.13",
+    "astro": "^7.0.0",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2"
+  }
+}
