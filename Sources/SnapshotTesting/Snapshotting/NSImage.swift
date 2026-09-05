@@ -221,8 +221,8 @@ private func context(for cgImage: CGImage) -> CGContext? {
               data: nil,
               width: cgImage.width,
               height: cgImage.height,
-              bitsPerComponent: cgImage.bitsPerComponent,
-              bytesPerRow: cgImage.bytesPerRow,
+              bitsPerComponent: 8,
+              bytesPerRow: cgImage.width * 4,
               space: space,
               bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
           ) else {
