@@ -24,6 +24,9 @@ public extension Snapshotting where Value == URLRequest, Format == String {
 
     /// A snapshot strategy for comparing requests based on raw equality.
     ///
+    /// Non-UTF-8 bodies and text beginning with `[Base64] ` are represented as Base64
+    /// with a `[Base64]` prefix, keeping the representation unambiguous.
+    ///
     /// - Parameter pretty: Attempts to pretty print the body of the request (supports JSON).
     static func raw(pretty: Bool) -> Snapshotting {
         SimplySnapshotting.lines.pullback { (request: URLRequest) in
@@ -44,8 +47,12 @@ public extension Snapshotting where Value == URLRequest, Format == String {
             } else {
                 request.httpBody
             }
-            // swiftlint:disable:next optional_data_string_conversion
-            let body = bodyData.map { ["\n\(String(decoding: $0, as: UTF8.self))"] } ?? []
+            let body: [String] = bodyData.map { data in
+                if let text = String(data: data, encoding: .utf8), !text.hasPrefix("[Base64] ") {
+                    return ["\n\(text)"]
+                }
+                return ["\n[Base64] \(data.base64EncodedString())"]
+            } ?? []
 
             return ([method] + headers + body).joined(separator: "\n")
         }
