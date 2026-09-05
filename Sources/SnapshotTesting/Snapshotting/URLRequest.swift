@@ -84,7 +84,7 @@ public extension Snapshotting where Value == URLRequest, Format == String {
         switch httpMethod {
             case "GET": break
             case "HEAD": components.append("--head")
-            default: components.append("--request \(httpMethod)")
+            default: components.append("--request \(shellQuoted(httpMethod))")
         }
 
         // Headers
@@ -93,34 +93,38 @@ public extension Snapshotting where Value == URLRequest, Format == String {
                 guard let value = headers[field] else {
                     fatalError("URLRequest header missing value")
                 }
-                let escapedValue = value.replacingOccurrences(of: "\"", with: "\\\"")
-                components.append("--header \"\(field): \(escapedValue)\"")
+                components.append("--header \(shellQuoted("\(field): \(value)"))")
             }
         }
 
         // Body
         if let httpBodyData = request.httpBody,
            let httpBody = String(data: httpBodyData, encoding: .utf8) {
-            var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
-            escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
-
-            components.append("--data \"\(escapedBody)\"")
+            components.append("--data \(shellQuoted(httpBody))")
         }
 
         // Cookies
         if let cookie = request.allHTTPHeaderFields?["Cookie"] {
-            let escapedValue = cookie.replacingOccurrences(of: "\"", with: "\\\"")
-            components.append("--cookie \"\(escapedValue)\"")
+            components.append("--cookie \(shellQuoted(cookie))")
         }
 
         // URL
         guard let url = request.url, let sortedURL = url.sortingQueryItems() else {
             fatalError("URLRequest must have a valid URL")
         }
-        components.append("\"\(sortedURL.absoluteString)\"")
+        components.append(shellQuoted(sortedURL.absoluteString))
 
         return components.joined(separator: " \\\n\t")
     }
+}
+
+private func shellQuoted(_ value: String) -> String {
+    let escaped = value
+        .replacingOccurrences(of: "\\", with: "\\\\")
+        .replacingOccurrences(of: "\"", with: "\\\"")
+        .replacingOccurrences(of: "$", with: "\\$")
+        .replacingOccurrences(of: "`", with: "\\`")
+    return "\"\(escaped)\""
 }
 
 fileprivate extension URL {

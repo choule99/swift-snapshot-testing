@@ -1,5 +1,5 @@
 curl \
-	--request POST \
+	--request "POST" \
 	--header "Accept: text/html" \
 	--data "pricing[billing]=monthly&pricing[lane]=individual" \
 	--cookie "pf_session={\"user_id\":\"0\"}" \

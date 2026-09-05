@@ -32,6 +32,39 @@ final class URLRequestRegressionTests: XCTestCase {
         XCTAssertEqual(try snapshot(request, as: .raw), "POST https://example.com")
     }
 
+    #if os(macOS) || os(Linux)
+    @MainActor func testCurlArgumentsSurviveShellParsing() async throws {
+        let value = #"literal $SNAPSHOT_QUOTING $(printf substitution) `printf backticks` "quotes" 'apostrophes' \path\"#
+        let body = value + "\nsecond line"
+        var request = URLRequest(url: try XCTUnwrap(URL(string: "https://example.com/$SNAPSHOT_QUOTING?key=$SNAPSHOT_QUOTING")))
+        request.httpMethod = "X$SNAPSHOT_QUOTING"
+        request.setValue(value, forHTTPHeaderField: "X-Test")
+        request.setValue(value, forHTTPHeaderField: "Cookie")
+        request.httpBody = Data(body.utf8)
+        let command = try snapshot(request, as: .curl)
+
+        // Replace curl with an argument printer: no network request is made.
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "curl() { printf '%s\\0' \"$@\"; };\n" + command]
+        process.environment = ["SNAPSHOT_QUOTING": "expanded"]
+        let output = Pipe()
+        process.standardOutput = output
+        try process.run()
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+        let arguments = try data.split(separator: 0).map { try XCTUnwrap(String(bytes: $0, encoding: .utf8)) }
+        XCTAssertEqual(arguments, [
+            "--request", "X$SNAPSHOT_QUOTING",
+            "--header", "X-Test: " + value,
+            "--data", body,
+            "--cookie", value,
+            try XCTUnwrap(request.url).absoluteString
+        ])
+    }
+    #endif
+
     @MainActor private func snapshot(
         _ request: URLRequest,
         as strategy: Snapshotting<URLRequest, String>

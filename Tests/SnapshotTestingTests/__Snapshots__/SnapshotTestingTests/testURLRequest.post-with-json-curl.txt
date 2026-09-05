@@ -1,5 +1,5 @@
 curl \
-	--request POST \
+	--request "POST" \
 	--header "Accept: application/json" \
 	--header "Content-Type: application/json" \
 	--data "{\"name\":\"tammy134235345235\", \"salary\":0, \"age\":\"tammy133\"}" \
