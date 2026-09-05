@@ -24,6 +24,14 @@ final class NSImageComparisonTests: XCTestCase {
         }
     }
 
+    @MainActor func testExactPrecisionCountsRGBAComponents() throws {
+        let red = try image(bytesPerRow: 16, color: .red)
+        let blue = try image(bytesPerRow: 64, color: .blue)
+        // Red and blue differ in two of four components at every pixel.
+        XCTAssertNil(Diffing<NSImage>.image(options: .init(precision: 0.5)).diffV2(red, blue))
+        XCTAssertNotNil(Diffing<NSImage>.image(options: .init(precision: 0.51)).diffV2(red, blue))
+    }
+
     @MainActor private func image(bytesPerRow: Int, color: NSColor, height: Int = 2) throws -> NSImage {
         let context = try XCTUnwrap(CGContext(
             data: nil,
