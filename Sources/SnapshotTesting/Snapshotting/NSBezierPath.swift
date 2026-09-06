@@ -1,111 +1,111 @@
 #if os(macOS)
-import AppKit
-import Cocoa
+    import AppKit
+    import Cocoa
 
-@MainActor public extension Snapshotting where Value == NSBezierPath, Format == NSImage {
-    /// A snapshot strategy for comparing bezier paths based on pixel equality.
-    static var image: Snapshotting {
-        .image()
-    }
+    @MainActor public extension Snapshotting where Value == NSBezierPath, Format == NSImage {
+        /// A snapshot strategy for comparing bezier paths based on pixel equality.
+        static var image: Snapshotting {
+            .image()
+        }
 
-    /// A snapshot strategy for comparing bezier paths based on pixel equality.
-    ///
-    /// ``` swift
-    /// // Match reference perfectly.
-    /// assertSnapshot(of: path, as: .image)
-    ///
-    /// // Allow for a 1% pixel difference.
-    /// assertSnapshot(of: path, as: .image(options: .init(precision: 0.99)))
-    /// ```
-    ///
-    /// - Parameters:
-    ///   - options: The image comparison options.
-    static func image(options: ImageSnapshotOptions = .init()) -> Snapshotting {
-        SimplySnapshotting.image(
-            options: options
-        ).pullback { path in
-            // Move path info frame:
-            let bounds = path.bounds
-            let transform = AffineTransform(translationByX: -bounds.origin.x, byY: -bounds.origin.y)
-            path.transform(using: transform)
+        /// A snapshot strategy for comparing bezier paths based on pixel equality.
+        ///
+        /// ``` swift
+        /// // Match reference perfectly.
+        /// assertSnapshot(of: path, as: .image)
+        ///
+        /// // Allow for a 1% pixel difference.
+        /// assertSnapshot(of: path, as: .image(options: .init(precision: 0.99)))
+        /// ```
+        ///
+        /// - Parameters:
+        ///   - options: The image comparison options.
+        static func image(options: ImageSnapshotOptions = .init()) -> Snapshotting {
+            SimplySnapshotting.image(
+                options: options
+            ).pullback { path in
+                // Move path info frame:
+                let bounds = path.bounds
+                let transform = AffineTransform(translationByX: -bounds.origin.x, byY: -bounds.origin.y)
+                path.transform(using: transform)
 
-            return snapshotImage(size: path.bounds.size) {
-                path.fill()
+                return snapshotImage(size: path.bounds.size) {
+                    path.fill()
+                }
             }
+        }
+
+        @available(*, deprecated, message: "Use image(options:) instead") static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
+            .image(options: .init(precision: precision, perceptualPrecision: perceptualPrecision))
         }
     }
 
-    @available(*, deprecated, message: "Use image(options:) instead") static func image(precision: Float = 1, perceptualPrecision: Float = 1) -> Snapshotting {
-        .image(options: .init(precision: precision, perceptualPrecision: perceptualPrecision))
-    }
-}
+    @MainActor public extension Snapshotting where Value == NSBezierPath, Format == String {
+        /// A snapshot strategy for comparing bezier paths based on pixel equality.
+        @available(macOS 11.0, *)
+        @available(iOS 11.0, *) static var elementsDescription: Snapshotting {
+            .elementsDescription(numberFormatter: defaultNumberFormatter)
+        }
 
-@MainActor public extension Snapshotting where Value == NSBezierPath, Format == String {
-    /// A snapshot strategy for comparing bezier paths based on pixel equality.
-    @available(macOS 11.0, *)
-    @available(iOS 11.0, *) static var elementsDescription: Snapshotting {
-        .elementsDescription(numberFormatter: defaultNumberFormatter)
-    }
+        /// A snapshot strategy for comparing bezier paths based on pixel equality.
+        ///
+        /// - Parameter numberFormatter: The number formatter used for formatting points.
+        @available(macOS 11.0, *)
+        @available(iOS 11.0, *) static func elementsDescription(numberFormatter: NumberFormatter) -> Snapshotting {
+            let namesByType: [NSBezierPath.ElementType: String] = [
+                .moveTo: "MoveTo",
+                .lineTo: "LineTo",
+                .curveTo: "CurveTo",
+                .closePath: "Close"
+            ]
 
-    /// A snapshot strategy for comparing bezier paths based on pixel equality.
-    ///
-    /// - Parameter numberFormatter: The number formatter used for formatting points.
-    @available(macOS 11.0, *)
-    @available(iOS 11.0, *) static func elementsDescription(numberFormatter: NumberFormatter) -> Snapshotting {
-        let namesByType: [NSBezierPath.ElementType: String] = [
-            .moveTo: "MoveTo",
-            .lineTo: "LineTo",
-            .curveTo: "CurveTo",
-            .closePath: "Close"
-        ]
+            let numberOfPointsByType: [NSBezierPath.ElementType: Int] = [
+                .moveTo: 1,
+                .lineTo: 1,
+                .curveTo: 3,
+                .closePath: 0
+            ]
 
-        let numberOfPointsByType: [NSBezierPath.ElementType: Int] = [
-            .moveTo: 1,
-            .lineTo: 1,
-            .curveTo: 3,
-            .closePath: 0
-        ]
+            return SimplySnapshotting.lines.pullback { path in
+                var string = ""
 
-        return SimplySnapshotting.lines.pullback { path in
-            var string = ""
+                var elementPoints = [CGPoint](repeating: .zero, count: 3)
+                for elementIndex in 0 ..< path.elementCount {
+                    let elementType = path.element(at: elementIndex, associatedPoints: &elementPoints)
+                    let name = namesByType[elementType] ?? "Unknown"
 
-            var elementPoints = [CGPoint](repeating: .zero, count: 3)
-            for elementIndex in 0 ..< path.elementCount {
-                let elementType = path.element(at: elementIndex, associatedPoints: &elementPoints)
-                let name = namesByType[elementType] ?? "Unknown"
+                    if elementType == .moveTo, !string.isEmpty {
+                        string += "\n"
+                    }
 
-                if elementType == .moveTo, !string.isEmpty {
+                    string += name
+
+                    if let numberOfPoints = numberOfPointsByType[elementType] {
+                        let points = elementPoints[0 ..< numberOfPoints]
+                        string +=
+                            " "
+                            + points.map { point in
+                                guard let x = numberFormatter.string(from: point.x as NSNumber),
+                                      let y = numberFormatter.string(from: point.y as NSNumber) else {
+                                    preconditionFailure("Could not format path point")
+                                }
+                                return "(\(x), \(y))"
+                            }.joined(separator: " ")
+                    }
+
                     string += "\n"
                 }
 
-                string += name
-
-                if let numberOfPoints = numberOfPointsByType[elementType] {
-                    let points = elementPoints[0 ..< numberOfPoints]
-                    string +=
-                        " "
-                        + points.map { point in
-                            guard let x = numberFormatter.string(from: point.x as NSNumber),
-                                  let y = numberFormatter.string(from: point.y as NSNumber) else {
-                                preconditionFailure("Could not format path point")
-                            }
-                            return "(\(x), \(y))"
-                        }.joined(separator: " ")
-                }
-
-                string += "\n"
+                return string
             }
-
-            return string
         }
     }
-}
 
-private let defaultNumberFormatter: NumberFormatter = {
-    let numberFormatter = NumberFormatter()
-    numberFormatter.decimalSeparator = "."
-    numberFormatter.minimumFractionDigits = 1
-    numberFormatter.maximumFractionDigits = 3
-    return numberFormatter
-}()
+    private let defaultNumberFormatter: NumberFormatter = {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.decimalSeparator = "."
+        numberFormatter.minimumFractionDigits = 1
+        numberFormatter.maximumFractionDigits = 3
+        return numberFormatter
+    }()
 #endif

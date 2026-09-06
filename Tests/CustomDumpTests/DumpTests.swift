@@ -2,15 +2,15 @@ import CustomDump
 import XCTest
 
 #if canImport(CoreGraphics)
-import CoreGraphics
+    import CoreGraphics
 #endif
 
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+    import FoundationNetworking
 #endif
 
 #if canImport(SwiftUI)
-import SwiftUI
+    import SwiftUI
 #endif
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) final class DumpTests: XCTestCase {
@@ -640,95 +640,95 @@ import SwiftUI
     func testKeyPath() {
         // NB: While this should run on >=5.9, it currently crashes CI on Xcode 15
         #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
-        if #available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *) {
-            expectNoDifference(
-                String(customDumping: \UserClass.name),
-                #"""
-                \UserClass.name
-                """#
-            )
+            if #available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *) {
+                expectNoDifference(
+                    String(customDumping: \UserClass.name),
+                    #"""
+                    \UserClass.name
+                    """#
+                )
 
-            expectNoDifference(
-                String(customDumping: \Pair.driver.name),
-                #"""
-                \Pair.driver.name
-                """#
-            )
+                expectNoDifference(
+                    String(customDumping: \Pair.driver.name),
+                    #"""
+                    \Pair.driver.name
+                    """#
+                )
 
-            expectNoDifference(
-                String(customDumping: \(x: Double, y: Double).x),
-                #"""
-                \(x: Double, y: Double).x
-                """#
-            )
+                expectNoDifference(
+                    String(customDumping: \(x: Double, y: Double).x),
+                    #"""
+                    \(x: Double, y: Double).x
+                    """#
+                )
 
-            #if DEBUG
-            expectNoDifference(
-                String(customDumping: \User.name.count),
-                #"""
-                \User.name.count
-                """#
-            )
+                #if DEBUG
+                    expectNoDifference(
+                        String(customDumping: \User.name.count),
+                        #"""
+                        \User.name.count
+                        """#
+                    )
 
-            expectNoDifference(
-                String(customDumping: \Item.$isInStock),
-                #"""
-                \Item.$isInStock
-                """#
-            )
+                    expectNoDifference(
+                        String(customDumping: \Item.$isInStock),
+                        #"""
+                        \Item.$isInStock
+                        """#
+                    )
 
-            expectNoDifference(
-                String(customDumping: \Wrapped<String>.count),
-                #"""
-                \Wrapped<String>.subscript(dynamicMember: <unknown>)
-                """#
-            )
-            #endif
+                    expectNoDifference(
+                        String(customDumping: \Wrapped<String>.count),
+                        #"""
+                        \Wrapped<String>.subscript(dynamicMember: <unknown>)
+                        """#
+                    )
+                #endif
 
-            return
-        } else {
-            expectNoDifference(
-                String(customDumping: \UserClass.name),
-                #"""
-                \UserClass.name
-                """#
-            )
+                return
+            } else {
+                expectNoDifference(
+                    String(customDumping: \UserClass.name),
+                    #"""
+                    \UserClass.name
+                    """#
+                )
 
-            expectNoDifference(
-                String(customDumping: \Pair.driver.name),
-                #"""
-                \Pair.driver.name
-                """#
-            )
+                expectNoDifference(
+                    String(customDumping: \Pair.driver.name),
+                    #"""
+                    \Pair.driver.name
+                    """#
+                )
 
-            expectNoDifference(
-                String(customDumping: \User.name.count),
-                #"""
-                KeyPath<User, Int>
-                """#
-            )
+                expectNoDifference(
+                    String(customDumping: \User.name.count),
+                    #"""
+                    KeyPath<User, Int>
+                    """#
+                )
 
-            expectNoDifference(
-                String(customDumping: \(x: Double, y: Double).x),
-                #"""
-                WritableKeyPath<(x: Double, y: Double), Double>
-                """#
-            )
+                expectNoDifference(
+                    String(customDumping: \(x: Double, y: Double).x),
+                    #"""
+                    WritableKeyPath<(x: Double, y: Double), Double>
+                    """#
+                )
 
-            expectNoDifference(
-                String(customDumping: \Item.$isInStock),
-                #"""
-                KeyPath<Item, Wrapped<Bool>>
-                """#
-            )
+                expectNoDifference(
+                    String(customDumping: \Item.$isInStock),
+                    #"""
+                    KeyPath<Item, Wrapped<Bool>>
+                    """#
+                )
 
-            expectNoDifference(
-                String(customDumping: \Wrapped<String>.count),
-                #"""
-                KeyPath<Wrapped<String>, Int>
-                """#
-            )
-        }
+                expectNoDifference(
+                    String(customDumping: \Wrapped<String>.count),
+                    #"""
+                    KeyPath<Wrapped<String>, Int>
+                    """#
+                )
+            }
         #endif
     }
 
@@ -1040,52 +1040,52 @@ import SwiftUI
     }
 
     #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
-    func testDuration() {
-        expectNoDifference(
-            String(customDumping: Duration.seconds(5)),
-            """
-            5 seconds
-            """
-        )
+        func testDuration() {
+            expectNoDifference(
+                String(customDumping: Duration.seconds(5)),
+                """
+                5 seconds
+                """
+            )
 
-        expectNoDifference(
-            String(customDumping: Duration.seconds(5) + .milliseconds(123)),
-            """
-            5 seconds, 123 milliseconds
-            """
-        )
-    }
+            expectNoDifference(
+                String(customDumping: Duration.seconds(5) + .milliseconds(123)),
+                """
+                5 seconds, 123 milliseconds
+                """
+            )
+        }
     #endif
 
     #if canImport(CoreGraphics)
-    func testCoreGraphics() {
-        expectNoDifference(
-            String(customDumping: CGRect(x: 0.5, y: 0.5, width: 1.5, height: 1.5)),
-            """
-            CGRect(
-              origin: CGPoint(
-                x: 0.5,
-                y: 0.5
-              ),
-              size: CGSize(
-                width: 1.5,
-                height: 1.5
-              )
+        func testCoreGraphics() {
+            expectNoDifference(
+                String(customDumping: CGRect(x: 0.5, y: 0.5, width: 1.5, height: 1.5)),
+                """
+                CGRect(
+                  origin: CGPoint(
+                    x: 0.5,
+                    y: 0.5
+                  ),
+                  size: CGSize(
+                    width: 1.5,
+                    height: 1.5
+                  )
+                )
+                """
             )
-            """
-        )
-    }
+        }
     #endif
 
     #if canImport(SwiftUI)
-    func testSwiftUI() {
-        expectNoDifference(
-            String(customDumping: Animation.easeInOut),
-            """
-            Animation.easeInOut
-            """
-        )
-    }
+        func testSwiftUI() {
+            expectNoDifference(
+                String(customDumping: Animation.easeInOut),
+                """
+                Animation.easeInOut
+                """
+            )
+        }
     #endif
 
     func testObservationRegistrarFiltered() {

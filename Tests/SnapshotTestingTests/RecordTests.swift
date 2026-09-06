@@ -38,155 +38,155 @@ class RecordTests: BaseTestCase {
     }
 
     #if canImport(Darwin)
-    func testRecordNever() async {
-        XCTExpectFailure {
-            withSnapshotTesting(record: .never) {
-                assertSnapshot(of: 42, as: .json)
-            }
-        } issueMatcher: {
-            $0.compactDescription == """
-            failed - No reference was found on disk. New snapshot was not recorded because recording is disabled
-            """
-        }
-
-        XCTAssertEqual(
-            FileManager.default.fileExists(atPath: snapshotURL.path),
-            false
-        )
-    }
-
-    func testRecordMissing() async {
-        XCTExpectFailure {
-            withSnapshotTesting(record: .missing) {
-                assertSnapshot(of: 42, as: .json)
-            }
-        } issueMatcher: {
-            $0.compactDescription.hasPrefix(
+        func testRecordNever() async {
+            XCTExpectFailure {
+                withSnapshotTesting(record: .never) {
+                    assertSnapshot(of: 42, as: .json)
+                }
+            } issueMatcher: {
+                $0.compactDescription == """
+                failed - No reference was found on disk. New snapshot was not recorded because recording is disabled
                 """
-                failed - No reference was found on disk. Automatically recorded snapshot: …
-                """
+            }
+
+            XCTAssertEqual(
+                FileManager.default.fileExists(atPath: snapshotURL.path),
+                false
             )
         }
 
-        try XCTAssertEqual(
-            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
-            "42"
-        )
-    }
-
-    func testRecordMissing_ExistingFile() async throws {
-        try Data("999".utf8).write(to: snapshotURL)
-
-        XCTExpectFailure {
-            withSnapshotTesting(record: .missing) {
-                assertSnapshot(of: 42, as: .json)
-            }
-        } issueMatcher: {
-            $0.compactDescription.hasPrefix(
-                """
-                failed - Snapshot does not match reference.
-                """
-            )
-        }
-
-        try XCTAssertEqual(
-            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
-            "999"
-        )
-    }
-
-    func testRecordAll_Fresh() async throws {
-        XCTExpectFailure {
-            withSnapshotTesting(record: .all) {
-                assertSnapshot(of: 42, as: .json)
-            }
-        } issueMatcher: {
-            $0.compactDescription.hasPrefix(
-                """
-                failed - Record mode is on. Automatically recorded snapshot: …
-                """
-            )
-        }
-
-        try XCTAssertEqual(
-            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
-            "42"
-        )
-    }
-
-    func testRecordAll_Overwrite() async throws {
-        try Data("999".utf8).write(to: snapshotURL)
-
-        XCTExpectFailure {
-            withSnapshotTesting(record: .all) {
-                assertSnapshot(of: 42, as: .json)
-            }
-        } issueMatcher: {
-            $0.compactDescription.hasPrefix(
-                """
-                failed - Record mode is on. Automatically recorded snapshot: …
-                """
-            )
-        }
-
-        try XCTAssertEqual(
-            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
-            "42"
-        )
-    }
-
-    func testRecordFailed_WhenFailure() async throws {
-        try Data("999".utf8).write(to: snapshotURL)
-
-        XCTExpectFailure {
-            withSnapshotTesting(record: .failed) {
-                assertSnapshot(of: 42, as: .json)
-            }
-        } issueMatcher: {
-            $0.compactDescription.hasPrefix(
-                """
-                failed - Snapshot does not match reference. A new snapshot was automatically recorded.
-                """
-            )
-        }
-
-        try XCTAssertEqual(
-            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
-            "42"
-        )
-    }
-
-    func testRecordFailed_WithArtifactsDirectory() async throws {
-        let artifactsDirectory = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
-        let artifactURL = artifactsDirectory
-            .appendingPathComponent("RecordTests", isDirectory: true)
-            .appendingPathComponent(snapshotURL.lastPathComponent)
-        try Data("999".utf8).write(to: snapshotURL)
-
-        XCTExpectFailure {
-            assertSnapshot(
-                of: 42,
-                as: .json,
-                options: .init(
-                    record: .failed,
-                    artifactsDirectory: artifactsDirectory.path
+        func testRecordMissing() async {
+            XCTExpectFailure {
+                withSnapshotTesting(record: .missing) {
+                    assertSnapshot(of: 42, as: .json)
+                }
+            } issueMatcher: {
+                $0.compactDescription.hasPrefix(
+                    """
+                    failed - No reference was found on disk. Automatically recorded snapshot: …
+                    """
                 )
+            }
+
+            try XCTAssertEqual(
+                String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
+                "42"
             )
-        } issueMatcher: {
-            $0.compactDescription.hasPrefix("failed - Snapshot does not match reference.\n")
-                && !$0.compactDescription.contains("automatically recorded")
         }
 
-        try XCTAssertEqual(String(contentsOf: snapshotURL, encoding: .utf8), "999")
-        try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
-    }
+        func testRecordMissing_ExistingFile() async throws {
+            try Data("999".utf8).write(to: snapshotURL)
+
+            XCTExpectFailure {
+                withSnapshotTesting(record: .missing) {
+                    assertSnapshot(of: 42, as: .json)
+                }
+            } issueMatcher: {
+                $0.compactDescription.hasPrefix(
+                    """
+                    failed - Snapshot does not match reference.
+                    """
+                )
+            }
+
+            try XCTAssertEqual(
+                String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
+                "999"
+            )
+        }
+
+        func testRecordAll_Fresh() async throws {
+            XCTExpectFailure {
+                withSnapshotTesting(record: .all) {
+                    assertSnapshot(of: 42, as: .json)
+                }
+            } issueMatcher: {
+                $0.compactDescription.hasPrefix(
+                    """
+                    failed - Record mode is on. Automatically recorded snapshot: …
+                    """
+                )
+            }
+
+            try XCTAssertEqual(
+                String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
+                "42"
+            )
+        }
+
+        func testRecordAll_Overwrite() async throws {
+            try Data("999".utf8).write(to: snapshotURL)
+
+            XCTExpectFailure {
+                withSnapshotTesting(record: .all) {
+                    assertSnapshot(of: 42, as: .json)
+                }
+            } issueMatcher: {
+                $0.compactDescription.hasPrefix(
+                    """
+                    failed - Record mode is on. Automatically recorded snapshot: …
+                    """
+                )
+            }
+
+            try XCTAssertEqual(
+                String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
+                "42"
+            )
+        }
+
+        func testRecordFailed_WhenFailure() async throws {
+            try Data("999".utf8).write(to: snapshotURL)
+
+            XCTExpectFailure {
+                withSnapshotTesting(record: .failed) {
+                    assertSnapshot(of: 42, as: .json)
+                }
+            } issueMatcher: {
+                $0.compactDescription.hasPrefix(
+                    """
+                    failed - Snapshot does not match reference. A new snapshot was automatically recorded.
+                    """
+                )
+            }
+
+            try XCTAssertEqual(
+                String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
+                "42"
+            )
+        }
+
+        func testRecordFailed_WithArtifactsDirectory() async throws {
+            let artifactsDirectory = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
+            let artifactURL = artifactsDirectory
+                .appendingPathComponent("RecordTests", isDirectory: true)
+                .appendingPathComponent(snapshotURL.lastPathComponent)
+            try Data("999".utf8).write(to: snapshotURL)
+
+            XCTExpectFailure {
+                assertSnapshot(
+                    of: 42,
+                    as: .json,
+                    options: .init(
+                        record: .failed,
+                        artifactsDirectory: artifactsDirectory.path
+                    )
+                )
+            } issueMatcher: {
+                $0.compactDescription.hasPrefix("failed - Snapshot does not match reference.\n")
+                    && !$0.compactDescription.contains("automatically recorded")
+            }
+
+            try XCTAssertEqual(String(contentsOf: snapshotURL, encoding: .utf8), "999")
+            try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
+        }
     #endif
 
     func testRecordFailed_NoFailure() async throws {
         #if os(Android)
-        throw XCTSkip("cannot save next to file on Android")
+            throw XCTSkip("cannot save next to file on Android")
         #endif
         try Data("42".utf8).write(to: snapshotURL)
         let modifiedDate =
@@ -210,7 +210,7 @@ class RecordTests: BaseTestCase {
 
     func testAccessedSnapshotPaths() async throws {
         #if os(Android)
-        throw XCTSkip("cannot save next to file on Android")
+            throw XCTSkip("cannot save next to file on Android")
         #endif
 
         resetAccessedSnapshotPaths()
@@ -239,81 +239,81 @@ class RecordTests: BaseTestCase {
     }
 
     #if canImport(Darwin)
-    func testRecordFailed_MissingFile() async throws {
-        XCTExpectFailure {
-            withSnapshotTesting(record: .failed) {
-                assertSnapshot(of: 42, as: .json)
+        func testRecordFailed_MissingFile() async throws {
+            XCTExpectFailure {
+                withSnapshotTesting(record: .failed) {
+                    assertSnapshot(of: 42, as: .json)
+                }
+            } issueMatcher: {
+                $0.compactDescription.hasPrefix(
+                    """
+                    failed - No reference was found on disk. Automatically recorded snapshot: …
+                    """
+                )
             }
-        } issueMatcher: {
-            $0.compactDescription.hasPrefix(
-                """
-                failed - No reference was found on disk. Automatically recorded snapshot: …
-                """
+
+            try XCTAssertEqual(
+                String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
+                "42"
             )
         }
-
-        try XCTAssertEqual(
-            String(bytes: Data(contentsOf: snapshotURL), encoding: .utf8),
-            "42"
-        )
-    }
     #endif
 
     func testRecordFailed_MissingFileWithArtifactsDirectory() async throws {
         #if os(Android)
-        throw XCTSkip("cannot save next to file on Android")
+            throw XCTSkip("cannot save next to file on Android")
         #else
-        let artifactsDirectory = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
-        let artifactURL = artifactsDirectory
-            .appendingPathComponent("RecordTests", isDirectory: true)
-            .appendingPathComponent(snapshotURL.lastPathComponent)
+            let artifactsDirectory = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
+            let artifactURL = artifactsDirectory
+                .appendingPathComponent("RecordTests", isDirectory: true)
+                .appendingPathComponent(snapshotURL.lastPathComponent)
 
-        let failure = verifySnapshot(
-            of: 42,
-            as: .json,
-            options: .init(
-                record: .failed,
-                artifactsDirectory: artifactsDirectory.path
+            let failure = verifySnapshot(
+                of: 42,
+                as: .json,
+                options: .init(
+                    record: .failed,
+                    artifactsDirectory: artifactsDirectory.path
+                )
             )
-        )
 
-        XCTAssertEqual(
-            failure,
-            "No reference was found on disk. Snapshot was not recorded because an artifacts directory is configured."
-        )
-        XCTAssertFalse(FileManager.default.fileExists(atPath: snapshotURL.path))
-        try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
+            XCTAssertEqual(
+                failure,
+                "No reference was found on disk. Snapshot was not recorded because an artifacts directory is configured."
+            )
+            XCTAssertFalse(FileManager.default.fileExists(atPath: snapshotURL.path))
+            try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
         #endif
     }
 
     func testRecordNever_MissingFileWithArtifactsDirectory() async throws {
         #if os(Android)
-        throw XCTSkip("cannot save next to file on Android")
+            throw XCTSkip("cannot save next to file on Android")
         #else
-        let artifactsDirectory = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
-        let artifactURL = artifactsDirectory
-            .appendingPathComponent("RecordTests", isDirectory: true)
-            .appendingPathComponent(snapshotURL.lastPathComponent)
+            let artifactsDirectory = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            defer { try? FileManager.default.removeItem(at: artifactsDirectory) }
+            let artifactURL = artifactsDirectory
+                .appendingPathComponent("RecordTests", isDirectory: true)
+                .appendingPathComponent(snapshotURL.lastPathComponent)
 
-        let failure = verifySnapshot(
-            of: 42,
-            as: .json,
-            options: .init(
-                record: .never,
-                artifactsDirectory: artifactsDirectory.path
+            let failure = verifySnapshot(
+                of: 42,
+                as: .json,
+                options: .init(
+                    record: .never,
+                    artifactsDirectory: artifactsDirectory.path
+                )
             )
-        )
 
-        XCTAssertEqual(
-            failure,
-            "No reference was found on disk. New snapshot was not recorded because recording is disabled"
-        )
-        XCTAssertFalse(FileManager.default.fileExists(atPath: snapshotURL.path))
-        try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
+            XCTAssertEqual(
+                failure,
+                "No reference was found on disk. New snapshot was not recorded because recording is disabled"
+            )
+            XCTAssertFalse(FileManager.default.fileExists(atPath: snapshotURL.path))
+            try XCTAssertEqual(String(contentsOf: artifactURL, encoding: .utf8), "42")
         #endif
     }
 }

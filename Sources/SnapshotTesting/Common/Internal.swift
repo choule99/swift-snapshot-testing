@@ -1,13 +1,13 @@
 #if os(macOS)
-import Cocoa
+    import Cocoa
 
-typealias Image = NSImage
-typealias ImageView = NSImageView
-typealias View = NSView
+    typealias Image = NSImage
+    typealias ImageView = NSImageView
+    typealias View = NSView
 #elseif os(iOS) || os(tvOS)
-import UIKit
+    import UIKit
 
-typealias Image = UIImage
-typealias ImageView = UIImageView
-typealias View = UIView
+    typealias Image = UIImage
+    typealias ImageView = UIImageView
+    typealias View = UIView
 #endif

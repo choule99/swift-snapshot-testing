@@ -2,13 +2,13 @@ import Foundation
 import XCTest
 
 #if canImport(UIKit)
-import UIKit
+    import UIKit
 #elseif canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 #if canImport(Testing)
-import Testing
+    import Testing
 #endif
 
 private struct GlobalState {
@@ -60,13 +60,13 @@ public func resetAccessedSnapshotPaths() {
 @_spi(Internals) public var _diffTool: SnapshotTestingConfiguration.DiffTool {
     get {
         #if canImport(Testing)
-        if let test = Test.current {
-            for trait in test.traits.reversed() {
-                if let diffTool = (trait as? _SnapshotsTestTrait)?.configuration.diffTool {
-                    return diffTool
+            if let test = Test.current {
+                for trait in test.traits.reversed() {
+                    if let diffTool = (trait as? _SnapshotsTestTrait)?.configuration.diffTool {
+                        return diffTool
+                    }
                 }
             }
-        }
         #endif
         return __diffTool
     }
@@ -94,13 +94,13 @@ public func resetAccessedSnapshotPaths() {
 @_spi(Internals) public var _record: SnapshotTestingConfiguration.Record {
     get {
         #if canImport(Testing)
-        if let test = Test.current {
-            for trait in test.traits.reversed() {
-                if let record = (trait as? _SnapshotsTestTrait)?.configuration.record {
-                    return record
+            if let test = Test.current {
+                for trait in test.traits.reversed() {
+                    if let record = (trait as? _SnapshotsTestTrait)?.configuration.record {
+                        return record
+                    }
                 }
             }
-        }
         #endif
         return __record
     }
@@ -452,11 +452,11 @@ public struct SnapshotAssertionOptions: Sendable {
     column: UInt = #column
 ) -> String? {
     #if canImport(Testing)
-    if Test.current == nil {
-        CleanCounterBetweenTestCases.registerIfNeeded()
-    }
+        if Test.current == nil {
+            CleanCounterBetweenTestCases.registerIfNeeded()
+        }
     #else
-    CleanCounterBetweenTestCases.registerIfNeeded()
+        CleanCounterBetweenTestCases.registerIfNeeded()
     #endif
 
     let record = options.record ?? SnapshotTestingConfiguration.current?.record ?? _record
@@ -557,28 +557,28 @@ public struct SnapshotAssertionOptions: Sendable {
                     )
                 } else {
                     #if !os(Android) && !os(Linux) && !os(Windows)
-                    if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
-                        XCTContext.runActivity(named: "Attached Recorded Snapshot") { activity in
-                            if writeToDisk {
-                                // Snapshot was written to disk. Create attachment from file
-                                let attachment = XCTAttachment(contentsOfFile: snapshotFileUrl)
-                                activity.add(attachment)
-                            } else {
-                                // Snapshot was not written to disk. Create attachment from data and path extension
-                                let typeIdentifier = snapshotting.pathExtension.flatMap(
-                                    uniformTypeIdentifier(fromExtension:)
-                                )
+                        if ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") {
+                            XCTContext.runActivity(named: "Attached Recorded Snapshot") { activity in
+                                if writeToDisk {
+                                    // Snapshot was written to disk. Create attachment from file
+                                    let attachment = XCTAttachment(contentsOfFile: snapshotFileUrl)
+                                    activity.add(attachment)
+                                } else {
+                                    // Snapshot was not written to disk. Create attachment from data and path extension
+                                    let typeIdentifier = snapshotting.pathExtension.flatMap(
+                                        uniformTypeIdentifier(fromExtension:)
+                                    )
 
-                                let attachment = XCTAttachment(
-                                    uniformTypeIdentifier: typeIdentifier,
-                                    name: snapshotFileUrl.lastPathComponent,
-                                    payload: snapshotData
-                                )
+                                    let attachment = XCTAttachment(
+                                        uniformTypeIdentifier: typeIdentifier,
+                                        name: snapshotFileUrl.lastPathComponent,
+                                        payload: snapshotData
+                                    )
 
-                                activity.add(attachment)
+                                    activity.add(attachment)
+                                }
                             }
                         }
-                    }
                     #endif
                 }
             }
@@ -651,12 +651,12 @@ public struct SnapshotAssertionOptions: Sendable {
             }
 
             #if os(iOS) || os(tvOS)
-            // If the image generation fails for the diffable part and the reference was empty, use the reference
-            if let localDiff = diffable as? UIImage,
-               let refImage = reference as? UIImage,
-               localDiff.size == .zero, refImage.size == .zero {
-                diffable = reference
-            }
+                // If the image generation fails for the diffable part and the reference was empty, use the reference
+                if let localDiff = diffable as? UIImage,
+                   let refImage = reference as? UIImage,
+                   localDiff.size == .zero, refImage.size == .zero {
+                    diffable = reference
+                }
             #endif
 
             guard let (failure, attachments) = snapshotting.diffing.diffV2(reference, diffable) else {
@@ -744,13 +744,13 @@ public struct SnapshotAssertionOptions: Sendable {
 
 private var counter: File.Counter {
     #if canImport(Testing)
-    if Test.current != nil {
-        return File.counter
-    } else {
-        return _counter
-    }
+        if Test.current != nil {
+            return File.counter
+        } else {
+            return _counter
+        }
     #else
-    return _counter
+        return _counter
     #endif
 }
 
@@ -786,26 +786,26 @@ private let _counter = File.Counter()
         }
     } else {
         #if !os(Linux) && !os(Android) && !os(Windows)
-        guard ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") else {
-            return
-        }
-        XCTContext.runActivity(named: "Attached Failure Diff") { activity in
-            for item in attachments {
-                switch item {
-                    case let .xcTest(attachment):
-                        activity.add(attachment)
-                    case let .data(data, name):
-                        let attachment = XCTAttachment(
-                            uniformTypeIdentifier: uniformTypeIdentifier(
-                                fromExtension: (name as NSString).pathExtension
-                            ),
-                            name: name,
-                            payload: data
-                        )
-                        activity.add(attachment)
+            guard ProcessInfo.processInfo.environment.keys.contains("__XCODE_BUILT_PRODUCTS_DIR_PATHS") else {
+                return
+            }
+            XCTContext.runActivity(named: "Attached Failure Diff") { activity in
+                for item in attachments {
+                    switch item {
+                        case let .xcTest(attachment):
+                            activity.add(attachment)
+                        case let .data(data, name):
+                            let attachment = XCTAttachment(
+                                uniformTypeIdentifier: uniformTypeIdentifier(
+                                    fromExtension: (name as NSString).pathExtension
+                                ),
+                                name: name,
+                                payload: data
+                            )
+                            activity.add(attachment)
+                    }
                 }
             }
-        }
         #endif
     }
 }
@@ -906,10 +906,10 @@ private func nearestAncestor(named name: String, from directory: URL) -> URL? {
 
 private let defaultAndroidSnapshotsBaseURL: URL? = {
     #if os(Android)
-    // Android CI copies snapshot references beneath this staging directory.
-    URL(fileURLWithPath: "/data/local/tmp/android-xctest", isDirectory: true)
+        // Android CI copies snapshot references beneath this staging directory.
+        URL(fileURLWithPath: "/data/local/tmp/android-xctest", isDirectory: true)
     #else
-    nil
+        nil
     #endif
 }()
 
@@ -924,11 +924,11 @@ func snapshotArtifactsDirectory(
 }
 
 #if !os(Android) && !os(Linux) && !os(Windows)
-import UniformTypeIdentifiers
+    import UniformTypeIdentifiers
 
-func uniformTypeIdentifier(fromExtension pathExtension: String) -> String? {
-    UTType(filenameExtension: pathExtension)?.identifier
-}
+    func uniformTypeIdentifier(fromExtension pathExtension: String) -> String? {
+        UTType(filenameExtension: pathExtension)?.identifier
+    }
 #endif
 
 /// We need to clean counter between tests executions in order to support test-iterations.
@@ -973,24 +973,24 @@ enum File {
 }
 
 #if canImport(Testing)
-private func recordSwiftTestingAttachment(
-    _ data: Data,
-    named name: String,
-    sourceLocation: SourceLocation
-) {
-    Attachment.record(SnapshotAttachment(data: data), named: name, sourceLocation: sourceLocation)
-}
+    private func recordSwiftTestingAttachment(
+        _ data: Data,
+        named name: String,
+        sourceLocation: SourceLocation
+    ) {
+        Attachment.record(SnapshotAttachment(data: data), named: name, sourceLocation: sourceLocation)
+    }
 
-private struct SnapshotAttachment: Attachable, Sendable {
-    let data: Data
+    private struct SnapshotAttachment: Attachable, Sendable {
+        let data: Data
 
-    borrowing func withUnsafeBytes<R>(
-        for attachment: borrowing Attachment<Self>,
-        _ body: (UnsafeRawBufferPointer) throws -> R
-    ) throws -> R {
-        try data.withUnsafeBytes { buffer in
-            try body(buffer)
+        borrowing func withUnsafeBytes<R>(
+            for attachment: borrowing Attachment<Self>,
+            _ body: (UnsafeRawBufferPointer) throws -> R
+        ) throws -> R {
+            try data.withUnsafeBytes { buffer in
+                try body(buffer)
+            }
         }
     }
-}
 #endif

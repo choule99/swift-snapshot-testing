@@ -1,139 +1,139 @@
 #if !os(WASI)
-import Foundation
+    import Foundation
 
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
+    #if canImport(FoundationNetworking)
+        import FoundationNetworking
+    #endif
 
-public extension Snapshotting where Value == URLRequest, Format == String {
-    /// A snapshot strategy for comparing requests based on raw equality.
-    ///
-    /// ``` swift
-    /// assertSnapshot(of: request, as: .raw)
-    /// ```
-    ///
-    /// Records:
-    ///
-    /// ```
-    /// POST http://localhost:8080/account
-    /// Cookie: pf_session={"userId":"1"}
-    ///
-    /// email=blob%40pointfree.co&name=Blob
-    /// ```
-    static let raw = Snapshotting.raw(pretty: false)
+    public extension Snapshotting where Value == URLRequest, Format == String {
+        /// A snapshot strategy for comparing requests based on raw equality.
+        ///
+        /// ``` swift
+        /// assertSnapshot(of: request, as: .raw)
+        /// ```
+        ///
+        /// Records:
+        ///
+        /// ```
+        /// POST http://localhost:8080/account
+        /// Cookie: pf_session={"userId":"1"}
+        ///
+        /// email=blob%40pointfree.co&name=Blob
+        /// ```
+        static let raw = Snapshotting.raw(pretty: false)
 
-    /// A snapshot strategy for comparing requests based on raw equality.
-    ///
-    /// Non-UTF-8 bodies and text beginning with `[Base64] ` are represented as Base64
-    /// with a `[Base64]` prefix, keeping the representation unambiguous.
-    ///
-    /// - Parameter pretty: Attempts to pretty print the body of the request (supports JSON).
-    static func raw(pretty: Bool) -> Snapshotting {
-        SimplySnapshotting.lines.pullback { (request: URLRequest) in
-            let method =
-                "\(request.httpMethod ?? "GET") \(request.url?.sortingQueryItems()?.absoluteString ?? "(null)")"
+        /// A snapshot strategy for comparing requests based on raw equality.
+        ///
+        /// Non-UTF-8 bodies and text beginning with `[Base64] ` are represented as Base64
+        /// with a `[Base64]` prefix, keeping the representation unambiguous.
+        ///
+        /// - Parameter pretty: Attempts to pretty print the body of the request (supports JSON).
+        static func raw(pretty: Bool) -> Snapshotting {
+            SimplySnapshotting.lines.pullback { (request: URLRequest) in
+                let method =
+                    "\(request.httpMethod ?? "GET") \(request.url?.sortingQueryItems()?.absoluteString ?? "(null)")"
 
-            let headers = (request.allHTTPHeaderFields ?? [:])
-                .map { key, value in "\(key): \(value)" }
-                .sorted()
+                let headers = (request.allHTTPHeaderFields ?? [:])
+                    .map { key, value in "\(key): \(value)" }
+                    .sorted()
 
-            let bodyData: Data? = if pretty,
-                                     let httpBody = request.httpBody,
-                                     let object = try? JSONSerialization.jsonObject(with: httpBody, options: []),
-                                     let prettyBody = try? JSONSerialization.data(
-                                         withJSONObject: object, options: [.prettyPrinted, .sortedKeys]
-                                     ) {
-                prettyBody
-            } else {
-                request.httpBody
-            }
-            let body: [String] = bodyData.map { data in
-                if let text = String(data: data, encoding: .utf8), !text.hasPrefix("[Base64] ") {
-                    return ["\n\(text)"]
+                let bodyData: Data? = if pretty,
+                                         let httpBody = request.httpBody,
+                                         let object = try? JSONSerialization.jsonObject(with: httpBody, options: []),
+                                         let prettyBody = try? JSONSerialization.data(
+                                             withJSONObject: object, options: [.prettyPrinted, .sortedKeys]
+                                         ) {
+                    prettyBody
+                } else {
+                    request.httpBody
                 }
-                return ["\n[Base64] \(data.base64EncodedString())"]
-            } ?? []
+                let body: [String] = bodyData.map { data in
+                    if let text = String(data: data, encoding: .utf8), !text.hasPrefix("[Base64] ") {
+                        return ["\n\(text)"]
+                    }
+                    return ["\n[Base64] \(data.base64EncodedString())"]
+                } ?? []
 
-            return ([method] + headers + body).joined(separator: "\n")
-        }
-    }
-
-    /// A snapshot strategy for comparing requests based on a cURL representation.
-    ///
-    /// ``` swift
-    /// assertSnapshot(of: request, as: .curl)
-    /// ```
-    ///
-    /// Records:
-    ///
-    /// ```
-    /// curl \
-    ///   --request POST \
-    ///   --header "Accept: text/html" \
-    ///   --data 'pricing[billing]=monthly&pricing[lane]=individual' \
-    ///   "https://www.pointfree.co/subscribe"
-    /// ```
-    static let curl = SimplySnapshotting.lines.pullback { (request: URLRequest) in
-
-        var components = ["curl"]
-
-        // HTTP Method
-        guard let httpMethod = request.httpMethod else {
-            fatalError("URLRequest must have an HTTP method")
-        }
-        switch httpMethod {
-            case "GET": break
-            case "HEAD": components.append("--head")
-            default: components.append("--request \(shellQuoted(httpMethod))")
-        }
-
-        // Headers
-        if let headers = request.allHTTPHeaderFields {
-            for field in headers.keys.sorted() where field != "Cookie" {
-                guard let value = headers[field] else {
-                    fatalError("URLRequest header missing value")
-                }
-                components.append("--header \(shellQuoted("\(field): \(value)"))")
+                return ([method] + headers + body).joined(separator: "\n")
             }
         }
 
-        // Body
-        if let httpBodyData = request.httpBody,
-           let httpBody = String(data: httpBodyData, encoding: .utf8) {
-            components.append("--data \(shellQuoted(httpBody))")
-        }
+        /// A snapshot strategy for comparing requests based on a cURL representation.
+        ///
+        /// ``` swift
+        /// assertSnapshot(of: request, as: .curl)
+        /// ```
+        ///
+        /// Records:
+        ///
+        /// ```
+        /// curl \
+        ///   --request POST \
+        ///   --header "Accept: text/html" \
+        ///   --data 'pricing[billing]=monthly&pricing[lane]=individual' \
+        ///   "https://www.pointfree.co/subscribe"
+        /// ```
+        static let curl = SimplySnapshotting.lines.pullback { (request: URLRequest) in
 
-        // Cookies
-        if let cookie = request.allHTTPHeaderFields?["Cookie"] {
-            components.append("--cookie \(shellQuoted(cookie))")
-        }
+            var components = ["curl"]
 
-        // URL
-        guard let url = request.url, let sortedURL = url.sortingQueryItems() else {
-            fatalError("URLRequest must have a valid URL")
-        }
-        components.append(shellQuoted(sortedURL.absoluteString))
+            // HTTP Method
+            guard let httpMethod = request.httpMethod else {
+                fatalError("URLRequest must have an HTTP method")
+            }
+            switch httpMethod {
+                case "GET": break
+                case "HEAD": components.append("--head")
+                default: components.append("--request \(shellQuoted(httpMethod))")
+            }
 
-        return components.joined(separator: " \\\n\t")
+            // Headers
+            if let headers = request.allHTTPHeaderFields {
+                for field in headers.keys.sorted() where field != "Cookie" {
+                    guard let value = headers[field] else {
+                        fatalError("URLRequest header missing value")
+                    }
+                    components.append("--header \(shellQuoted("\(field): \(value)"))")
+                }
+            }
+
+            // Body
+            if let httpBodyData = request.httpBody,
+               let httpBody = String(data: httpBodyData, encoding: .utf8) {
+                components.append("--data \(shellQuoted(httpBody))")
+            }
+
+            // Cookies
+            if let cookie = request.allHTTPHeaderFields?["Cookie"] {
+                components.append("--cookie \(shellQuoted(cookie))")
+            }
+
+            // URL
+            guard let url = request.url, let sortedURL = url.sortingQueryItems() else {
+                fatalError("URLRequest must have a valid URL")
+            }
+            components.append(shellQuoted(sortedURL.absoluteString))
+
+            return components.joined(separator: " \\\n\t")
+        }
     }
-}
 
-private func shellQuoted(_ value: String) -> String {
-    let escaped = value
-        .replacingOccurrences(of: "\\", with: "\\\\")
-        .replacingOccurrences(of: "\"", with: "\\\"")
-        .replacingOccurrences(of: "$", with: "\\$")
-        .replacingOccurrences(of: "`", with: "\\`")
-    return "\"\(escaped)\""
-}
-
-fileprivate extension URL {
-    func sortingQueryItems() -> URL? {
-        var components = URLComponents(url: self, resolvingAgainstBaseURL: false)
-        let sortedQueryItems = components?.queryItems?.sorted { $0.name < $1.name }
-        components?.queryItems = sortedQueryItems
-
-        return components?.url
+    private func shellQuoted(_ value: String) -> String {
+        let escaped = value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "$", with: "\\$")
+            .replacingOccurrences(of: "`", with: "\\`")
+        return "\"\(escaped)\""
     }
-}
+
+    fileprivate extension URL {
+        func sortingQueryItems() -> URL? {
+            var components = URLComponents(url: self, resolvingAgainstBaseURL: false)
+            let sortedQueryItems = components?.queryItems?.sorted { $0.name < $1.name }
+            components?.queryItems = sortedQueryItems
+
+            return components?.url
+        }
+    }
 #endif

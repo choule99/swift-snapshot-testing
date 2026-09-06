@@ -1,15 +1,15 @@
 public import Foundation
 
 #if FoundationNetworking && canImport(FoundationNetworking)
-public import FoundationNetworking
+    public import FoundationNetworking
 #endif
 
 #if !targetEnvironment(macCatalyst) && (os(iOS) || os(tvOS) || os(watchOS))
-@available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) extension AttributedString: CustomDumpRepresentable {
-    public var customDumpValue: Any {
-        NSAttributedString(self).string
+    @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) extension AttributedString: CustomDumpRepresentable {
+        public var customDumpValue: Any {
+            NSAttributedString(self).string
+        }
     }
-}
 #endif
 
 extension Calendar: CustomDumpReflectable {
@@ -29,28 +29,28 @@ extension Calendar: CustomDumpReflectable {
 }
 
 #if !os(WASI)
-extension Data: CustomDumpStringConvertible {
-    public var customDumpDescription: String {
-        let formatter = ByteCountFormatter()
-        formatter.allowedUnits = .useBytes
-        return "Data(\(formatter.string(fromByteCount: .init(self.count))))"
+    extension Data: CustomDumpStringConvertible {
+        public var customDumpDescription: String {
+            let formatter = ByteCountFormatter()
+            formatter.allowedUnits = .useBytes
+            return "Data(\(formatter.string(fromByteCount: .init(self.count))))"
+        }
     }
-}
 #endif
 
 #if !os(WASI)
-extension Date: CustomDumpStringConvertible {
-    public var customDumpDescription: String {
-        "Date(\(Self.formatter.string(from: self)))"
-    }
+    extension Date: CustomDumpStringConvertible {
+        public var customDumpDescription: String {
+            "Date(\(Self.formatter.string(from: self)))"
+        }
 
-    private static var formatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
-        formatter.timeZone = .gmt
-        return formatter
+        private static var formatter: DateFormatter {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
+            formatter.timeZone = .gmt
+            return formatter
+        }
     }
-}
 #endif
 
 extension Decimal: CustomDumpStringConvertible {
@@ -109,19 +109,19 @@ extension NSError: CustomDumpReflectable {
 
 // NB: `NSException` in unavailable on Linux
 #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
-extension NSException: CustomDumpReflectable {
-    public var customDumpMirror: Mirror {
-        .init(
-            self,
-            children: [
-                "name": self.name,
-                "reason": self.reason as Any,
-                "userInfo": self.userInfo as Any
-            ],
-            displayStyle: .class
-        )
+    extension NSException: CustomDumpReflectable {
+        public var customDumpMirror: Mirror {
+            .init(
+                self,
+                children: [
+                    "name": self.name,
+                    "reason": self.reason as Any,
+                    "userInfo": self.userInfo as Any
+                ],
+                displayStyle: .class
+            )
+        }
     }
-}
 #endif
 
 extension NSExceptionName: CustomDumpStringConvertible {
@@ -132,11 +132,11 @@ extension NSExceptionName: CustomDumpStringConvertible {
 
 // NB: `NSExpression` in unavailable on Linux
 #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
-extension NSExpression: CustomDumpStringConvertible {
-    public var customDumpDescription: String {
-        self.debugDescription
+    extension NSExpression: CustomDumpStringConvertible {
+        public var customDumpDescription: String {
+            self.debugDescription
+        }
     }
-}
 #endif
 
 extension NSIndexPath: CustomDumpRepresentable {
@@ -164,11 +164,11 @@ extension NSLocale: CustomDumpRepresentable {
 }
 
 #if !os(WASI)
-extension NSNotification: CustomDumpRepresentable {
-    public var customDumpValue: Any {
-        self as Notification
+    extension NSNotification: CustomDumpRepresentable {
+        public var customDumpValue: Any {
+            self as Notification
+        }
     }
-}
 #endif
 
 extension NSOrderedSet: CustomDumpReflectable {
@@ -202,10 +202,10 @@ extension NSString: CustomDumpRepresentable {
 extension NSTimeZone: CustomDumpRepresentable {
     public var customDumpValue: Any {
         #if os(iOS) || os(macOS) || os(tvOS) || os(watchOS)
-        return self as TimeZone
+            return self as TimeZone
         #else
-        // NB: Cannot cast directly to `TimeZone` on Linux
-        return TimeZone(identifier: self.name) as Any
+            // NB: Cannot cast directly to `TimeZone` on Linux
+            return TimeZone(identifier: self.name) as Any
         #endif
     }
 }
@@ -229,11 +229,11 @@ extension NSURLQueryItem: CustomDumpRepresentable {
 }
 
 #if FoundationNetworking && canImport(FoundationNetworking)
-extension NSURLRequest: CustomDumpRepresentable {
-    public var customDumpValue: Any {
-        self as URLRequest
+    extension NSURLRequest: CustomDumpRepresentable {
+        public var customDumpValue: Any {
+            self as URLRequest
+        }
     }
-}
 #endif
 
 extension NSUUID: CustomDumpRepresentable {
@@ -270,46 +270,46 @@ extension URL: CustomDumpStringConvertible {
 }
 
 #if FoundationNetworking && canImport(FoundationNetworking)
-extension URLRequest.NetworkServiceType: CustomDumpStringConvertible {
-    public var customDumpDescription: String {
-        switch self { #if canImport(FoundationNetworking)
-        case .background:
-            return "URLRequest.NetworkServiceType.background"
-        case .default:
-            return "URLRequest.NetworkServiceType.default"
-        case .networkServiceTypeCallSignaling:
-            return "URLRequest.NetworkServiceType.networkServiceTypeCallSignaling"
-        case .video:
-            return "URLRequest.NetworkServiceType.video"
-        case .voice:
-            return "URLRequest.NetworkServiceType.voice"
-        case .voip:
-            return "URLRequest.NetworkServiceType.voip"
-            #else
-        case .avStreaming:
-            return "URLRequest.NetworkServiceType.avStreaming"
-        case .background:
-            return "URLRequest.NetworkServiceType.background"
-        case .callSignaling:
-            return "URLRequest.NetworkServiceType.callSignaling"
-        case .default:
-            return "URLRequest.NetworkServiceType.default"
-        case .responsiveAV:
-            return "URLRequest.NetworkServiceType.responsiveAV"
-        case .responsiveData:
-            return "URLRequest.NetworkServiceType.responsiveData"
-        case .video:
-            return "URLRequest.NetworkServiceType.video"
-        case .voice:
-            return "URLRequest.NetworkServiceType.voice"
-        case .voip:
-            return "URLRequest.NetworkServiceType.voip"
-            @unknown default:
-            return "URLRequest.NetworkServiceType.(@unknown default, rawValue: \(self.rawValue))"
-            #endif
+    extension URLRequest.NetworkServiceType: CustomDumpStringConvertible {
+        public var customDumpDescription: String {
+            switch self { #if canImport(FoundationNetworking)
+                case .background:
+                    return "URLRequest.NetworkServiceType.background"
+                case .default:
+                    return "URLRequest.NetworkServiceType.default"
+                case .networkServiceTypeCallSignaling:
+                    return "URLRequest.NetworkServiceType.networkServiceTypeCallSignaling"
+                case .video:
+                    return "URLRequest.NetworkServiceType.video"
+                case .voice:
+                    return "URLRequest.NetworkServiceType.voice"
+                case .voip:
+                    return "URLRequest.NetworkServiceType.voip"
+                #else
+                case .avStreaming:
+                    return "URLRequest.NetworkServiceType.avStreaming"
+                case .background:
+                    return "URLRequest.NetworkServiceType.background"
+                case .callSignaling:
+                    return "URLRequest.NetworkServiceType.callSignaling"
+                case .default:
+                    return "URLRequest.NetworkServiceType.default"
+                case .responsiveAV:
+                    return "URLRequest.NetworkServiceType.responsiveAV"
+                case .responsiveData:
+                    return "URLRequest.NetworkServiceType.responsiveData"
+                case .video:
+                    return "URLRequest.NetworkServiceType.video"
+                case .voice:
+                    return "URLRequest.NetworkServiceType.voice"
+                case .voip:
+                    return "URLRequest.NetworkServiceType.voip"
+                    @unknown default:
+                    return "URLRequest.NetworkServiceType.(@unknown default, rawValue: \(self.rawValue))"
+                #endif
+            }
         }
     }
-}
 #endif
 
 extension UUID: CustomDumpStringConvertible {

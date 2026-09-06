@@ -729,18 +729,18 @@ import XCTest
     }
 
     #if !os(WASI)
-    func testNestedCustomMirror() {
-        expectNoDifference(
-            diff(
-                NestedDate(date: Date(timeIntervalSince1970: 0)),
-                NestedDate(date: Date(timeIntervalSince1970: 1))
-            ),
-            """
-            - NestedDate(date: Date(1970-01-01T00:00:00.000Z))
-            + NestedDate(date: Date(1970-01-01T00:00:01.000Z))
-            """
-        )
-    }
+        func testNestedCustomMirror() {
+            expectNoDifference(
+                diff(
+                    NestedDate(date: Date(timeIntervalSince1970: 0)),
+                    NestedDate(date: Date(timeIntervalSince1970: 1))
+                ),
+                """
+                - NestedDate(date: Date(1970-01-01T00:00:00.000Z))
+                + NestedDate(date: Date(1970-01-01T00:00:01.000Z))
+                """
+            )
+        }
     #endif
 
     func testMultilineString() {
@@ -901,58 +901,58 @@ import XCTest
     }
 
     #if !os(WASI)
-    func testDeeplyNested() {
-        let user = FriendlyUser(
-            id: 1,
-            name: "Blob",
-            friends: [
-                .init(
-                    id: 2,
-                    name: "Blob Jr.",
-                    friends: [
-                        .init(
-                            id: 3,
-                            name: "Blob Sr.",
-                            friends: [.init(id: 4, name: "Someone", friends: [])]
-                        )
-                    ]
-                )
-            ]
-        )
-
-        var other = user
-        other.friends[0].friends[0].friends[0].name += " Else"
-
-        expectNoDifference(
-            diff(user, other),
-            """
-              FriendlyUser(
+        func testDeeplyNested() {
+            let user = FriendlyUser(
                 id: 1,
                 name: "Blob",
                 friends: [
-                  [0]: FriendlyUser(
-                    id: 2,
-                    name: "Blob Jr.",
+                    .init(
+                        id: 2,
+                        name: "Blob Jr.",
+                        friends: [
+                            .init(
+                                id: 3,
+                                name: "Blob Sr.",
+                                friends: [.init(id: 4, name: "Someone", friends: [])]
+                            )
+                        ]
+                    )
+                ]
+            )
+
+            var other = user
+            other.friends[0].friends[0].friends[0].name += " Else"
+
+            expectNoDifference(
+                diff(user, other),
+                """
+                  FriendlyUser(
+                    id: 1,
+                    name: "Blob",
                     friends: [
                       [0]: FriendlyUser(
-                        id: 3,
-                        name: "Blob Sr.",
+                        id: 2,
+                        name: "Blob Jr.",
                         friends: [
                           [0]: FriendlyUser(
-                            id: 4,
-            -               name: "Someone",
-            +               name: "Someone Else",
-                            friends: []
+                            id: 3,
+                            name: "Blob Sr.",
+                            friends: [
+                              [0]: FriendlyUser(
+                                id: 4,
+                -               name: "Someone",
+                +               name: "Someone Else",
+                                friends: []
+                              )
+                            ]
                           )
                         ]
                       )
                     ]
                   )
-                ]
-              )
-            """
-        )
-    }
+                """
+            )
+        }
     #endif
 
     func testInterleavedIndices() {

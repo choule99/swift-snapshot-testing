@@ -310,65 +310,65 @@ final class InlineSnapshotTestingTests: BaseTestCase {
     }
 
     #if canImport(Darwin)
-    func testRecordFailed_IncorrectExpectation() {
-        let initialInlineSnapshotState = inlineSnapshotState.withLock { $0 }
-        defer { inlineSnapshotState.withLock { $0 = initialInlineSnapshotState } }
+        func testRecordFailed_IncorrectExpectation() {
+            let initialInlineSnapshotState = inlineSnapshotState.withLock { $0 }
+            defer { inlineSnapshotState.withLock { $0 = initialInlineSnapshotState } }
 
-        XCTExpectFailure {
-            withSnapshotTesting(record: .failed) {
-                assertInlineSnapshot(of: 42, as: .json) {
-                    """
-                    4
-                    """
+            XCTExpectFailure {
+                withSnapshotTesting(record: .failed) {
+                    assertInlineSnapshot(of: 42, as: .json) {
+                        """
+                        4
+                        """
+                    }
                 }
+            } issueMatcher: {
+                $0.compactDescription == """
+                failed - Snapshot did not match. Difference: …
+
+                  @@ −1,1 +1,1 @@
+                  −4
+                  +42
+
+                A new snapshot was automatically recorded.
+                """
             }
-        } issueMatcher: {
-            $0.compactDescription == """
-            failed - Snapshot did not match. Difference: …
 
-              @@ −1,1 +1,1 @@
-              −4
-              +42
-
-            A new snapshot was automatically recorded.
-            """
+            let path = inlineSnapshotState.withLock { inlineSnapshotState -> String? in
+                XCTAssertEqual(inlineSnapshotState.count, 1)
+                return inlineSnapshotState.keys.first.map { String(describing: $0.path) }
+            }
+            XCTAssertEqual(path?.hasSuffix("InlineSnapshotTestingTests.swift"), true)
         }
-
-        let path = inlineSnapshotState.withLock { inlineSnapshotState -> String? in
-            XCTAssertEqual(inlineSnapshotState.count, 1)
-            return inlineSnapshotState.keys.first.map { String(describing: $0.path) }
-        }
-        XCTAssertEqual(path?.hasSuffix("InlineSnapshotTestingTests.swift"), true)
-    }
     #endif
 
     #if canImport(Darwin)
-    func testRecordFailed_MissingExpectation() {
-        let initialInlineSnapshotState = inlineSnapshotState.withLock { $0 }
-        defer { inlineSnapshotState.withLock { $0 = initialInlineSnapshotState } }
+        func testRecordFailed_MissingExpectation() {
+            let initialInlineSnapshotState = inlineSnapshotState.withLock { $0 }
+            defer { inlineSnapshotState.withLock { $0 = initialInlineSnapshotState } }
 
-        XCTExpectFailure {
-            withSnapshotTesting(record: .failed) {
-                assertInlineSnapshot(of: 42, as: .json)
+            XCTExpectFailure {
+                withSnapshotTesting(record: .failed) {
+                    assertInlineSnapshot(of: 42, as: .json)
+                }
+            } issueMatcher: {
+                $0.compactDescription == """
+                failed - Automatically recorded a new snapshot. Difference: …
+
+                  @@ −1,1 +1,1 @@
+                  −
+                  +42
+
+                Re-run "testRecordFailed_MissingExpectation()" to assert against the newly-recorded snapshot.
+                """
             }
-        } issueMatcher: {
-            $0.compactDescription == """
-            failed - Automatically recorded a new snapshot. Difference: …
 
-              @@ −1,1 +1,1 @@
-              −
-              +42
-
-            Re-run "testRecordFailed_MissingExpectation()" to assert against the newly-recorded snapshot.
-            """
+            let path = inlineSnapshotState.withLock { inlineSnapshotState -> String? in
+                XCTAssertEqual(inlineSnapshotState.count, 1)
+                return inlineSnapshotState.keys.first.map { String(describing: $0.path) }
+            }
+            XCTAssertEqual(path?.hasSuffix("InlineSnapshotTestingTests.swift"), true)
         }
-
-        let path = inlineSnapshotState.withLock { inlineSnapshotState -> String? in
-            XCTAssertEqual(inlineSnapshotState.count, 1)
-            return inlineSnapshotState.keys.first.map { String(describing: $0.path) }
-        }
-        XCTAssertEqual(path?.hasSuffix("InlineSnapshotTestingTests.swift"), true)
-    }
     #endif
 }
 
