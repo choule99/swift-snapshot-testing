@@ -6,7 +6,7 @@ on:
 jobs:
   macos:
     name: macOS
-    runs-on: macos-26
+    runs-on: blacksmith-6vcpu-macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode 26.4.1
@@ -17,14 +17,14 @@ jobs:
   ubuntu:
     container: swift:6.3
     name: Linux (Swift 6.3)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
       - run: swift test
 
   android:
     name: Android
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
       - uses: skiptools/swift-android-action@v2
