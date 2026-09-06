@@ -42,15 +42,15 @@ website-build:
 
 documentation-build:
 
-	mkdir -p docs/api
-	swift package --allow-writing-to-directory docs/api/snapshottesting generate-documentation --target SnapshotTesting --output-path docs/api/snapshottesting --transform-for-static-hosting --hosting-base-path swift-snapshot-testing/api/snapshottesting
-	swift package --allow-writing-to-directory docs/api/snapshotpreviews generate-documentation --target SnapshotPreviews --output-path docs/api/snapshotpreviews --transform-for-static-hosting --hosting-base-path swift-snapshot-testing/api/snapshotpreviews
-	swift package --allow-writing-to-directory docs/api/inlinesnapshottesting generate-documentation --target InlineSnapshotTesting --output-path docs/api/inlinesnapshottesting --transform-for-static-hosting --hosting-base-path swift-snapshot-testing/api/inlinesnapshottesting
-	swift package --allow-writing-to-directory docs/api/customdump generate-documentation --target CustomDump --output-path docs/api/customdump --transform-for-static-hosting --hosting-base-path swift-snapshot-testing/api/customdump
+	mkdir -p .build/site/api
+	swift package --allow-writing-to-directory .build/site/api/snapshottesting generate-documentation --target SnapshotTesting --output-path .build/site/api/snapshottesting --transform-for-static-hosting --hosting-base-path docs/swift-snapshot-testing/api/snapshottesting
+	swift package --allow-writing-to-directory .build/site/api/snapshotpreviews generate-documentation --target SnapshotPreviews --output-path .build/site/api/snapshotpreviews --transform-for-static-hosting --hosting-base-path docs/swift-snapshot-testing/api/snapshotpreviews
+	swift package --allow-writing-to-directory .build/site/api/inlinesnapshottesting generate-documentation --target InlineSnapshotTesting --output-path .build/site/api/inlinesnapshottesting --transform-for-static-hosting --hosting-base-path docs/swift-snapshot-testing/api/inlinesnapshottesting
+	swift package --allow-writing-to-directory .build/site/api/customdump generate-documentation --target CustomDump --output-path .build/site/api/customdump --transform-for-static-hosting --hosting-base-path docs/swift-snapshot-testing/api/customdump
 
 site-build:
 
-	rm -rf docs
+	rm -rf .build/site
 	$(MAKE) website-build
 	$(MAKE) documentation-build
 

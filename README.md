@@ -316,13 +316,15 @@ If your data can be represented as an image, text, or data, you can write a snap
 
 ## Documentation
 
-Read the [documentation site](https://modern-swift-dev.github.io/swift-snapshot-testing/) for
+Documentation sources stay in this repository. The [central documentation repository](https://github.com/modern-swift-dev/docs) builds and publishes the site daily. Run `make site-build` to generate a local preview in `.build/site`, then `make site-preview` to serve it.
+
+Read the [documentation site](https://modern-swift-dev.github.io/docs/swift-snapshot-testing/) for
 guides, examples, release notes, and API documentation for
-[SnapshotTesting](https://modern-swift-dev.github.io/swift-snapshot-testing/api/snapshottesting/documentation/snapshottesting/),
-[SnapshotPreviews](https://modern-swift-dev.github.io/swift-snapshot-testing/api/snapshotpreviews/documentation/snapshotpreviews/),
-[InlineSnapshotTesting](https://modern-swift-dev.github.io/swift-snapshot-testing/api/inlinesnapshottesting/documentation/inlinesnapshottesting/),
+[SnapshotTesting](https://modern-swift-dev.github.io/docs/swift-snapshot-testing/api/snapshottesting/documentation/snapshottesting/),
+[SnapshotPreviews](https://modern-swift-dev.github.io/docs/swift-snapshot-testing/api/snapshotpreviews/documentation/snapshotpreviews/),
+[InlineSnapshotTesting](https://modern-swift-dev.github.io/docs/swift-snapshot-testing/api/inlinesnapshottesting/documentation/inlinesnapshottesting/),
 and
-[CustomDump](https://modern-swift-dev.github.io/swift-snapshot-testing/api/customdump/documentation/customdump/).
+[CustomDump](https://modern-swift-dev.github.io/docs/swift-snapshot-testing/api/customdump/documentation/customdump/).
 
 ## Requirements
 

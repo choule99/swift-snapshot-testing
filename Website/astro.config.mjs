@@ -3,8 +3,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   site: "https://modern-swift-dev.github.io",
-  base: "/swift-snapshot-testing",
-  outDir: "../docs",
+  base: "/docs/swift-snapshot-testing",
+  outDir: "../.build/site",
   build: { assets: "_assets" },
   vite: { plugins: [tailwindcss()] },
 });

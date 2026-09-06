@@ -2,8 +2,8 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 
-const siteRoot = resolve(process.argv[2] ?? "../docs");
-const basePath = "/swift-snapshot-testing";
+const siteRoot = resolve(process.argv[2] ?? "../.build/site");
+const basePath = "/docs/swift-snapshot-testing";
 const startingPort = Number.parseInt(process.env.PORT ?? "4321", 10);
 
 if (!existsSync(resolve(siteRoot, "index.html"))) {

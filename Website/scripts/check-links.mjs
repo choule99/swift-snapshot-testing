@@ -1,8 +1,8 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
-const siteRoot = resolve(process.argv[2] ?? "../docs");
-const basePath = "/swift-snapshot-testing/";
+const siteRoot = resolve(process.argv[2] ?? "../.build/site");
+const basePath = "/docs/swift-snapshot-testing/";
 
 function filesBelow(directory) {
   return readdirSync(directory).flatMap((name) => {

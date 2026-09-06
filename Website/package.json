@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "astro dev",
     "check": "astro check",
-    "check:links": "node scripts/check-links.mjs ../docs",
+    "check:links": "node scripts/check-links.mjs ../.build/site",
     "build": "astro build",
-    "preview": "node scripts/preview.mjs ../docs"
+    "preview": "node scripts/preview.mjs ../.build/site"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
