@@ -23,7 +23,6 @@ These instructions apply to the entire repository.
 - `.swiftformat` and `.swiftlint.yml`: repository style rules.
 
 Keep source changes in the owning target and tests in the matching test target. Reuse existing helpers and patterns before adding new ones.
-CI also checks Android compatibility; `make test-all` does not include that job.
 
 ## Commands
 
