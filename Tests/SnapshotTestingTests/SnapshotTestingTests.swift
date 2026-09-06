@@ -536,7 +536,7 @@ final class SnapshotTestingTests: BaseTestCase {
         XCTAssertTrue(SnapshotTesting.PropertyListDecoder.self == Foundation.PropertyListDecoder.self)
     }
 
-    #if os(Linux) || os(tvOS) || os(watchOS)
+    #if os(Linux) || os(Android) || os(tvOS) || os(watchOS)
     func testMixedViews() async {}
     #else
     func testMixedViews() {
@@ -2254,7 +2254,7 @@ final class SnapshotTestingTests: BaseTestCase {
         assertSnapshot(of: post, as: .raw(pretty: true), named: "post-pretty-invalid-json")
     }
 
-    #if os(Linux) || os(tvOS) || os(watchOS)
+    #if os(Linux) || os(Android) || os(tvOS) || os(watchOS)
     func testWebView() async {}
     #else
     func testWebView() throws {
