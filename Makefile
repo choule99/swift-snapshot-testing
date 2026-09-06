@@ -16,44 +16,6 @@ format:
 	mint run --no-install nicklockwood/SwiftFormat . --config .swiftformat --quiet
 	mint run --no-install realm/SwiftLint  --config .swiftlint.yml --fix --quiet
 
-website-install:
-
-	npm --prefix Website ci
-
-website-preview:
-
-	npm --prefix Website run dev
-
-site-preview:
-
-	npm --prefix Website run preview
-
-website-check:
-
-	npm --prefix Website run check
-
-site-check: website-check
-
-	npm --prefix Website run check:links
-
-website-build:
-
-	npm --prefix Website run build
-
-documentation-build:
-
-	mkdir -p .build/site/api
-	swift package --allow-writing-to-directory .build/site/api/snapshottesting generate-documentation --target SnapshotTesting --output-path .build/site/api/snapshottesting --transform-for-static-hosting --hosting-base-path docs/swift-snapshot-testing/api/snapshottesting
-	swift package --allow-writing-to-directory .build/site/api/snapshotpreviews generate-documentation --target SnapshotPreviews --output-path .build/site/api/snapshotpreviews --transform-for-static-hosting --hosting-base-path docs/swift-snapshot-testing/api/snapshotpreviews
-	swift package --allow-writing-to-directory .build/site/api/inlinesnapshottesting generate-documentation --target InlineSnapshotTesting --output-path .build/site/api/inlinesnapshottesting --transform-for-static-hosting --hosting-base-path docs/swift-snapshot-testing/api/inlinesnapshottesting
-	swift package --allow-writing-to-directory .build/site/api/customdump generate-documentation --target CustomDump --output-path .build/site/api/customdump --transform-for-static-hosting --hosting-base-path docs/swift-snapshot-testing/api/customdump
-
-site-build:
-
-	rm -rf .build/site
-	$(MAKE) website-build
-	$(MAKE) documentation-build
-
 test-linux:
 	docker run \
 		--rm \

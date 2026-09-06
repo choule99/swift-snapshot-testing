@@ -1,9 +1,0 @@
----
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import DocumentationCard from "../../components/DocumentationCard.astro";
-const base = `${import.meta.env.BASE_URL}/`;
----
-<BaseLayout title="Documentation" description="Guides and API documentation for SnapshotTesting.">
-  <section class="shell py-20 sm:py-28"><p class="eyebrow">Documentation</p><h1 class="text-5xl font-bold tracking-[-0.05em]">Start with a test. Then make it a snapshot.</h1><p class="prose-copy mt-6">The guide covers installation, recording, and the everyday workflow. API documentation covers the modules in this package.</p></section>
-  <section class="shell pb-20"><div class="grid gap-5 md:grid-cols-2"><DocumentationCard title="Getting started" text="Add the package, write your first assertion, and understand recorded references." href={`${base}documentation/getting-started/`} detail="Guide" /><DocumentationCard title="SnapshotTesting" text="Assertions, strategies, recording options, and configuration." href={`${base}api/snapshottesting/documentation/snapshottesting/`} detail="API reference" /><DocumentationCard title="SnapshotPreviews" text="Share SwiftUI preview definitions with snapshot tests." href={`${base}api/snapshotpreviews/documentation/snapshotpreviews/`} detail="API reference" /><DocumentationCard title="InlineSnapshotTesting" text="Store a compact text snapshot beside its assertion." href={`${base}api/inlinesnapshottesting/documentation/inlinesnapshottesting/`} detail="API reference" /><DocumentationCard title="CustomDump" text="Produce focused structural snapshots using the CustomDump module." href={`${base}api/customdump/documentation/customdump/`} detail="API reference" /></div></section>
-</BaseLayout>

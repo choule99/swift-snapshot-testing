@@ -1,28 +1,13 @@
 # Contributing
 
-## Publishing the documentation site
+## Documentation
 
-Keep documentation sources in this repository. The [central documentation repository](https://github.com/modern-swift-dev/docs)
-builds the Astro and DocC site daily and publishes it at
-https://modern-swift-dev.github.io/docs/swift-snapshot-testing/.
+Edit the Markdown pages in `Documentation/Site/` or the DocC catalogs beside their Swift targets.
+Keep code examples and module-specific guides in this repository. Site pages use YAML `title` and
+`description` fields. The central build replaces `{{version}}`, `{{releaseDate}}`, and `{{releaseURL}}`
+with the latest published release data.
 
-After changing documentation or publishing a GitHub release, validate the site locally:
-
-```sh
-make website-install
-make site-build
-make site-check
-```
-
-Review the generated release information and DocC output under `.build/site/`, and commit only the
-source changes. Generated HTML is ignored and is not committed to this module.
-
-Preview the assembled site with:
-
-```sh
-make site-preview
-```
-
-Open the exact URL printed by the command. Do not open `.build/site/index.html` directly or serve
-`.build/site/` at the URL root. The generated asset URLs include the `/docs/swift-snapshot-testing/`
-prefix required by GitHub Pages. Pages deployment is configured in the central documentation repository.
+The [central documentation repository](https://github.com/modern-swift-dev/docs) owns the shared
+Astro theme, DocC generation, previews, and daily publication. Follow its
+[build and preview instructions](https://github.com/modern-swift-dev/docs/blob/main/README.md) to review changes.
+Commit documentation sources here; generated HTML is published centrally.
